@@ -1,11 +1,11 @@
 services:
   php:
-    image: dunglas/frankenphp:1-builder-php8.3.3
+    # image: dunglas/frankenphp:1-builder-php8.3.3
     # uncomment the following line if you want to use a custom Dockerfile
-    # build: .
+    build: .
     # uncomment the following line if you want to run this in a production environment
     # restart: always
-    working_dir: /app
+    # working_dir: /app
     environment:
       SERVER_NAME: http://localhost:8080
     ports:
