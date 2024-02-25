@@ -1,0 +1,27 @@
+services:
+  php:
+    image: dunglas/frankenphp:1-builder-php8.3.3
+    # uncomment the following line if you want to use a custom Dockerfile
+    # build: .
+    # uncomment the following line if you want to run this in a production environment
+    # restart: always
+    working_dir: /app
+    environment:
+      SERVER_NAME: http://localhost:8080
+    ports:
+      # - "80:80" # HTTP
+      # - "443:443" # HTTPS
+      # - "443:443/udp" # HTTP/3
+      - 8080:8080 # dev
+    volumes:
+      - ./../:/app/
+      # - ./../.caddy/Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    # comment the following line in production, it allows to have nice human-readable logs in dev
+    tty: true
+
+# Volumes needed for Caddy certificates and configuration
+volumes:
+  caddy_data:
+  caddy_config:
