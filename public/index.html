@@ -1,0 +1,65 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>Simple Newsletter</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="author" content="Ivan Yaki">
+	<meta name="description" content="Simple Atom/RSS feed to newsletter subscription service">
+	<meta property="og:title" content="Simple Newsletter">
+
+	<!--
+		`og` stands for Open Graph, which is a protocol for how your website appears when linked to from another site. These tags are critical to ensuring your site gains an appropriate card when sharing on social media.
+
+		TODO
+	-->
+	<meta property="og:description" content="Simple Atom/RSS feed to newsletter subscription service">
+	<meta property="og:image" content="/some-image.png">
+	<meta property="og:url" content="/this-page.html">
+	<meta property="og:site_name" content="Your Site Name">
+
+	<!--
+		`twitter` is similar to Open Graph, but specific to Twitter. There are multiple card types you can choose from.
+
+		Learn more on Twitter's documentation:
+		https://developer.twitter.com/en/docs/tweets/optimize-with-cards/guides/getting-started
+
+		TODO
+	-->
+	<meta name="twitter:card" content="summary_large_image">
+	<meta name="twitter:image:alt" content="image description">
+
+	<!-- <link href="style.css" rel="stylesheet"> -->
+
+	<!--
+		A favicon is the small picture that shows up in the browser's tab. Historically, these used a proprietary ".ico" format, and you needed to provide many different sizes.
+
+		Happily, you can now provide a single vector graphic in SVG format. It will scale to any size, and still look crisp.
+
+
+		TODO
+	-->
+	<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+</head>
+<body>
+	<main>
+		<h1>Atom/RSS Feed to Newsletter</h1>
+		<h2>The news that you want to hear about directly to your inbox</h2>
+		<section>
+			<form action="/feed/">
+				<label>
+					Feed
+					<input type="url" name="uri" required>
+				</label>
+				<input type="submit">
+				<button type="submit">Subscribe!</button>
+			</form>
+			<p>Insert the URI of the Atom/RSS feed ...</p>
+		</section>
+		<section>Why?</section>
+		<section>FAQ</section>
+	</main>
+	<!-- <script src="script.js"></script> -->
+</body>
+</html>
