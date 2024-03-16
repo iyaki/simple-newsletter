@@ -9,6 +9,8 @@ WORKDIR /app
 
 COPY --from=composer /usr/bin/composer /usr/bin/composer
 
+COPY .php/php.ini /usr/local/etc/php/php.ini
+
 RUN apt-get update \
 	&& apt-get install --assume-yes --quiet --no-install-recommends --purge \
 		bash-completion \

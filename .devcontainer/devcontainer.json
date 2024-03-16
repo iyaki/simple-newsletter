@@ -4,7 +4,7 @@
 	"name": "simple-newsletter",
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
 	// "image": "mcr.microsoft.com/devcontainers/php:1-8.2-bullseye",
-	"dockerComposeFile": "./compose.yaml",
+	"dockerComposeFile": "../compose.yaml",
 	"service": "php",
 	"workspaceFolder": "/app",
 
@@ -12,7 +12,14 @@
 	// "features": {},
 
 	// Configure tool-specific properties.
-	// "customizations": {},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"bmewburn.vscode-intelephense-client",
+				"neilbrayfield.php-docblocker"
+			]
+		}
+	},
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	// "forwardPorts": [8080],

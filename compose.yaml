@@ -14,8 +14,8 @@ services:
       # - "443:443/udp" # HTTP/3
       - 8080:8080 # dev
     volumes:
-      - ./../:/app/
-      # - ./../.caddy/Caddyfile:/etc/caddy/Caddyfile
+      - ./:/app/
+      # - ./.caddy/Caddyfile:/etc/caddy/Caddyfile
       - caddy_data:/data
       - caddy_config:/config
     # comment the following line in production, it allows to have nice human-readable logs in dev
