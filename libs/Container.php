@@ -6,6 +6,7 @@ namespace SimpleNewsletter;
 
 use SimpleNewsletter\Data\Database;
 use SimpleNewsletter\Data\FeedsDAO;
+use SimpleNewsletter\Models\Feeds;
 use SimpleNewsletter\Models\Subscriptions;
 
 final class Container
@@ -14,8 +15,10 @@ final class Container
 
     private static ?Database $database = null;
 
-    public function __construct()
-    {}
+    public function feeds(): Feeds
+    {
+        return new Feeds($this->feedsDAO());
+    }
 
     public function subscriptions(): Subscriptions
     {
