@@ -45,8 +45,8 @@ final class FeedsDAO
         $stmt = $this->db->prepare(<<<SQL
         UPDATE {$this->TABLE}
         SET
-            title = :title
-            last_update = :last_update,
+            title = :title,
+            last_update = :last_update
         WHERE uri = :uri
         SQL);
         $stmt->execute([

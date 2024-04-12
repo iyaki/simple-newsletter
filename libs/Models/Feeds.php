@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace SimpleNewsletter\Models;
 
-use DateTimeImmutable;
 use Laminas\Feed\Reader\Reader;
 use SimpleNewsletter\Data\Feed;
 use SimpleNewsletter\Data\FeedsDAO;
@@ -18,24 +17,31 @@ final class Feeds
 
     public function retrieve(string $uri): Feed
     {
+        $fetch = function (string $uri): Feed {
+            $sourceFeed = Reader::import($uri);
+            return new Feed(
+                $uri,
+                $sourceFeed->getTitle(),
+                $sourceFeed->getLink(),
+                new \DateTimeImmutable()
+            );
+        };
+
         $uri = trim($uri);
         $feed = $this->feedsDAO->find($uri);
 
-        if ($feed instanceof Feed && $feed->lastUpdate->diff(new DateTimeImmutable())->days < 1) {
+        if ($feed instanceof Feed) {
+            if ($feed->lastUpdate->diff(new \DateTimeImmutable())->days < 1) {
+                return $feed;
+            }
+
+            $feed = $fetch($uri);
+            $this->feedsDAO->update($feed);
             return $feed;
         }
 
-        $importedFeed = Reader::import($uri);
-
-        $feed = new Feed(
-            $uri,
-            $importedFeed->getTitle(),
-            $importedFeed->getLink(),
-            new DateTimeImmutable()
-        );
-
+        $feed = $fetch($uri);
         $this->feedsDAO->new($feed);
-
         return $feed;
     }
 
