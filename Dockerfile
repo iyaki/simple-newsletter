@@ -1,16 +1,16 @@
-FROM dunglas/frankenphp:1-builder-php8.3.3
+FROM dunglas/frankenphp:1.1.2-php8.3
 
 WORKDIR /app
 
 # add additional extensions here:
-# RUN install-php-extensions \
+RUN install-php-extensions \
+	xdebug
 # 	intl \
 # 	zip
 
 COPY --from=composer /usr/bin/composer /usr/bin/composer
 
 COPY .php/php.ini /usr/local/etc/php/php.ini
-
 RUN apt-get update \
 	&& apt-get install --assume-yes --quiet --no-install-recommends --purge \
 		bash-completion \
