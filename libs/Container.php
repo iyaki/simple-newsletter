@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SimpleNewsletter;
 
+use SimpleNewsletter\Components\Auth;
 use SimpleNewsletter\Data\Database;
 use SimpleNewsletter\Data\FeedsDAO;
 use SimpleNewsletter\Models\Feeds;
@@ -23,6 +24,11 @@ final class Container
     public function subscriptions(): Subscriptions
     {
         return new Subscriptions($this->feedsDAO());
+    }
+
+    public function auth(): Auth
+    {
+        return new Auth(\getenv('SECRET_KEY'));
     }
 
     private function feedsDAO(): FeedsDAO
