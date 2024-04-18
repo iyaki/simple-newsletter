@@ -27,6 +27,8 @@ use SimpleNewsletter\Models\Sender;
     if ($method === 'POST') {
         if ($email === null || $feedUri === null) {
             \header('HTTP/1.0 400 Bad Request');
+            echo 'Fields "email" and "uri" are required';
+            exit;
         }
 
         if ($token === null) {
@@ -36,9 +38,11 @@ use SimpleNewsletter\Models\Sender;
 
             $sender = new Sender();
             $sender->subscriptionConfirmation($email, $feed->title, $feed->link);
-        } else {
-            // Confirma subscripción y redirige a GET
+            exit;
         }
+
+        // Confirma subscripción y redirige a GET
+        exit;
     } elseif ($method === 'GET') {
         if ($token === null) {
             // Pantalla de "log-in" (token)
