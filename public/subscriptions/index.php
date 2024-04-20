@@ -18,44 +18,29 @@ use SimpleNewsletter\Models\Sender;
         - Otros: 405
  */
 (function (): never {
-    $email = $_POST['email'] ?? null;
-    $feedUri = $_POST['uri'] ?? null;
-    $token = $_GET['token'] ?? null;
     $method = $_SERVER['REQUEST_METHOD'];
+    if (!\in_array($method, ['GET', 'DELETE'])) {
+        header("Location: /", true, 302);
+        exit;
+    }
+
+    $email = $_GET['email'] ?? null;
+    $feedUri = $_GET['uri'] ?? null;
+
+    if (!$email || !$feedUri) {
+        \header('HTTP/1.0 400 Bad Request', true, 400);
+        echo 'Fields "email" and "uri" are required';
+        exit;
+    }
+
     $c = new Container();
 
-    if ($method === 'POST') {
-        if ($email === null || $feedUri === null) {
-            \header('HTTP/1.0 400 Bad Request');
-            echo 'Fields "email" and "uri" are required';
-            exit;
-        }
+    if ($method === 'GET') {
+        \filter_var($email, \FILTER_VALIDATE_EMAIL);
+        echo '<pre>'; \var_dump($_SERVER); exit;
 
-        if ($token === null) {
-            echo '<pre>'; \var_dump('pasó'); exit;
-            $c = new Container();
-            $feed = $c->feeds()->retrieve($feedUri);
-
-            $sender = new Sender();
-            $sender->subscriptionConfirmation($email, $feed->title, $feed->link);
-            exit;
-        }
-
-        // Confirma subscripción y redirige a GET
         exit;
-    } elseif ($method === 'GET') {
-        if ($token === null) {
-            // Pantalla de "log-in" (token)
-        } else {
-            // Muestra lista de suscripciones y permite su gestión
-        }
-    } elseif ($method === 'DELETE') {
-        if ($token === null) {
-            // 401
-        } else {
-            // Elimina suscripción (Posibilidad de eliminar todas las suscripciones?)
-        }
-    } else {
-        \header('HTTP/1.0 405 Method Not Allowed');
     }
+
+
 })();

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace SimpleNewsletter;
 
+use SimpleNewsletter\Adapters\PHPMailerFactory;
+use SimpleNewsletter\Adapters\SenderPHPMailer;
 use SimpleNewsletter\Components\Auth;
 use SimpleNewsletter\Data\Database;
 use SimpleNewsletter\Data\FeedsDAO;
@@ -16,17 +18,22 @@ final class Container
 
     private static ?Database $database = null;
 
-    public function feeds(): Feeds
+    private function feeds(): Feeds
     {
         return new Feeds($this->feedsDAO());
     }
 
     public function subscriptions(): Subscriptions
     {
-        return new Subscriptions($this->feedsDAO());
+        return new Subscriptions(
+            $this->feeds(),
+            $this->auth(),
+            $this->sender(),
+            $_SERVER['HTTPS'] ? 'https' : 'http' . '://' . $_SERVER['SERVER_NAME'] . $_SERVER['SERVER_PORT']
+        );
     }
 
-    public function auth(): Auth
+    private function auth(): Auth
     {
         return new Auth(\getenv('SECRET_KEY'));
     }
@@ -34,6 +41,20 @@ final class Container
     private function feedsDAO(): FeedsDAO
     {
         return new FeedsDAO($this->database());
+    }
+
+    private function sender(): SenderPHPMailer
+    {
+        return new SenderPHPMailer(
+            new PHPMailerFactory(
+                \getenv('SMTP_HOST'),
+                (int) \getenv('SMTP_PORT'),
+                \getenv('SMTP_USERNAME'),
+                \getenv('SMTP_PASSWORD'),
+                \getenv('EMAIL_FROM'),
+                \getenv('EMAIL_REPLY_TO')
+            )
+        );
     }
 
     private function database(): Database
