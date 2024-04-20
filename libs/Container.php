@@ -25,11 +25,13 @@ final class Container
 
     public function subscriptions(): Subscriptions
     {
+        $portToAppend = $_SERVER['SERVER_PORT'] !== '80' && $_SERVER['SERVER_PORT'] !== '443' ? ':' . $_SERVER['SERVER_PORT'] : '';
+
         return new Subscriptions(
             $this->feeds(),
             $this->auth(),
             $this->sender(),
-            $_SERVER['HTTPS'] ? 'https' : 'http' . '://' . $_SERVER['SERVER_NAME'] . $_SERVER['SERVER_PORT']
+            $_SERVER['HTTPS'] ? 'https' : 'http' . '://' . $_SERVER['SERVER_NAME'] . $portToAppend
         );
     }
 
@@ -49,7 +51,7 @@ final class Container
             new PHPMailerFactory(
                 \getenv('SMTP_HOST'),
                 (int) \getenv('SMTP_PORT'),
-                \getenv('SMTP_USERNAME'),
+                \getenv('SMTP_USER'),
                 \getenv('SMTP_PASSWORD'),
                 \getenv('EMAIL_FROM'),
                 \getenv('EMAIL_REPLY_TO')

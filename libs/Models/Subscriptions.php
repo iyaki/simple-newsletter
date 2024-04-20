@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SimpleNewsletter\Models;
 
 use SimpleNewsletter\Components\Auth;
+use SimpleNewsletter\Components\EndUserException;
 use SimpleNewsletter\Data\Database;
 use SimpleNewsletter\Data\FeedsDAO;
 
@@ -20,31 +21,24 @@ final readonly class Subscriptions
 
     public function add(string $feedUri, string $email): void
     {
+        if (! \filter_var($feedUri, \FILTER_VALIDATE_URL)) {
+            throw new EndUserException('Invalid Feed URI');
+        }
+
+        if (!\filter_var($email, \FILTER_VALIDATE_EMAIL)) {
+            throw new EndUserException('Invalid email address');
+        }
+
         $feed = $this->feeds->retrieve($feedUri);
         $token = $this->auth->hash($email);
 
-        echo '<pre>'; \var_dump($this->serviceHost); exit;
-
-        $subject = 'Subscription Confirmation - Simple Newsletter';
+        $subject = 'Newsletter subscription confirmation';
         $message = <<<HTML
-            <h1>Thank you for subscribing to {$feed->name}.</h1>
+            <h1>Thank you for subscribing to <a href="{$feed->link}" target="_blank">{$feed->title}</a>.</h1>
             <p>Please confirm your subscription by clicking the following link:</p>
-            <p><a href="{$feed->url}/confirm?feedUri={$feedUri}&email={$email}&token={$token}">Confirm Subscription</a></p>
+            <p><a href="{$this->serviceHost}/subscriptions/confirm?feedUri={$uri}&email={$email}&token={$token}">Confirm Subscription</a>. Or copy and paste the following link into your browser: {$this->serviceHost}/subscriptions/confirm?feedUri={$uri}&email={$email}&token={$token}</p>
             <p>If you did not request this subscription, please ignore this email.</p>
             <p>Thank you.</p>
-            <p>The Simple Newsletter Team</p>
-            <p><a href="{$feed->url}">{$feed->url}</a></p>
-            <p><a href="{$feed->url}/unsubscribe?feedUri={$feedUri}&email={$email}&token={$token}">Unsubscribe</a></p>
-            <p><a href="{$feed->url}/edit?feedUri={$feedUri}&email={$email}&token={$token}">Edit Subscription</a></p>
-            <p><a href="{$feed->url}/delete?feedUri={$feedUri}&email={$email}&token={$token}">Delete Subscription</a></p>
-            <p><a href="{$feed->url}/confirm?feedUri={$feedUri}&email={$email}&token={$token}">Confirm Subscription</a></p>
-            <p><a href="{$feed->url}/unsubscribe?feedUri={$feedUri}&email={$email}&token={$token}">Unsubscribe</a></p>
-            <p><a href="{$feed->url}/edit?feedUri={$feedUri}&email={$email}&token={$token}">Edit Subscription</a></p>
-            <p><a href="{$feed->url}/delete?feedUri={$feedUri}&email={$email}&token={$token}">Delete Subscription</a></p>
-            <p><a href="{$feed->url}/confirm?feedUri={$feedUri}&email={$email}&token={$token}">Confirm Subscription</a></p>
-            <p><a href="{$feed->url}/unsubscribe?feedUri={$feedUri}&email={$email}&token={$token}">Unsubscribe</a></p>
-            <p><a href="{$feed->url}/edit?feedUri={$feedUri}&email={$email}&token={$token}">Edit Subscription</a></p>
-            <p><a href="{$feed->url}/delete?feedUri={$feedUri}&email={$email}&token={$token}">Delete Subscription</a></p>
         HTML;
 
         $this->sender->send([$email], $subject, $message);
