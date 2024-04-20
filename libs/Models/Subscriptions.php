@@ -34,16 +34,27 @@ final readonly class Subscriptions
             throw new EndUserException('Invalid email address');
         }
 
-        $subscription = new Subscription($feedUri, $email);
-        $this->subscriptionsDAO->new($subscription);
+        $subscription = $this->subscriptionsDAO->find($feedUri, $email);
 
-        $token = $this->auth->hash($email);
+        if ($subscription instanceof Subscription) {
+            if ($subscription->active) {
+                throw new EndUserException('Already subscribed');
+            }
+        } else {
+            $subscription = new Subscription($feedUri, $email);
+            $this->subscriptionsDAO->new($subscription);
+        }
+
+
+        $encodedToken = \urlencode($this->auth->hash($email));
+        $encodedUri = \urlencode($feedUri);
+        $encodedEmail = \urlencode($email);
 
         $subject = 'Newsletter subscription confirmation';
         $message = <<<HTML
             <h1>Thank you for subscribing to <a href="{$feed->link}" target="_blank">{$feed->title}</a>.</h1>
-            <p>Please confirm your subscription by clicking the following link: <a href="{$this->serviceHost}/subscriptions/confirmation?uri={$feedUri}&email={$email}&token={$token}">Confirm Subscription</a>.</p>
-            <p>Or copy and paste the following link into your browser: <code>{$this->serviceHost}/subscriptions/confirmation?uri={$feedUri}&email={$email}&token={$token}</code></p>
+            <p>Please confirm your subscription by clicking the following link: <a href="{$this->serviceHost}/subscriptions/confirmation/?uri={$encodedUri}&email={$encodedEmail}&token={$encodedToken}">Confirm Subscription</a>.</p>
+            <p>Or copy and paste the following link into your browser: <code>{$this->serviceHost}/subscriptions/confirmation/?uri={$encodedUri}&email={$encodedEmail}&token={$encodedToken}</code></p>
             <p>If you did not request this subscription, please ignore this email.</p>
             <p>Thank you.</p>
         HTML;
@@ -53,7 +64,12 @@ final readonly class Subscriptions
 
     public function confirm(string $feedUri, string $email, string $token): void
     {
+        if (!$this->auth->verify($email, $token)) {
+            throw new EndUserException('Invalid token');
+        }
 
+        $subscription = $this->subscriptionsDAO->find($feedUri, $email);
+        $this->subscriptionsDAO->activate($subscription);
     }
 
     public function remove(string $feedUri, string $email, string $token): void

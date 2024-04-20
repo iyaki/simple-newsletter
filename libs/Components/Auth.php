@@ -18,7 +18,7 @@ final readonly class Auth
 
     public function verify(string$key, string $token): bool
     {
-        \password_verify($this->prepare($key), $token);
+        return \password_verify($this->prepare($key), $token);
     }
 
     private function prepare(string $key): string
