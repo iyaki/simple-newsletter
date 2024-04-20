@@ -27,17 +27,6 @@ final class FeedsDAO
         }
 
         return self::FeedDTOFactory(...$result);
-        // var_dump($stmt->fetchAll(\PDO::FETCH_FUNC, self::FeedDTOFactory(...)));
-    }
-
-    /**
-     * @return Feed[]
-     */
-    public function all(): array
-    {
-        $stmt = $this->db->prepare("SELECT uri, last_update, last_post FROM {$this->TABLE}");
-        $stmt->execute();
-        return $stmt->fetchAll(\PDO::FETCH_FUNC, self::FeedDTOFactory(...));
     }
 
     public function update(Feed $feed): void

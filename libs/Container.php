@@ -9,6 +9,7 @@ use SimpleNewsletter\Adapters\SenderPHPMailer;
 use SimpleNewsletter\Components\Auth;
 use SimpleNewsletter\Data\Database;
 use SimpleNewsletter\Data\FeedsDAO;
+use SimpleNewsletter\Data\SubscriptionsDAO;
 use SimpleNewsletter\Models\Feeds;
 use SimpleNewsletter\Models\Subscriptions;
 
@@ -20,7 +21,7 @@ final class Container
 
     private function feeds(): Feeds
     {
-        return new Feeds($this->feedsDAO());
+        return new Feeds(new FeedsDAO($this->database()));
     }
 
     public function subscriptions(): Subscriptions
@@ -28,6 +29,7 @@ final class Container
         $portToAppend = $_SERVER['SERVER_PORT'] !== '80' && $_SERVER['SERVER_PORT'] !== '443' ? ':' . $_SERVER['SERVER_PORT'] : '';
 
         return new Subscriptions(
+            new SubscriptionsDAO($this->database()),
             $this->feeds(),
             $this->auth(),
             $this->sender(),
@@ -38,11 +40,6 @@ final class Container
     private function auth(): Auth
     {
         return new Auth(\getenv('SECRET_KEY'));
-    }
-
-    private function feedsDAO(): FeedsDAO
-    {
-        return new FeedsDAO($this->database());
     }
 
     private function sender(): SenderPHPMailer

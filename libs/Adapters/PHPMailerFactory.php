@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace SimpleNewsletter\Adapters;
 
+use PHPMailer\PHPMailer\PHPMailer;
+
 final readonly class PHPMailerFactory
 {
     public function __construct(
