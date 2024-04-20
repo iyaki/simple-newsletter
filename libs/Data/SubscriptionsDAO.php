@@ -35,7 +35,7 @@ final class SubscriptionsDAO
         $stmt = $this->db->prepare(<<<SQL
         UPDATE {$this->TABLE}
         SET
-            active = 1,
+            active = 1
         WHERE
             feed_uri = :feedUri
         AND email = :email
@@ -75,18 +75,18 @@ final class SubscriptionsDAO
         $stmt->execute([
             'feedUri' => $subscription->feedUri,
             'email' => $subscription->email,
-            'active' => $subscription->active,
+            'active' => (int) $subscription->active,
         ]);
     }
 
     static private function SubscriptionDTOFactory(
-        string $feedUri,
+        string $feed_uri,
         string $email,
         int $active,
     ): Subscription
     {
         return new Subscription(
-            $feedUri,
+            $feed_uri,
             $email,
             (bool) $active
         );

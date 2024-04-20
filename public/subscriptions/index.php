@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace SimpleNewsletter;
 
-use PHPMailer\PHPMailer\PHPMailer;
 use SimpleNewsletter\Components\EndUserException;
-use SimpleNewsletter\Models\Sender;
 
 (function (): never {
     try {
