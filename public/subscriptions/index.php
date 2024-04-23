@@ -12,9 +12,7 @@ use SimpleNewsletter\Components\EndUserException;
         $feedUri = $_GET['uri'] ?? null;
 
         if (! ($email && $feedUri)) {
-            \header('HTTP/1.0 400 Bad Request', true, 400);
-            echo 'Fields "email" and "uri" are required';
-            exit;
+            throw new EndUserException('Fields "email" and "uri" are required');
         }
 
         $c = new Container();

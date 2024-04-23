@@ -13,9 +13,7 @@ use SimpleNewsletter\Components\EndUserException;
         $token = $_GET['token'] ?? null;
 
         if (! ($email && $feedUri && $token)) {
-            \header('HTTP/1.0 400 Bad Request', true, 400);
-            echo 'Fields "email", "uri" and "token" are required';
-            exit;
+            throw new EndUserException('Fields "email", "uri" and "token" are required');
         }
 
         $c = new Container();
