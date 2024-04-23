@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace SimpleNewsletter;
 
+use SimpleNewsletter\Components\EndUserException;
+
 (function (): never {
     try {
         $email = $_GET['email'] ?? null;

@@ -6,26 +6,16 @@ namespace SimpleNewsletter\Data;
 
 final readonly class Feed
 {
-    public ?object $lastPost;
-
+    /**
+     * @param iterable<int, Post> $posts
+     */
     public function __construct(
         public string $uri,
         public string $title,
         public string $link,
         public \DateTimeImmutable $lastUpdate,
-        ?string $lastPostUri = null,
-        ?string $lastPostTitle = null,
+        public ?string $lastSentPostUri = null,
+        public iterable $posts = [],
     ) {
-        if ($lastPostUri) {
-            $this->lastPost = new readonly class($lastPostUri, $lastPostTitle) {
-                public function __construct(
-                    public string $uri,
-                    public string $title,
-                ) {
-                }
-            };
-        } else {
-            $this->lastPost = null;
-        }
     }
 }

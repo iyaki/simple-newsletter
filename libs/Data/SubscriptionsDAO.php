@@ -10,7 +10,7 @@ final class SubscriptionsDAO
     private string $FIELDS_FULL = 'feed_uri, email, active';
 
     public function __construct(
-        private readonly Database $db
+        private readonly \PDO $db
     ) {}
 
     public function find(string $feedUri, string $email): ?Subscription
@@ -77,6 +77,23 @@ final class SubscriptionsDAO
             'email' => $subscription->email,
             'active' => (int) $subscription->active,
         ]);
+    }
+
+    public function findActiveSubscriptionsFor(Feed $feed): array
+    {
+        $stmt = $this->db->prepare("SELECT {$this->FIELDS_FULL} FROM {$this->TABLE} WHERE feed_uri = :feedUri AND active = 1");
+        $stmt->execute(['feedUri' => $feed->uri]);
+
+        $results = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        if (! $results) {
+            return [];
+        }
+
+        return \array_map(
+            fn (array $row): Subscription => self::SubscriptionDTOFactory(...$row),
+            $results
+        );
     }
 
     static private function SubscriptionDTOFactory(

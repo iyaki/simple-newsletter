@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SimpleNewsletter;
 
+use SimpleNewsletter\Adapters\FeedImporterLaminas;
 use SimpleNewsletter\Adapters\PHPMailerFactory;
 use SimpleNewsletter\Adapters\SenderPHPMailer;
 use SimpleNewsletter\Components\Auth;
@@ -17,11 +18,14 @@ final class Container
 {
     private const DATABASE_COFIG_PATH = __DIR__ . '/../config/database.php';
 
-    private static ?Database $database = null;
+    private static ?\PDO $database = null;
 
     private function feeds(): Feeds
     {
-        return new Feeds(new FeedsDAO($this->database()));
+        return new Feeds(
+            new FeedsDAO($this->database()),
+            new FeedImporterLaminas()
+        );
     }
 
     public function subscriptions(): Subscriptions
@@ -56,10 +60,10 @@ final class Container
         );
     }
 
-    private function database(): Database
+    private function database(): \PDO
     {
         if (self::$database === null) {
-            self::$database = new Database(require self::DATABASE_COFIG_PATH);
+            self::$database = new \PDO((require self::DATABASE_COFIG_PATH)['dsn']);
         }
 
         return self::$database;

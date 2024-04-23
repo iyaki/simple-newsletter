@@ -6,10 +6,13 @@ namespace SimpleNewsletter\Models;
 
 use SimpleNewsletter\Components\Auth;
 use SimpleNewsletter\Components\EndUserException;
+use SimpleNewsletter\Components\Sender;
 use SimpleNewsletter\Data\Database;
 use SimpleNewsletter\Data\FeedsDAO;
 use SimpleNewsletter\Data\Subscription;
 use SimpleNewsletter\Data\SubscriptionsDAO;
+use SimpleNewsletter\Templates\Email\Newsletter;
+use SimpleNewsletter\Templates\Email\SubscriptionConfirmation;
 
 final readonly class Subscriptions
 {
@@ -45,21 +48,19 @@ final readonly class Subscriptions
             $this->subscriptionsDAO->new($subscription);
         }
 
+        $confirmationTemplate = new SubscriptionConfirmation(
+            [$email],
+            \sprintf(
+                '%s/subscriptions/confirmation/?uri=%s&email=%s&token=%s',
+                $this->serviceHost,
+                \urlencode($feedUri),
+                \urlencode($email),
+                \urlencode($this->auth->hash($email))
+            ),
+            $feed
+        );
 
-        $encodedToken = \urlencode($this->auth->hash($email));
-        $encodedUri = \urlencode($feedUri);
-        $encodedEmail = \urlencode($email);
-
-        $subject = 'Newsletter subscription confirmation';
-        $message = <<<HTML
-            <h1>Thank you for subscribing to <a href="{$feed->link}" target="_blank">{$feed->title}</a>.</h1>
-            <p>Please confirm your subscription by clicking the following link: <a href="{$this->serviceHost}/subscriptions/confirmation/?uri={$encodedUri}&email={$encodedEmail}&token={$encodedToken}">Confirm Subscription</a>.</p>
-            <p>Or copy and paste the following link into your browser: <code>{$this->serviceHost}/subscriptions/confirmation/?uri={$encodedUri}&email={$encodedEmail}&token={$encodedToken}</code></p>
-            <p>If you did not request this subscription, please ignore this email.</p>
-            <p>Thank you.</p>
-        HTML;
-
-        $this->sender->send([$email], $subject, $message);
+        $this->sender->send($confirmationTemplate);
     }
 
     public function confirm(string $feedUri, string $email, string $token): void
@@ -77,8 +78,47 @@ final readonly class Subscriptions
 
     }
 
-    public function sendScheduled(): void
+    public function sendScheduled(\DateTimeImmutable $datetime): void
     {
+        $scheduledFeeds = $this->feeds->getSchedudled($datetime);
 
+        foreach ($scheduledFeeds as $scheduledFeed) {
+            $limit = 3;
+
+            if (! $scheduledFeed->lastSentPostUri) {
+                $limit = 1;
+            }
+
+            $recipientsEmail = null;
+
+            $feed = $this->feeds->retrieveWithPosts($scheduledFeed);
+            $posts = $feed->posts;
+            $c = 0;
+            $lastSentPost = null;
+            foreach ($posts as $post) {
+                if ($post->uri === $feed->lastSentPostUri) {
+                    break;
+                }
+
+                if ($recipientsEmail === null) {
+                    $recipientsEmail = \array_map(
+                        fn (Subscription $subscription): string => $subscription->email,
+                        $this->subscriptionsDAO->findActiveSubscriptionsFor($feed)
+                    );
+                }
+
+                $template = new Newsletter(
+                    $recipientsEmail,
+                    $feed,
+                    $post
+                );
+
+                $this->sender->send($template);
+
+                $this->feeds->updateLastSentPost($feed, $post);
+
+                break;
+            }
+        }
     }
 }

@@ -5,28 +5,22 @@ declare(strict_types=1);
 namespace SimpleNewsletter\Models;
 
 use Laminas\Feed\Reader\Reader;
+use Laminas\Feed\Reader\ReaderImportInterface;
+use SimpleNewsletter\Components\FeedImporter;
 use SimpleNewsletter\Data\Feed;
 use SimpleNewsletter\Data\FeedsDAO;
+use SimpleNewsletter\Data\Post;
 
-final class Feeds
+final readonly class Feeds
 {
     public function __construct(
-        private readonly FeedsDAO $feedsDAO
+        private readonly FeedsDAO $feedsDAO,
+        private readonly FeedImporter $feedImporter
     )
     {}
 
     public function retrieve(string $uri): Feed
     {
-        $fetch = function (string $uri): Feed {
-            $sourceFeed = Reader::import($uri);
-            return new Feed(
-                $uri,
-                $sourceFeed->getTitle(),
-                $sourceFeed->getLink(),
-                new \DateTimeImmutable()
-            );
-        };
-
         $uri = trim($uri);
         $feed = $this->feedsDAO->find($uri);
 
@@ -35,29 +29,39 @@ final class Feeds
                 return $feed;
             }
 
-            $feed = $fetch($uri);
+            $feed = $this->feedImporter->fetch($feed);
             $this->feedsDAO->update($feed);
             return $feed;
         }
 
-        $feed = $fetch($uri);
+        $feed = $this->feedImporter->fetchNew($uri);
         $this->feedsDAO->new($feed);
         return $feed;
     }
 
     /**
-     * @codeCoverageIgnore
+     * @return Feed[]
      */
-    public function __clone()
+    public function getSchedudled(\DateTimeImmutable $datetime): array
     {
-        throw new \Exception('Cloning this class is not allowed');
+        return $this->feedsDAO->getSchedudled($datetime);
     }
 
-    /**
-     * @codeCoverageIgnore
-     */
-    public function __sleep()
+    public function retrieveWithPosts(Feed $feed): Feed
     {
-        throw new \Exception('This class can\'t be serialized');
+        return $this->feedImporter->fetchWithPosts($feed);
     }
+
+    public function updateLastSentPost(Feed $feed, Post $post): void
+    {
+        $updatedFeed = new Feed(
+            $feed->uri,
+            $feed->title,
+            $feed->link,
+            $feed->lastUpdate,
+            $post->uri
+        );
+        $this->feedsDAO->update($updatedFeed);
+    }
+
 }

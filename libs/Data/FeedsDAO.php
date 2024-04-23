@@ -7,10 +7,10 @@ namespace SimpleNewsletter\Data;
 final class FeedsDAO
 {
     private string $TABLE = 'feeds';
-    private string $FIELDS_FULL = 'uri, title, link, last_update, last_post_uri, last_post_title';
+    private string $FIELDS_FULL = 'uri, title, link, last_update, last_sent_post_uri';
 
     public function __construct(
-        private readonly Database $db
+        private readonly \PDO $db
     ) {}
 
     public function find(string $uri): ?Feed
@@ -35,13 +35,15 @@ final class FeedsDAO
         UPDATE {$this->TABLE}
         SET
             title = :title,
-            last_update = :last_update
+            last_update = :last_update,
+            last_sent_post_uri = :last_sent_post_uri
         WHERE uri = :uri
         SQL);
         $stmt->execute([
             'uri' => $feed->uri,
             'title' => $feed->title,
             'last_update' => $feed->lastUpdate->getTimestamp(),
+            'last_sent_post_uri' => $feed->lastSentPostUri,
         ]);
     }
 
@@ -71,13 +73,42 @@ final class FeedsDAO
         ]);
     }
 
+    /**
+     * @return Feed[]
+     */
+    public function getSchedudled(\DateTimeImmutable $datetime): array
+    {
+        $stmt = $this->db->prepare(<<<SQL
+        SELECT f.uri, f.title, f.link, f.last_update, f.last_sent_post_uri
+        FROM {$this->TABLE} f
+        INNER JOIN
+            subscriptions s ON s.feed_uri = f.uri
+        WHERE
+            trigger_hour = :trigger_hour
+        AND s.active = 1
+        SQL);
+        $stmt->execute([
+            'trigger_hour' => (int) $datetime->format('H'),
+        ]);
+
+        $results = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        if (! $results) {
+            return [];
+        }
+
+        return \array_map(
+            fn (array $row): Feed => self::FeedDTOFactory(...$row),
+            $results
+        );
+    }
+
     static private function FeedDTOFactory(
         string $uri,
         string $title,
         string $link,
         int $last_update,
-        ?string $last_post_uri,
-        ?string $last_post_title
+        ?string $last_sent_post_uri,
     ): Feed
     {
         return new Feed(
@@ -85,8 +116,7 @@ final class FeedsDAO
             $title,
             $link,
             new \DateTimeImmutable('@' . $last_update),
-            $last_post_uri,
-            $last_post_title
+            $last_sent_post_uri,
         );
     }
 
