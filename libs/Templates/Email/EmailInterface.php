@@ -6,10 +6,7 @@ namespace SimpleNewsletter\Templates\Email;
 
 interface EmailInterface
 {
-    /**
-     * @return string[]
-     */
-    public function recipients(): array;
+    public function recipient(): string;
 
     public function subject(): string;
 

@@ -12,18 +12,15 @@ final readonly class SubscriptionConfirmation implements EmailInterface
      * @param string[] $recipients
      */
     public function __construct(
-        private array $recipients,
-        private string $confirmationURI,
-        private Feed $feed
+        private string $recipient,
+        private Feed $feed,
+        private string $confirmationURI
     )
     {}
 
-    /**
-     * @return string[]
-     */
-    public function recipients(): array
+    public function recipient(): string
     {
-        return $this->recipients;
+        return $this->recipient;
     }
 
     public function subject(): string

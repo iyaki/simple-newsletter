@@ -11,7 +11,6 @@ use SimpleNewsletter\Data\Database;
 use SimpleNewsletter\Data\FeedsDAO;
 use SimpleNewsletter\Data\Subscription;
 use SimpleNewsletter\Data\SubscriptionsDAO;
-use SimpleNewsletter\Templates\Email\Newsletter;
 use SimpleNewsletter\Templates\Email\SubscriptionConfirmation;
 
 final readonly class Subscriptions
@@ -19,9 +18,8 @@ final readonly class Subscriptions
     public function __construct(
         private SubscriptionsDAO $subscriptionsDAO,
         private Feeds $feeds,
-        private Auth $auth,
-        private Sender $sender,
-        private string $serviceHost
+        private Newsletter $newsletter,
+        private Auth $auth
     )
     {}
 
@@ -48,19 +46,10 @@ final readonly class Subscriptions
             $this->subscriptionsDAO->new($subscription);
         }
 
-        $confirmationTemplate = new SubscriptionConfirmation(
-            [$email],
-            \sprintf(
-                '%s/subscriptions/confirmation/?uri=%s&email=%s&token=%s',
-                $this->serviceHost,
-                \urlencode($feedUri),
-                \urlencode($email),
-                \urlencode($this->auth->hash($email))
-            ),
-            $feed
+        $this->newsletter->sendConfirmation(
+            $feed,
+            $subscription
         );
-
-        $this->sender->send($confirmationTemplate);
     }
 
     public function confirm(string $feedUri, string $email, string $token): void
@@ -70,12 +59,22 @@ final readonly class Subscriptions
         }
 
         $subscription = $this->subscriptionsDAO->find($feedUri, $email);
+
+        if (! $subscription instanceof Subscription) {
+            throw new EndUserException('Invalid subscripion');
+        }
+
         $this->subscriptionsDAO->activate($subscription);
     }
 
-    public function remove(string $feedUri, string $email, string $token): void
+    public function cancel(string $feedUri, string $email, string $token): void
     {
+        if (!$this->auth->verify($email, $token)) {
+            throw new EndUserException('Invalid token');
+        }
 
+        $subscription = $this->subscriptionsDAO->find($feedUri, $email);
+        $this->subscriptionsDAO->deactivate($subscription);
     }
 
     public function sendScheduled(\DateTimeImmutable $datetime): void
@@ -89,31 +88,18 @@ final readonly class Subscriptions
                 $limit = 1;
             }
 
-            $recipientsEmail = null;
-
             $feed = $this->feeds->retrieveWithPosts($scheduledFeed);
             $posts = $feed->posts;
-            $c = 0;
-            $lastSentPost = null;
             foreach ($posts as $post) {
                 if ($post->uri === $feed->lastSentPostUri) {
                     break;
                 }
 
-                if ($recipientsEmail === null) {
-                    $recipientsEmail = \array_map(
-                        fn (Subscription $subscription): string => $subscription->email,
-                        $this->subscriptionsDAO->findActiveSubscriptionsFor($feed)
-                    );
-                }
-
-                $template = new Newsletter(
-                    $recipientsEmail,
+                $this->newsletter->sendPostToSubscribers(
                     $feed,
-                    $post
+                    $post,
+                    ...$this->subscriptionsDAO->findActiveSubscriptionsFor($feed),
                 );
-
-                $this->sender->send($template);
 
                 $this->feeds->updateLastSentPost($feed, $post);
 

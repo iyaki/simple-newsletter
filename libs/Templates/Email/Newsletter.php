@@ -6,6 +6,7 @@ namespace SimpleNewsletter\Templates\Email;
 
 use SimpleNewsletter\Data\Feed;
 use SimpleNewsletter\Data\Post;
+use SimpleNewsletter\Data\Subscription;
 
 final readonly class Newsletter implements EmailInterface
 {
@@ -13,18 +14,15 @@ final readonly class Newsletter implements EmailInterface
      * @param string[] $recipients
      */
     public function __construct(
-        private array $recipients,
+        private Subscription $subscription,
         private Feed $feed,
         private Post $post
     )
     {}
 
-    /**
-     * @return string[]
-     */
-    public function recipients(): array
+    public function recipient(): string
     {
-        return $this->recipients;
+        return $this->subscription->email;
     }
 
     public function subject(): string
@@ -40,6 +38,7 @@ final readonly class Newsletter implements EmailInterface
         <div style="max-width:60ch;margin:0 auto;font-size:18px;line-height:1.5;font-family:{$fontStack}">
             {$this->post->content}
         </div>
+        <p><a href="">To cancel your subscription to this newsletter click here</a></p>
         HTML;
     }
 }

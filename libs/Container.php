@@ -8,10 +8,13 @@ use SimpleNewsletter\Adapters\FeedImporterLaminas;
 use SimpleNewsletter\Adapters\PHPMailerFactory;
 use SimpleNewsletter\Adapters\SenderPHPMailer;
 use SimpleNewsletter\Components\Auth;
+use SimpleNewsletter\Components\EmailTemplateFactory;
+use SimpleNewsletter\Components\Sender;
 use SimpleNewsletter\Data\Database;
 use SimpleNewsletter\Data\FeedsDAO;
 use SimpleNewsletter\Data\SubscriptionsDAO;
 use SimpleNewsletter\Models\Feeds;
+use SimpleNewsletter\Models\Newsletter;
 use SimpleNewsletter\Models\Subscriptions;
 
 final class Container
@@ -19,6 +22,10 @@ final class Container
     private const DATABASE_COFIG_PATH = __DIR__ . '/../config/database.php';
 
     private static ?\PDO $database = null;
+
+    private static ?\WeakReference $auth = null;
+
+    private static ?\WeakReference $sender = null;
 
     private function feeds(): Feeds
     {
@@ -30,34 +37,63 @@ final class Container
 
     public function subscriptions(): Subscriptions
     {
-        $portToAppend = $_SERVER['SERVER_PORT'] !== '80' && $_SERVER['SERVER_PORT'] !== '443' ? ':' . $_SERVER['SERVER_PORT'] : '';
-
         return new Subscriptions(
             new SubscriptionsDAO($this->database()),
             $this->feeds(),
-            $this->auth(),
+            $this->newsletter(),
+            $this->auth()
+        );
+    }
+
+    private function newsletter(): Newsletter
+    {
+        return new Newsletter(
             $this->sender(),
+            $this->emailTemplateFactory(),
+            $this->auth()
+        );
+    }
+
+    private function emailTemplateFactory(): EmailTemplateFactory
+    {
+        $portToAppend = $_SERVER['SERVER_PORT'] !== '80' && $_SERVER['SERVER_PORT'] !== '443' ? ':' . $_SERVER['SERVER_PORT'] : '';
+
+        return new EmailTemplateFactory(
             $_SERVER['HTTPS'] ? 'https' : 'http' . '://' . $_SERVER['SERVER_NAME'] . $portToAppend
         );
     }
 
     private function auth(): Auth
     {
-        return new Auth(\getenv('SECRET_KEY'));
+        $auth = self::$auth?->get();
+        if ($auth instanceof Auth) {
+            return $auth;
+        }
+
+        $auth = new Auth(\getenv('SECRET_KEY'));
+        self::$auth = \WeakReference::create($auth);
+
+        return $auth;
     }
 
     private function sender(): SenderPHPMailer
     {
-        return new SenderPHPMailer(
-            new PHPMailerFactory(
-                \getenv('SMTP_HOST'),
-                (int) \getenv('SMTP_PORT'),
-                \getenv('SMTP_USER'),
-                \getenv('SMTP_PASSWORD'),
-                \getenv('EMAIL_FROM'),
-                \getenv('EMAIL_REPLY_TO')
-            )
+        $sender = self::$sender?->get();
+        if ($sender instanceof Sender) {
+            return $sender;
+        }
+
+        $sender = new SenderPHPMailer(
+            \getenv('SMTP_HOST'),
+            (int) \getenv('SMTP_PORT'),
+            \getenv('SMTP_USER'),
+            \getenv('SMTP_PASSWORD'),
+            \getenv('EMAIL_FROM'),
+            \getenv('EMAIL_REPLY_TO')
         );
+        self::$sender = \WeakReference::create($sender);
+
+        return $sender;
     }
 
     private function database(): \PDO

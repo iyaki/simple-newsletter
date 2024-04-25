@@ -24,7 +24,7 @@ final readonly class FeedImporterLaminas implements FeedImporter
 
     public function fetch(Feed $feed): Feed
     {
-        $sourceFeed = Reader::import($uri);
+        $sourceFeed = Reader::import($feed->uri);
         return new Feed(
             $feed->uri,
             $sourceFeed->getTitle(),
