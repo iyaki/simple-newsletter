@@ -43,7 +43,7 @@ final readonly class SenderPHPMailer implements Sender
         $this->mailer->addAddress($template->recipient());
         $this->mailer->Subject = $template->subject();
         $this->mailer->isHTML();
-        $this->mailer->Body = $template->body();
+        $this->mailer->Body = \mb_convert_encoding($template->body(), '8bit');
 
         $this->mailer->send();
 
