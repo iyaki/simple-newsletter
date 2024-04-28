@@ -46,12 +46,12 @@ final class SubscriptionsDAO
         ]);
     }
 
-    public function deactivate(Subscription $feed): void
+    public function deactivate(Subscription $subscription): void
     {
         $stmt = $this->db->prepare(<<<SQL
         UPDATE {$this->TABLE}
         SET
-            active = 1,
+            active = 0
         WHERE
             feed_uri = :feedUri
         AND email = :email
