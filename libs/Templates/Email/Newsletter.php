@@ -16,7 +16,8 @@ final readonly class Newsletter implements EmailInterface
     public function __construct(
         private Subscription $subscription,
         private Feed $feed,
-        private Post $post
+        private Post $post,
+        private string $cancellationURI
     )
     {}
 
@@ -38,7 +39,7 @@ final readonly class Newsletter implements EmailInterface
         <div style="max-width:60ch;margin:0 auto;font-size:18px;line-height:1.5;font-family:{$fontStack}">
             {$this->post->content}
         </div>
-        <p><a href="">To cancel your subscription to this newsletter click here</a></p>
+        <p><a href="{$this->cancellationURI}">To cancel your subscription to this newsletter click here</a></p>
         HTML;
     }
 }

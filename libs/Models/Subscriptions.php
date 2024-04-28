@@ -82,13 +82,8 @@ final readonly class Subscriptions
         $scheduledFeeds = $this->feeds->getSchedudled($datetime);
 
         foreach ($scheduledFeeds as $scheduledFeed) {
-            $limit = 3;
-
-            if (! $scheduledFeed->lastSentPostUri) {
-                $limit = 1;
-            }
-
             $feed = $this->feeds->retrieveWithPosts($scheduledFeed);
+
             $posts = $feed->posts;
             foreach ($posts as $post) {
                 if ($post->uri === $feed->lastSentPostUri) {

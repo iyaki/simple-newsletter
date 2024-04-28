@@ -79,7 +79,7 @@ final class FeedsDAO
     public function getSchedudled(\DateTimeImmutable $datetime): array
     {
         $stmt = $this->db->prepare(<<<SQL
-        SELECT f.uri, f.title, f.link, f.last_update, f.last_sent_post_uri
+        SELECT DISTINCT(f.uri), f.title, f.link, f.last_update, f.last_sent_post_uri
         FROM {$this->TABLE} f
         INNER JOIN
             subscriptions s ON s.feed_uri = f.uri

@@ -44,6 +44,17 @@ final readonly class EmailTemplateFactory
         Post $post,
         string $token
     ): Newsletter {
-        return new Newsletter($subscription, $feed, $post, $this->serviceHost);
+        return new Newsletter(
+            $subscription,
+            $feed,
+            $post,
+            \sprintf(
+                '%s/subscriptions/cancellation/?uri=%s&email=%s&token=%s',
+                $this->serviceHost,
+                \urlencode($feed->uri),
+                \urlencode($subscription->email),
+                \urlencode($token)
+            )
+        );
     }
 }
