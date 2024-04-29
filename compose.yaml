@@ -1,20 +1,13 @@
 services:
-  php:
-    # image: dunglas/frankenphp:1-builder-php8.3.3
-    # uncomment the following line if you want to use a custom Dockerfile
-    build: .
-    # uncomment the following line if you want to run this in a production environment
-    # restart: always
+  dev:
+    build:
+      context: .
+      target: dev-environment
     # working_dir: /app
+    env_file:
+      - .env
     environment:
-      SERVER_NAME: http://localhost:8080 # FrankenPHP variable - https://frankenphp.dev/docs/config/#environment-variables
-      SMTP_HOST: ${SMTP_HOST}
-      SMTP_PORT: ${SMTP_PORT}
-      SMTP_USER: ${SMTP_USER}
-      SMTP_PASSWORD: ${SMTP_PASSWORD}
-      EMAIL_FROM: ${EMAIL_FROM}
-      EMAIL_REPLY_TO: ${EMAIL_REPLY_TO}
-      SECRET_KEY: ${SECRET_KEY}
+      SERVER_NAME: ${SERVER_NAME:-http://localhost:8080} # FrankenPHP variable - https://frankenphp.dev/docs/config/#environment-variables
     ports:
       # - "80:80" # HTTP
       # - "443:443" # HTTPS
@@ -22,6 +15,8 @@ services:
       - 8080:8080 # dev
     volumes:
       - ./:/app/
+      - .php/php.ini:/usr/local/etc/php/php.ini
+      - .php/development.ini:/usr/local/etc/php/conf.d/dev.ini
       # - ./.caddy/Caddyfile:/etc/caddy/Caddyfile
       - caddy_data:/data
       - caddy_config:/config

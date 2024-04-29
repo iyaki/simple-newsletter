@@ -1,0 +1,21 @@
+services:
+  prod:
+    image: ghcr.io/iyaki/simple-newsletter:latest
+    restart: always
+    env_file:
+      - .env
+    environment:
+      SERVER_NAME: ${SERVER_NAME:?error} # FrankenPHP variable - https://frankenphp.dev/docs/config/#environment-variables
+    ports:
+      - "80:80" # HTTP
+      - "443:443" # HTTPS
+      - "443:443/udp" # HTTP/3
+    volumes:
+      - ./data:/app/data # TODO: Hacer el path de la BD configurable mediante env
+      - caddy_data:/data
+      - caddy_config:/config
+
+# Volumes needed for Caddy certificates and configuration
+volumes:
+  caddy_data:
+  caddy_config:

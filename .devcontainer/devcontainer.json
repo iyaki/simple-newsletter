@@ -5,7 +5,7 @@
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
 	// "image": "mcr.microsoft.com/devcontainers/php:1-8.2-bullseye",
 	"dockerComposeFile": "../compose.yaml",
-	"service": "php",
+	"service": "dev",
 	"workspaceFolder": "/app",
 
 	// Features to add to the dev container. More info: https://containers.dev/features.
@@ -16,7 +16,8 @@
 		"vscode": {
 			"extensions": [
 				"bmewburn.vscode-intelephense-client",
-				"neilbrayfield.php-docblocker"
+				"neilbrayfield.php-docblocker",
+				"redhat.vscode-yaml"
 			]
 		}
 	},
