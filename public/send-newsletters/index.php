@@ -15,7 +15,7 @@ use SimpleNewsletter\Components\EndUserException;
 
     $c->subscriptions()->sendScheduled($datetime);
 
-    echo $datetime->format('Y-m-d H:i:s');
+    echo $datetime->format('Y-m-d H:i:s') . "\n";
 
     exit;
 })();
