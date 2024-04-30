@@ -57,6 +57,7 @@ RUN xcaddy build \
 	--with github.com/dunglas/frankenphp=./ \
 	--with github.com/dunglas/frankenphp/caddy=./caddy/ \
 	--with github.com/dunglas/caddy-cbrotli \
+	# Para que cloudflare funcione adecuadamente es importante que el SSL/TLS del dominio este configurado como Full (strict)
 	--with github.com/caddy-dns/cloudflare
 
 FROM dunglas/frankenphp:${FRANKENPHP_VERSION}-${PHP_VERSION}-alpine AS production
