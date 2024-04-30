@@ -2,14 +2,22 @@
 
 declare(strict_types=1);
 
-if (\file_exists(__DIR__ . '/../vendor/autoload.php')) {
+(function () {
+    if (! \file_exists(__DIR__ . '/../vendor/autoload.php')) {
+        \trigger_error('composer autoload file not found. Please run `composer install`');
+
+        return;
+    }
+
     require __DIR__ . '/../vendor/autoload.php';
 
     // TODO: Pasar Sentry DSN a variable de entorno, definir variable ENVIRONMENT para diferenciar dev/prod & agregar configuraciones adicionales sentry (user?, version, release)
     // TODO: Re-generar sentry DSN
-    \Sentry\init([
-        'dsn' => 'https://c0548d393c74db8777af292c0a4cfcde@o249980.ingest.us.sentry.io/4507137129578496',
-    ]);
-} else {
-    \trigger_error('composer autoload file not found. Please run `composer install`');
-}
+
+    $SENTRY_DSN = \getenv('SENTRY_DSN');
+    if (function_exists('\Sentry\init') && $SENTRY_DSN) {
+        \Sentry\init([
+            'dsn' => $SENTRY_DSN,
+        ]);
+    }
+})();
