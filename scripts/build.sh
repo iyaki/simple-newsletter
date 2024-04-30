@@ -2,6 +2,4 @@
 
 SCRIPTPATH=$(dirname "$(realpath "$0")")
 
-cd "${SCRIPTPATH}/../" || exit
-
-docker compose -f "${SCRIPTPATH}/../compose-build.yaml" build --push build
+docker buildx build --tag ghcr.io/iyaki/simple-newsletter:latest --target production --push ${SCRIPTPATH}/..

@@ -1,8 +1,0 @@
-services:
-  build:
-    image: ghcr.io/iyaki/simple-newsletter:latest
-    build:
-      context: .
-      target: production
-    tty: true
-    entrypoint: []

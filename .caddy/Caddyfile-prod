@@ -1,0 +1,16 @@
+{
+	order php_server before file_server
+	order php before file_server
+}
+
+{$SERVER_NAME} {
+	root * public/
+	encode zstd br gzip
+
+	tls {
+		dns cloudflare {$CF_API_TOKEN}
+		resolvers 1.1.1.1
+	}
+
+	php_server
+}

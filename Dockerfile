@@ -1,9 +1,10 @@
-ARG FRANKENPHP_VERSION=1-php8.3
-FROM dunglas/frankenphp:${FRANKENPHP_VERSION} as runtime
+ARG FRANKENPHP_VERSION=1
+ARG PHP_VERSION=php8.3
+FROM dunglas/frankenphp:${FRANKENPHP_VERSION}-${PHP_VERSION} AS runtime
 
 # WORKDIR /app
 
-FROM runtime as dependencies
+FROM runtime AS dependencies
 
 COPY --from=composer /usr/bin/composer /usr/bin/composer
 
@@ -15,7 +16,7 @@ RUN apt-get update \
 		/var/lib/dpkg/info/* \
 		/var/lib/dpkg/status-old
 
-FROM dependencies as dev-environment
+FROM dependencies AS dev-environment
 
 RUN install-php-extensions xdebug \
 	&& apt-get update \
@@ -29,7 +30,7 @@ RUN install-php-extensions xdebug \
 		/var/lib/dpkg/info/* \
 		/var/lib/dpkg/status-old
 
-FROM dependencies as compilation
+FROM dependencies AS app-compilation
 
 RUN rm -rf /app
 
@@ -44,13 +45,31 @@ RUN COMPOSER_ALLOW_SUPERUSER=1 /usr/bin/composer install \
 	--classmap-authoritative \
 	--no-dev
 
-FROM dunglas/frankenphp:${FRANKENPHP_VERSION}-alpine as production
+FROM dunglas/frankenphp:${FRANKENPHP_VERSION}-builder-${PHP_VERSION}-alpine AS production-builder
+
+# Copy xcaddy in the builder image
+COPY --from=caddy:builder /usr/bin/xcaddy /usr/bin/xcaddy
+
+# CGO must be enabled to build FrankenPHP
+ENV CGO_ENABLED=1 XCADDY_SETCAP=1 XCADDY_GO_BUILD_FLAGS="-ldflags '-w -s'"
+RUN xcaddy build \
+	--output /usr/local/bin/frankenphp \
+	--with github.com/dunglas/frankenphp=./ \
+	--with github.com/dunglas/frankenphp/caddy=./caddy/ \
+	--with github.com/dunglas/caddy-cbrotli \
+	--with github.com/caddy-dns/cloudflare
+
+FROM dunglas/frankenphp:${FRANKENPHP_VERSION}-${PHP_VERSION}-alpine AS production
 
 LABEL org.opencontainers.image.source=https://github.com/iyaki/simple-newsletter
+
+COPY --from=production-builder /usr/local/bin/frankenphp /usr/local/bin/frankenphp
 
 COPY .php/php.ini $PHP_INI_DIR/php.ini
 COPY .php/production.ini $PHP_INI_DIR/conf.d/prod.ini
 
+COPY .caddy/Caddyfile-prod /etc/caddy/Caddyfile
+
 RUN rm -rf /app
 
-COPY --from=compilation /app /app
+COPY --from=app-compilation /app /app
