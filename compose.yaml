@@ -3,24 +3,19 @@ services:
     build:
       context: .
       target: dev-environment
-    # working_dir: /app
     env_file:
       - .env
     environment:
       SERVER_NAME: ${SERVER_NAME:-http://localhost:8080} # FrankenPHP variable - https://frankenphp.dev/docs/config/#environment-variables
     ports:
-      # - "80:80" # HTTP
-      # - "443:443" # HTTPS
-      # - "443:443/udp" # HTTP/3
       - 8080:8080 # dev
     volumes:
       - ./:/app/
       - .php/php.ini:/usr/local/etc/php/php.ini
       - .php/development.ini:/usr/local/etc/php/conf.d/dev.ini
-      # - ./.caddy/Caddyfile:/etc/caddy/Caddyfile
+      # - ./.caddy/Caddyfile-prod:/etc/caddy/Caddyfile
       - caddy_data:/data
       - caddy_config:/config
-    # comment the following line in production, it allows to have nice human-readable logs in dev
     tty: true
 
 # Volumes needed for Caddy certificates and configuration
