@@ -56,10 +56,12 @@ final class Container
 
     private function emailTemplateFactory(): EmailTemplateFactory
     {
-        $portToAppend = $_SERVER['SERVER_PORT'] !== '80' && $_SERVER['SERVER_PORT'] !== '443' ? ':' . $_SERVER['SERVER_PORT'] : '';
+        $schema = $_SERVER['HTTPS'] ? 'https' : 'http';
+        $serverPort = $_SERVER['SERVER_PORT'];
+        $portToAppend = \in_array($serverPort, [80, 443]) ? '' : ':' . $serverPort ;
 
         return new EmailTemplateFactory(
-            $_SERVER['HTTPS'] ? 'https' : 'http' . '://' . $_SERVER['SERVER_NAME'] . $portToAppend
+            $schema . '://' . $_SERVER['SERVER_NAME'] . $portToAppend
         );
     }
 
