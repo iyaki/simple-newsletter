@@ -1,0 +1,29 @@
+_id: req_0f1c5f0d5fb64f698152ad5adcdfcc84
+type: Request
+parentId: fld_6128bf8a0b7546048725c46f85af03bd
+modified: 1715715038708
+created: 1715713212773
+url: "{{ base_url }}/subscriptions/"
+name: /subscriptions - Invalid parameter uri. Not Atom or RSS feed
+description: ""
+method: GET
+body: {}
+parameters:
+  - name: uri
+    disabled: false
+    value: https://simple-newsletter.com/
+    id: pair_0d04baee333b44dc9cb4bed329bc1601
+  - name: email
+    disabled: false
+    value: user@example.com
+    id: pair_f67cd6e4b2bf4e1da906a0e991093568
+headers: []
+authentication: {}
+metaSortKey: -1712648698629.5312
+isPrivate: false
+settingStoreCookies: true
+settingSendCookies: true
+settingDisableRenderRequestBody: false
+settingEncodeUrl: true
+settingRebuildPath: true
+settingFollowRedirects: global

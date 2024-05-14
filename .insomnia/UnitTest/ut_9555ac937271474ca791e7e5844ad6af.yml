@@ -1,0 +1,10 @@
+_id: ut_9555ac937271474ca791e7e5844ad6af
+type: UnitTest
+parentId: uts_3fe5c46eee164e1a886f0234a903e60c
+modified: 1715714783162
+created: 1715714770390
+requestId: req_a6c8c7aed7cb45bc9ab619620c87249c
+name: Feed not found - 400
+code: |-
+  const response1 = await insomnia.send();
+  expect(response1.status).to.equal(400);

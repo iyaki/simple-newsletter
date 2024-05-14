@@ -1,0 +1,29 @@
+_id: req_a6c8c7aed7cb45bc9ab619620c87249c
+type: Request
+parentId: fld_6128bf8a0b7546048725c46f85af03bd
+modified: 1715715036016
+created: 1715713003075
+url: "{{ base_url }}/subscriptions/"
+name: /subscriptions - Invalid parameter uri. Not Found
+description: ""
+method: GET
+body: {}
+parameters:
+  - name: uri
+    disabled: false
+    value: https://iyaki.ar/posts/non-existent-feed.xml
+    id: pair_d0871c12be944e28b1c8d1eaccfb205f
+  - name: email
+    disabled: false
+    value: user@example.com
+    id: pair_cb213a36ee8d4abdb0e169ef58b1c1fa
+headers: []
+authentication: {}
+metaSortKey: -1712704399818.8125
+isPrivate: false
+settingStoreCookies: true
+settingSendCookies: true
+settingDisableRenderRequestBody: false
+settingEncodeUrl: true
+settingRebuildPath: true
+settingFollowRedirects: global

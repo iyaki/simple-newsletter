@@ -1,0 +1,52 @@
+_id: spc_5ac9343908d1480cac71be6103e8f5ef
+type: ApiSpec
+parentId: wrk_20535f13b5464ed6af6c82ea50c340c4
+modified: 1715720965284
+created: 1715710878436
+fileName: simple-newsletter.yaml
+contents: |-
+  openapi: 3.0.3
+  info:
+    title: Simple Newslertter
+    description: Service to convert RSS and Atom feeds to newsletters
+    contact:
+      url: https://simple-newsletter.com/
+    version: 1.0.0
+  externalDocs:
+    url: https://simple-newsletter.com/
+  servers:
+    - url: https://simple-newsletter.com/v1
+  tags:
+    - name: subscriptions
+  paths:
+    /subscriptions/:
+      get:
+        tags:
+          - subscriptions
+        description: Starts subscription process
+        operationId: subscriptionRequest
+        parameters:
+          - name: uri
+            in: query
+            schema:
+              type: string
+              format: uri
+            required: true
+          - name: email
+            in: query
+            schema:
+              type: string
+              format: email
+            required: true
+        responses:
+          '200':
+            description: Subscription requested successfully
+            content:
+              text/html:
+                schema: 
+                  type: string
+          '400':
+            description: Subscription request failed due to invalid parameters
+          '500':
+            description: Internal server error
+contentType: yaml

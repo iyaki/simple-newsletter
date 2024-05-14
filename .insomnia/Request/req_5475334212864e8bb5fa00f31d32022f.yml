@@ -1,0 +1,29 @@
+_id: req_5475334212864e8bb5fa00f31d32022f
+type: Request
+parentId: fld_6128bf8a0b7546048725c46f85af03bd
+modified: 1715715033232
+created: 1715713189990
+url: "{{ base_url }}/subscriptions/"
+name: /subscriptions - Invalid parameter uri. Host does not exist
+description: ""
+method: GET
+body: {}
+parameters:
+  - name: uri
+    disabled: false
+    value: http://nonexistent.simple-newsletter.com
+    id: pair_c44e548a836347d2b4c612d494814ca0
+  - name: email
+    disabled: false
+    value: user@example.com
+    id: pair_f7e5c195150d41dd8be27976cb65c5ab
+headers: []
+authentication: {}
+metaSortKey: -1712760101008.0938
+isPrivate: false
+settingStoreCookies: true
+settingSendCookies: true
+settingDisableRenderRequestBody: false
+settingEncodeUrl: true
+settingRebuildPath: true
+settingFollowRedirects: global

@@ -1,0 +1,10 @@
+_id: ut_8ffac3d219e946a8aa52fb796ebc1d4d
+type: UnitTest
+parentId: uts_3fe5c46eee164e1a886f0234a903e60c
+modified: 1715714084191
+created: 1715712369773
+requestId: req_b5028929982844c6a60c82842b30e3d7
+name: Full valid params - 200
+code: |-
+  const response1 = await insomnia.send();
+  expect(response1.status).to.equal(200);

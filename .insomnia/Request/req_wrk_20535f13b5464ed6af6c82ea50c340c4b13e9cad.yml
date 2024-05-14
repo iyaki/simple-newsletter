@@ -1,0 +1,27 @@
+_id: req_wrk_20535f13b5464ed6af6c82ea50c340c4b13e9cad
+type: Request
+parentId: fld_wrk_20535f13b5464ed6af6c82ea50c340c49bbb0db0
+modified: 1715714557075
+created: 1715712264040
+url: "{{ base_url }}/subscriptions/"
+name: /subscriptions
+description: ""
+method: GET
+body: {}
+parameters:
+  - name: uri
+    disabled: true
+    value: string
+  - name: email
+    disabled: true
+    value: user@example.com
+headers: []
+authentication: {}
+metaSortKey: -1715712264040
+isPrivate: false
+settingStoreCookies: true
+settingSendCookies: true
+settingDisableRenderRequestBody: false
+settingEncodeUrl: true
+settingRebuildPath: true
+settingFollowRedirects: global

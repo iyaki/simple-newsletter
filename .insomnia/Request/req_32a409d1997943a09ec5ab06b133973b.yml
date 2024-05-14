@@ -1,0 +1,27 @@
+_id: req_32a409d1997943a09ec5ab06b133973b
+type: Request
+parentId: fld_6128bf8a0b7546048725c46f85af03bd
+modified: 1715714533151
+created: 1715712631624
+url: "{{ base_url }}/subscriptions/"
+name: /subscriptions - No params
+description: ""
+method: GET
+body: {}
+parameters:
+  - name: uri
+    disabled: true
+    value: string
+  - name: email
+    disabled: true
+    value: user@example.com
+headers: []
+authentication: {}
+metaSortKey: -1713929825983
+isPrivate: false
+settingStoreCookies: true
+settingSendCookies: true
+settingDisableRenderRequestBody: false
+settingEncodeUrl: true
+settingRebuildPath: true
+settingFollowRedirects: global

@@ -1,0 +1,10 @@
+_id: ut_b86f3a434a6645d9b7570d4f958fa817
+type: UnitTest
+parentId: uts_3fe5c46eee164e1a886f0234a903e60c
+modified: 1715714806996
+created: 1715714798337
+requestId: req_5475334212864e8bb5fa00f31d32022f
+name: URI Host not exist - 400
+code: |-
+  const response1 = await insomnia.send();
+  expect(response1.status).to.equal(400);

@@ -1,0 +1,18 @@
+_id: env_00e580d45e894075858a280c21a360aa
+type: Environment
+parentId: env_370b799f74e4f67139bd1fd2fec3c9c1219401e7
+modified: 1715720676167
+created: 1715720643520
+name: Development
+data:
+  scheme: http
+  base_path: /v1
+  host: localhost:8080
+dataPropertyOrder:
+  "&":
+    - scheme
+    - base_path
+    - host
+color: null
+isPrivate: false
+metaSortKey: 1715720643520

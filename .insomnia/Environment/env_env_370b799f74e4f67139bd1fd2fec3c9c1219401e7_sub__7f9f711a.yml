@@ -1,0 +1,18 @@
+_id: env_env_370b799f74e4f67139bd1fd2fec3c9c1219401e7_sub__7f9f711a
+type: Environment
+parentId: env_370b799f74e4f67139bd1fd2fec3c9c1219401e7
+modified: 1715720661077
+created: 1715712264047
+name: Production - simple-newsletter.com
+data:
+  scheme: https
+  base_path: /v1
+  host: simple-newsletter.com
+dataPropertyOrder:
+  "&":
+    - scheme
+    - base_path
+    - host
+color: null
+isPrivate: false
+metaSortKey: 1715712264047

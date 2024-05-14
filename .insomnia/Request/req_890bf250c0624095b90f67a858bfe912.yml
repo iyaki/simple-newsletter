@@ -1,0 +1,29 @@
+_id: req_890bf250c0624095b90f67a858bfe912
+type: Request
+parentId: fld_6128bf8a0b7546048725c46f85af03bd
+modified: 1715715051946
+created: 1715713225276
+url: "{{ base_url }}/subscriptions/"
+name: /subscriptions - Invalid param email
+description: ""
+method: GET
+body: {}
+parameters:
+  - name: uri
+    disabled: false
+    value: https://iyaki.ar/posts/feed.xml
+    id: pair_7f7b2af57b5b47a69a3a4981b31de345
+  - name: email
+    disabled: false
+    value: jajajaja
+    id: pair_d9f5906b1059411db2efcf96fe39ae4c
+headers: []
+authentication: {}
+metaSortKey: -1712481595061.6875
+isPrivate: false
+settingStoreCookies: true
+settingSendCookies: true
+settingDisableRenderRequestBody: false
+settingEncodeUrl: true
+settingRebuildPath: true
+settingFollowRedirects: global
