@@ -50,7 +50,7 @@
 		<h2 style="text-align: center;">Atom & RSS Feeds to Newsletter</h2>
 		<h3 style="text-align: center;">The news that you want to hear about, delivered directly to your inbox</h3>
 		<section style="margin: 7em auto 10em;">
-			<p>Insert the URI of the Atom or RSS feed that you want to convert to newsletter and the e-mail address where you want to receive it.</p>
+			<p>Enter the feed’s URI and your email to transform any Atom or RSS feed into a personalized newsletter.</p>
 			<style>
 				.subscription-form {
 					margin: 2em auto;
@@ -94,7 +94,7 @@
 			<p>I have used RSS Feeds for a long time and I completely love them. I use them, advocate for them and try to spread the word about them.</p>
 			<p>But beggining the 2024 I came across <a href="https://ochagavia.nl/blog/rss-is-dead-subscribe-through-email/" title="RSS is dead, subscribe through email. - Adolfo Ochagavía">this post</a> and it left me thinking.</p>
 			<p>It's true that for a lot of the readers of new generations the RSS is an old and strange technology that they will never use. But for the publishers the RSS (or Atom) is almost omnipresent without any effort, unlike newsletters.</p>
-			<p>So I decided to build this service, allowing any reader to subscribe through a an e-mail address to any Atom or RSS feed in a newsletter format.</p>
+			<p>So, inspired by the great <a href="https://kill-the-newsletter.com/"><i>Kill the Newsletter</i></a>, I decided to build this service that converts any Atom or RSS feed into a newsletter, accessible via email for any reader.</p>
 		</section>
 		<section id="faq">
 			<header>
@@ -102,23 +102,23 @@
 				<ul style="list-style: none; padding: 0;">
 					<li><details>
 						<summary>How do I subscribe?</summary>
-						<p>Just fill out the form with the URI of the Atom or RSS feed and your e-mail address and submit it. The service will send you a confirmation e-mail to your inbox.</p>
+						<p>Just input the Atom or RSS feed’s URI and your email address in the form and hit submit. You’ll receive a confirmation email to finalize your subscription.</p>
 					</details></li>
 					<li><details>
 						<summary>How do I unsubscribe?</summary>
-						<p>On every newsletter that you receive there is a link to unsubscribe from it.</p>
+						<p>Each newsletter includes an unsubscribe link, giving you the freedom to opt-out anytime.	</p>
 					</details></li>
 					<li><details>
 						<summary>Is this service free?</summary>
 						<p>Yes!</p>
 					</details></li>
 					<li><details>
-						<summary>I'm a publisher, can I use offer this service to my subscribers through a form in my web page?</summary>
-						<p>Of course!. There is <a href="#docs">documentation</a> on how to do it.</p>
+						<summary>I’m a publisher, can I integrate this service into my website?</summary>
+						<p>Definitely! Check out our <a href="#docs">documentation</a> for easy integration instructions.</p>
 					</details></li>
 					<li><details>
 						<summary>Something is wrong</summary>
-						<p>Please, <a href="mailto:me@iyaki.ar">let me know</a></p>
+						<p>Please, <a href="mailto:simple-newsletter@iyaki.ar">let me know</a></p>
 					</details></li>
 				</ul>
 			</header>
@@ -128,6 +128,15 @@
 				<h2>API Docs</h2>
 			</header>
 			<a href="https://editor.swagger.io/?url=https://simple-newsletter.com/api-spec.yaml">OpenAPI API Docs</a>
+			<h3>Example HTML Form for publishers</h3>
+			<pre><code>&lt;form action&equals;&quot;https&colon;&sol;&sol;simple-newsletter&period;com&sol;v1&sol;subscriptions&sol;&quot;&gt;
+	&lt;input type&equals;&quot;hidden&quot; name&equals;&quot;uri&quot; value&equals;&quot;https&colon;&sol;&sol;your-domain&period;com&sol;path&sol;to&sol;feed&period;xml&quot;&gt;
+	&lt;label&gt;
+		Email
+		&lt;input type&equals;&quot;email&quot; name&equals;&quot;email&quot; required&gt;
+	&lt;&sol;label&gt;
+	&lt;button type&equals;&quot;submit&quot;&gt;Subscribe&excl;&lt;&sol;button&gt;
+&lt;&sol;form&gt;</code></pre>
 			<details>
 				<summary>Known limitations</summary>
 				<ul>
