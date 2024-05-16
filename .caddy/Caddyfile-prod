@@ -5,7 +5,26 @@
 	order php before file_server
 }
 
+(cors) {
+  @cors_preflight method OPTIONS
+  @cors header Origin *
+
+  handle @cors_preflight {
+    header Access-Control-Allow-Origin "*"
+    header Access-Control-Allow-Methods "GET"
+    header Access-Control-Allow-Headers "Content-Type"
+    respond "" 204
+  }
+
+  handle @cors {
+    header Access-Control-Allow-Origin "*"
+    header Access-Control-Expose-Headers "Link"
+  }
+}
+
 {$SERVER_NAME} {
+	import cors
+
 	root * public/
 	encode zstd br gzip
 
