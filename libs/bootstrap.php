@@ -11,9 +11,6 @@ declare(strict_types=1);
 
     require __DIR__ . '/../vendor/autoload.php';
 
-    // TODO: Pasar Sentry DSN a variable de entorno, definir variable ENVIRONMENT para diferenciar dev/prod & agregar configuraciones adicionales sentry (user?, version, release)
-    // TODO: Re-generar sentry DSN
-
     $SENTRY_DSN = \getenv('SENTRY_DSN');
     if (function_exists('\Sentry\init') && $SENTRY_DSN) {
         \Sentry\init([
