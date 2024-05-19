@@ -1,10 +1,11 @@
 _id: ut_6bf862c531d440c1a4eed42e1a59d730
 type: UnitTest
-parentId: uts_b8a40ed8393247ebb1919724f2a904f0
+parentId: uts_3fe5c46eee164e1a886f0234a903e60c
 modified: 1716138980076
 created: 1716138980076
-requestId: null
-name: Returns 200
+requestId: req_32a409d1997943a09ec5ab06b133973b
+name: No params - 400
 code: |-
   const response1 = await insomnia.send();
-  expect(response1.status).to.equal(200);
+  expect(response1.status).to.equal(400);
+  expect(response1.headers['content-type']).to.equal('text/html')

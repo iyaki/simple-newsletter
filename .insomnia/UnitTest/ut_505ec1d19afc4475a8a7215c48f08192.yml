@@ -1,10 +1,11 @@
 _id: ut_505ec1d19afc4475a8a7215c48f08192
 type: UnitTest
-parentId: uts_b8a40ed8393247ebb1919724f2a904f0
+parentId: uts_3fe5c46eee164e1a886f0234a903e60c
 modified: 1716138967571
 created: 1716138967571
-requestId: null
-name: Returns 200
+requestId: req_a6c8c7aed7cb45bc9ab619620c87249c
+name: Feed not found - 400
 code: |-
   const response1 = await insomnia.send();
-  expect(response1.status).to.equal(200);
+  expect(response1.status).to.equal(400);
+  expect(response1.headers['content-type']).to.equal('text/html')
