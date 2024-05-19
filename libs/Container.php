@@ -6,6 +6,7 @@ namespace SimpleNewsletter;
 
 use SimpleNewsletter\Adapters\FeedImporterLaminas;
 use SimpleNewsletter\Adapters\PHPMailerFactory;
+use SimpleNewsletter\Adapters\ResponderHttp;
 use SimpleNewsletter\Adapters\SenderPHPMailer;
 use SimpleNewsletter\Components\Auth;
 use SimpleNewsletter\Components\EmailTemplateFactory;
@@ -43,6 +44,11 @@ final class Container
             $this->newsletter(),
             $this->auth()
         );
+    }
+
+    public function responder(): ResponderHttp
+    {
+        return new ResponderHttp();
     }
 
     private function newsletter(): Newsletter
