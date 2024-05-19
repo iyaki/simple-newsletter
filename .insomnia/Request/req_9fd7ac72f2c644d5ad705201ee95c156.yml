@@ -1,10 +1,10 @@
 _id: req_9fd7ac72f2c644d5ad705201ee95c156
 type: Request
 parentId: fld_6128bf8a0b7546048725c46f85af03bd
-modified: 1715714534614
+modified: 1716138429047
 created: 1715712661530
 url: "{{ base_url }}/subscriptions/"
-name: /subscriptions - Only param uri
+name: JSON /subscriptions - Only param uri
 description: ""
 method: GET
 body: {}

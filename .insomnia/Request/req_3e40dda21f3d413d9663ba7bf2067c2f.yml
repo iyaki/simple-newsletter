@@ -1,10 +1,10 @@
-_id: req_32a409d1997943a09ec5ab06b133973b
+_id: req_3e40dda21f3d413d9663ba7bf2067c2f
 type: Request
-parentId: fld_6128bf8a0b7546048725c46f85af03bd
-modified: 1716138424341
-created: 1715712631624
+parentId: fld_8af5daa763354dfcb670ac0a0f380855
+modified: 1716138385788
+created: 1716137885999
 url: "{{ base_url }}/subscriptions/"
-name: JSON /subscriptions - No params
+name: HTML /subscriptions - No params
 description: ""
 method: GET
 body: {}

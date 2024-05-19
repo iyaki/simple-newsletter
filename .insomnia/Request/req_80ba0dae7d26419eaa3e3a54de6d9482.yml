@@ -1,10 +1,10 @@
 _id: req_80ba0dae7d26419eaa3e3a54de6d9482
 type: Request
 parentId: fld_6128bf8a0b7546048725c46f85af03bd
-modified: 1715715031216
+modified: 1716138431503
 created: 1715712994883
 url: "{{ base_url }}/subscriptions/"
-name: /subscriptions - Invalid parameter uri. Not URI
+name: JSON /subscriptions - Invalid parameter uri. Not URI
 description: ""
 method: GET
 body: {}

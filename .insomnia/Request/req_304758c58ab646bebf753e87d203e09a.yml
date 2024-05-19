@@ -1,0 +1,27 @@
+_id: req_304758c58ab646bebf753e87d203e09a
+type: Request
+parentId: fld_wrk_20535f13b5464ed6af6c82ea50c340c49bbb0db0
+modified: 1715886187789
+created: 1715886183822
+url: "{{scheme}}://{{host}}/api-spec.yaml"
+name: API Spec
+description: ""
+method: OPTIONS
+body: {}
+parameters:
+  - name: uri
+    disabled: true
+    value: string
+  - name: email
+    disabled: true
+    value: user@example.com
+headers: []
+authentication: {}
+metaSortKey: -1714375435497.25
+isPrivate: false
+settingStoreCookies: true
+settingSendCookies: true
+settingDisableRenderRequestBody: false
+settingEncodeUrl: true
+settingRebuildPath: true
+settingFollowRedirects: global

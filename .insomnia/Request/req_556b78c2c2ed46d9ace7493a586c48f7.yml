@@ -1,10 +1,10 @@
-_id: req_32a409d1997943a09ec5ab06b133973b
+_id: req_556b78c2c2ed46d9ace7493a586c48f7
 type: Request
-parentId: fld_6128bf8a0b7546048725c46f85af03bd
-modified: 1716138424341
-created: 1715712631624
-url: "{{ base_url }}/subscriptions/"
-name: JSON /subscriptions - No params
+parentId: fld_wrk_20535f13b5464ed6af6c82ea50c340c49bbb0db0
+modified: 1715886178341
+created: 1715886075341
+url: "{{scheme}}://{{host}}/api-spec.yaml"
+name: API Spec
 description: ""
 method: GET
 body: {}
@@ -15,13 +15,9 @@ parameters:
   - name: email
     disabled: true
     value: user@example.com
-headers:
-  - id: pair_ea0dfc7e0d1146a8a00b4010b5047c8d
-    name: Accept
-    value: application/json
-    description: ""
+headers: []
 authentication: {}
-metaSortKey: -1713929825983
+metaSortKey: -1714821045011.5
 isPrivate: false
 settingStoreCookies: true
 settingSendCookies: true

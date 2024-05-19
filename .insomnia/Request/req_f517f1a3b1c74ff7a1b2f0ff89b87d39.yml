@@ -1,10 +1,10 @@
-_id: req_0f1c5f0d5fb64f698152ad5adcdfcc84
+_id: req_f517f1a3b1c74ff7a1b2f0ff89b87d39
 type: Request
-parentId: fld_6128bf8a0b7546048725c46f85af03bd
-modified: 1716138440974
-created: 1715713212773
+parentId: fld_8af5daa763354dfcb670ac0a0f380855
+modified: 1716138405259
+created: 1716137886006
 url: "{{ base_url }}/subscriptions/"
-name: JSON /subscriptions - Invalid parameter uri. Not Atom or RSS feed
+name: HTML /subscriptions - Invalid parameter uri. Not Atom or RSS feed
 description: ""
 method: GET
 body: {}
@@ -19,7 +19,7 @@ parameters:
     id: pair_f67cd6e4b2bf4e1da906a0e991093568
 headers: []
 authentication: {}
-metaSortKey: -1712648698629.5312
+metaSortKey: -1713929825733
 isPrivate: false
 settingStoreCookies: true
 settingSendCookies: true

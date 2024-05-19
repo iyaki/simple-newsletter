@@ -1,10 +1,10 @@
-_id: req_890bf250c0624095b90f67a858bfe912
+_id: req_49600cb2e159497d8e9a361b3f192cca
 type: Request
-parentId: fld_6128bf8a0b7546048725c46f85af03bd
-modified: 1716138449799
-created: 1715713225276
+parentId: fld_8af5daa763354dfcb670ac0a0f380855
+modified: 1716138410010
+created: 1716137886007
 url: "{{ base_url }}/subscriptions/"
-name: JSON /subscriptions - Invalid param email
+name: HTML /subscriptions - Invalid param email
 description: ""
 method: GET
 body: {}
@@ -19,7 +19,7 @@ parameters:
     id: pair_d9f5906b1059411db2efcf96fe39ae4c
 headers: []
 authentication: {}
-metaSortKey: -1712481595061.6875
+metaSortKey: -1713929825633
 isPrivate: false
 settingStoreCookies: true
 settingSendCookies: true

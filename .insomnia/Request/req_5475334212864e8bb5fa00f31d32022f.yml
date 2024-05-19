@@ -1,10 +1,10 @@
 _id: req_5475334212864e8bb5fa00f31d32022f
 type: Request
 parentId: fld_6128bf8a0b7546048725c46f85af03bd
-modified: 1715715033232
+modified: 1716138436231
 created: 1715713189990
 url: "{{ base_url }}/subscriptions/"
-name: /subscriptions - Invalid parameter uri. Host does not exist
+name: JSON /subscriptions - Invalid parameter uri. Host does not exist
 description: ""
 method: GET
 body: {}

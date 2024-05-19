@@ -1,25 +1,25 @@
-_id: req_0f1c5f0d5fb64f698152ad5adcdfcc84
+_id: req_7182a4890f5c4df185f2650533f1df2c
 type: Request
-parentId: fld_6128bf8a0b7546048725c46f85af03bd
-modified: 1716138440974
-created: 1715713212773
+parentId: fld_8af5daa763354dfcb670ac0a0f380855
+modified: 1716138394891
+created: 1716137886004
 url: "{{ base_url }}/subscriptions/"
-name: JSON /subscriptions - Invalid parameter uri. Not Atom or RSS feed
+name: HTML /subscriptions - Invalid parameter uri. Not URI
 description: ""
 method: GET
 body: {}
 parameters:
   - name: uri
     disabled: false
-    value: https://simple-newsletter.com/
-    id: pair_0d04baee333b44dc9cb4bed329bc1601
+    value: string
+    id: pair_a7df23f2fe48478f8d1d29f22d3255aa
   - name: email
     disabled: false
     value: user@example.com
-    id: pair_f67cd6e4b2bf4e1da906a0e991093568
+    id: pair_f863f407739e4e82adc3195c4fd42703
 headers: []
 authentication: {}
-metaSortKey: -1712648698629.5312
+metaSortKey: -1713929825883
 isPrivate: false
 settingStoreCookies: true
 settingSendCookies: true
