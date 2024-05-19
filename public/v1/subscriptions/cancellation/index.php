@@ -7,6 +7,10 @@ namespace SimpleNewsletter;
 use SimpleNewsletter\Components\EndUserException;
 
 (function (): never {
+    $c = new Container();
+    $responder = $c->responder();
+    $responseBuilder = $responder->responseBuilderFromContentNegotiation($_SERVER['HTTP_ACCEPT']);
+
     try {
         $email = $_GET['email'] ?? null;
         $feedUri = $_GET['uri'] ?? null;
@@ -16,14 +20,15 @@ use SimpleNewsletter\Components\EndUserException;
             throw new EndUserException('Fields "email", "uri" and "token" are required');
         }
 
-        $c = new Container();
 
         $c->subscriptions()->cancel($feedUri, $email, $token);
 
-        echo 'Subscription successfully cancelled.';
+        $responder->sendResponse($responseBuilder->fromString(
+            'Subscription successfully cancelled.',
+            ''
+        ));
     } catch (EndUserException $e) {
-        \header('HTTP/1.0 400 Bad Request', true, 400);
-        echo $e->getMessage();
+        $responder->sendResponse($responseBuilder->fromEndUserException($e));
     }
     exit;
 })();
