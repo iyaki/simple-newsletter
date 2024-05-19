@@ -1,10 +1,10 @@
 _id: spc_5ac9343908d1480cac71be6103e8f5ef
 type: ApiSpec
 parentId: wrk_20535f13b5464ed6af6c82ea50c340c4
-modified: 1715720965284
+modified: 1716143994212
 created: 1715710878436
 fileName: simple-newsletter.yaml
-contents: |-
+contents: |
   openapi: 3.0.3
   info:
     title: Simple Newslertter
@@ -42,11 +42,30 @@ contents: |-
           '200':
             description: Subscription requested successfully
             content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/JSONResponse'
               text/html:
                 schema: 
                   type: string
           '400':
             description: Subscription request failed due to invalid parameters
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/JSONResponse'
+              text/html:
+                schema: 
+                  type: string
           '500':
             description: Internal server error
+  components:
+    schemas:
+      JSONResponse:
+        type: object
+        properties:
+          title:
+            type: string
+          detail:
+            type: string
 contentType: yaml
