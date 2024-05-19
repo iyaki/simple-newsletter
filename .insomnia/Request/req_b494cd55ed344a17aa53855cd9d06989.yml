@@ -1,0 +1,21 @@
+_id: req_b494cd55ed344a17aa53855cd9d06989
+type: Request
+parentId: fld_wrk_20535f13b5464ed6af6c82ea50c340c49bbb0db0
+modified: 1716138843770
+created: 1716138838732
+url: "{{ base_url }}/subscriptions/cancellation/"
+name: /subscriptions/cancellation
+description: ""
+method: GET
+body: {}
+parameters: []
+headers: []
+authentication: {}
+metaSortKey: -1715925533557
+isPrivate: false
+settingStoreCookies: true
+settingSendCookies: true
+settingDisableRenderRequestBody: false
+settingEncodeUrl: true
+settingRebuildPath: true
+settingFollowRedirects: global

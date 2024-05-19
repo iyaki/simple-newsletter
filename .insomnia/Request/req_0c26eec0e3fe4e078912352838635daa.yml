@@ -1,0 +1,21 @@
+_id: req_0c26eec0e3fe4e078912352838635daa
+type: Request
+parentId: fld_wrk_20535f13b5464ed6af6c82ea50c340c49bbb0db0
+modified: 1716138827751
+created: 1716138803074
+url: "{{ base_url }}/subscriptions/confirmation/"
+name: /subscriptions/confirmation
+description: ""
+method: GET
+body: {}
+parameters: []
+headers: []
+authentication: {}
+metaSortKey: -1716138803074
+isPrivate: false
+settingStoreCookies: true
+settingSendCookies: true
+settingDisableRenderRequestBody: false
+settingEncodeUrl: true
+settingRebuildPath: true
+settingFollowRedirects: global
