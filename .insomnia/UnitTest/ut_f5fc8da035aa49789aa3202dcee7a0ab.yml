@@ -1,10 +1,10 @@
 _id: ut_f5fc8da035aa49789aa3202dcee7a0ab
 type: UnitTest
 parentId: uts_3fe5c46eee164e1a886f0234a903e60c
-modified: 1716138098152
+modified: 1716140052930
 created: 1715714684877
 requestId: req_9fd7ac72f2c644d5ad705201ee95c156
-name: Only param uri - 400
+name: JSON Only param uri - 400
 code: |-
   const response1 = await insomnia.send();
   expect(response1.status).to.equal(400);

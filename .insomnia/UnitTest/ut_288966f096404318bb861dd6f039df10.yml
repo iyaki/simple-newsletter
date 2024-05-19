@@ -1,10 +1,10 @@
 _id: ut_288966f096404318bb861dd6f039df10
 type: UnitTest
 parentId: uts_3fe5c46eee164e1a886f0234a903e60c
-modified: 1716138104447
+modified: 1716140057830
 created: 1715714740139
 requestId: req_80ba0dae7d26419eaa3e3a54de6d9482
-name: Invalid URI format - 400
+name: JSON Invalid URI format - 400
 code: |-
   const response1 = await insomnia.send();
   expect(response1.status).to.equal(400);

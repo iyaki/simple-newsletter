@@ -1,7 +1,7 @@
 _id: req_a27f5d15b20841cb89c2f15d90752aaf
 type: Request
 parentId: fld_8af5daa763354dfcb670ac0a0f380855
-modified: 1716138399287
+modified: 1716139947644
 created: 1716137886005
 url: "{{ base_url }}/subscriptions/"
 name: HTML /subscriptions - Invalid parameter uri. Host does not exist
@@ -17,7 +17,11 @@ parameters:
     disabled: false
     value: user@example.com
     id: pair_f7e5c195150d41dd8be27976cb65c5ab
-headers: []
+headers:
+  - id: pair_d8b78453cff44e75b16e20bb92f2e724
+    name: Accept
+    value: text/html
+    description: ""
 authentication: {}
 metaSortKey: -1713929825833
 isPrivate: false

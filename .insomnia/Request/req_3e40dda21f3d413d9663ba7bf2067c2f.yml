@@ -1,7 +1,7 @@
 _id: req_3e40dda21f3d413d9663ba7bf2067c2f
 type: Request
 parentId: fld_8af5daa763354dfcb670ac0a0f380855
-modified: 1716138385788
+modified: 1716139926633
 created: 1716137885999
 url: "{{ base_url }}/subscriptions/"
 name: HTML /subscriptions - No params
@@ -18,7 +18,7 @@ parameters:
 headers:
   - id: pair_ea0dfc7e0d1146a8a00b4010b5047c8d
     name: Accept
-    value: application/json
+    value: text/html
     description: ""
 authentication: {}
 metaSortKey: -1713929825983

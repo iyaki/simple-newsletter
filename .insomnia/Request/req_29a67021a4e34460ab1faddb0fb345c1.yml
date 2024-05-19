@@ -1,7 +1,7 @@
 _id: req_29a67021a4e34460ab1faddb0fb345c1
 type: Request
 parentId: fld_8af5daa763354dfcb670ac0a0f380855
-modified: 1716138402819
+modified: 1716139954285
 created: 1716137886005
 url: "{{ base_url }}/subscriptions/"
 name: HTML /subscriptions - Invalid parameter uri. Not Found
@@ -17,7 +17,11 @@ parameters:
     disabled: false
     value: user@example.com
     id: pair_cb213a36ee8d4abdb0e169ef58b1c1fa
-headers: []
+headers:
+  - id: pair_87fec64bbf4d4c9c9849858a8f4eef93
+    name: Accept
+    value: text/html
+    description: ""
 authentication: {}
 metaSortKey: -1713929825783
 isPrivate: false

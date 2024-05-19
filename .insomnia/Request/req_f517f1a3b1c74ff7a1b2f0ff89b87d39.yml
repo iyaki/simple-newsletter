@@ -1,7 +1,7 @@
 _id: req_f517f1a3b1c74ff7a1b2f0ff89b87d39
 type: Request
 parentId: fld_8af5daa763354dfcb670ac0a0f380855
-modified: 1716138405259
+modified: 1716139959426
 created: 1716137886006
 url: "{{ base_url }}/subscriptions/"
 name: HTML /subscriptions - Invalid parameter uri. Not Atom or RSS feed
@@ -17,7 +17,11 @@ parameters:
     disabled: false
     value: user@example.com
     id: pair_f67cd6e4b2bf4e1da906a0e991093568
-headers: []
+headers:
+  - id: pair_11dbe7a8ef8d4ce9a6baa125b173eef0
+    name: Accept
+    value: text/html
+    description: ""
 authentication: {}
 metaSortKey: -1713929825733
 isPrivate: false

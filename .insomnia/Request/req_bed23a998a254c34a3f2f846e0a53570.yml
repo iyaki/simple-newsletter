@@ -1,7 +1,7 @@
 _id: req_bed23a998a254c34a3f2f846e0a53570
 type: Request
 parentId: fld_8af5daa763354dfcb670ac0a0f380855
-modified: 1716138391583
+modified: 1716139935284
 created: 1716137886001
 url: "{{ base_url }}/subscriptions/"
 name: HTML /subscriptions - Only param uri
@@ -17,7 +17,11 @@ parameters:
     disabled: true
     value: user@example.com
     id: pair_f4658ee9b49f4acca3f6c6597e523d2e
-headers: []
+headers:
+  - id: pair_b41d8bac31ca411db0d4bf5123248912
+    name: Accept
+    value: text/html
+    description: ""
 authentication: {}
 metaSortKey: -1713929825933
 isPrivate: false

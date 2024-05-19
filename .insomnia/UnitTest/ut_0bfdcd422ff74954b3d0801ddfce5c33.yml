@@ -1,11 +1,11 @@
 _id: ut_0bfdcd422ff74954b3d0801ddfce5c33
 type: UnitTest
 parentId: uts_3fe5c46eee164e1a886f0234a903e60c
-modified: 1716138982994
+modified: 1716140159499
 created: 1716138982994
-requestId: req_890bf250c0624095b90f67a858bfe912
-name: Invalid Email - 400
+requestId: req_49600cb2e159497d8e9a361b3f192cca
+name: HTML Invalid Email - 400
 code: |-
   const response1 = await insomnia.send();
   expect(response1.status).to.equal(400);
-  expect(response1.headers['content-type']).to.equal('text/html')
+  expect(response1.headers['content-type']).to.contain('text/html')

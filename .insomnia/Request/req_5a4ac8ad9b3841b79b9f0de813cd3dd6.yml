@@ -1,7 +1,7 @@
 _id: req_5a4ac8ad9b3841b79b9f0de813cd3dd6
 type: Request
 parentId: fld_8af5daa763354dfcb670ac0a0f380855
-modified: 1716138412958
+modified: 1716139975718
 created: 1716137886003
 url: "{{ base_url }}/subscriptions/"
 name: HTML /subscriptions - Valid params
@@ -17,7 +17,11 @@ parameters:
     disabled: false
     value: email@example.com
     id: pair_17520b219e644999a29eeec8a943c92d
-headers: []
+headers:
+  - id: pair_74f121939a5241b19216e9daed6f4bc1
+    name: Accept
+    value: text/html
+    description: ""
 authentication: {}
 metaSortKey: -1713929825583
 isPrivate: false

@@ -1,7 +1,7 @@
 _id: req_49600cb2e159497d8e9a361b3f192cca
 type: Request
 parentId: fld_8af5daa763354dfcb670ac0a0f380855
-modified: 1716138410010
+modified: 1716139970359
 created: 1716137886007
 url: "{{ base_url }}/subscriptions/"
 name: HTML /subscriptions - Invalid param email
@@ -17,7 +17,11 @@ parameters:
     disabled: false
     value: jajajaja
     id: pair_d9f5906b1059411db2efcf96fe39ae4c
-headers: []
+headers:
+  - id: pair_794a54fc9a0547cb99294f7c6310a015
+    name: Accept
+    value: text/html
+    description: ""
 authentication: {}
 metaSortKey: -1713929825633
 isPrivate: false
