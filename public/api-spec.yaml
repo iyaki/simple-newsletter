@@ -35,10 +35,29 @@ paths:
         '200':
           description: Subscription requested successfully
           content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JSONResponse'
             text/html:
               schema:
                 type: string
         '400':
           description: Subscription request failed due to invalid parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JSONResponse'
+            text/html:
+              schema:
+                type: string
         '500':
           description: Internal server error
+components:
+  schemas:
+    JSONResponse:
+      type: object
+      properties:
+        title:
+          type: string
+        detail:
+          type: string
