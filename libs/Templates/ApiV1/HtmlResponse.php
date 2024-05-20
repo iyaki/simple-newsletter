@@ -11,21 +11,24 @@ final class HtmlResponse implements ResponseInterface
     private function __construct(
         private readonly string $title,
         private readonly string $message,
+        private readonly ?string $return,
         private readonly bool $ok
     ) { }
 
-    static public function fromString(string $title, string $message, bool $ok = true): static
+    static public function fromString(string $title, string $message, ?string $return = null, bool $ok = true): static
     {
-        return new static($title, $message, $ok);
+        return new static($title, $message, $return, $ok);
     }
 
-    static public function fromEndUserException(EndUserException $exception): static
+    static public function fromEndUserException(EndUserException $exception, ?string $return = null): static
     {
-        return new static('Error: Invalid data', $exception->getMessage(), false);
+        return new static('Error: Invalid data', $exception->getMessage(), $return, false);
     }
 
     public function getBody(): string
     {
+        $redirectLink = $this->return ? "<br><p style=\"text-align: center;\"><a href=\"{$this->return}\">Return to {$this->return}</a><p>" : '';
+
         return <<<HTML
         <!DOCTYPE html>
         <html lang="en">
@@ -46,6 +49,7 @@ final class HtmlResponse implements ResponseInterface
                 <h1 style="text-align: center; margin-top: 1em; margin-bottom: 2em;">Simple Newsletter</h1>
                 <h2 style="text-align: center;">{$this->title}</h2>
                 <p style="text-align: center;">{$this->message}</p>
+                {$redirectLink}
             </main>
         </body>
         </html>

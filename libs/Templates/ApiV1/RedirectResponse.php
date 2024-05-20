@@ -12,11 +12,12 @@ final class RedirectResponse implements ResponseInterface
     private function __construct(
         private readonly string $title,
         private readonly string $message,
-        private readonly bool $ok,
         private readonly string $return,
+        private readonly bool $ok
 
     ) { }
-    public function getBody(): string{
+    public function getBody(): string
+    {
         return '';
     }
 
@@ -41,13 +42,13 @@ final class RedirectResponse implements ResponseInterface
         ];
     }
 
-    static function fromString(string $title, string $message, bool $ok = true, $return = ''): static
+    static function fromString(string $title, string $message, string $return, bool $ok = true): static
     {
-        return new static($title, $message, $ok, $return);
+        return new static($title, $message, $return, $ok);
     }
 
     static function fromEndUserException(EndUserException $exception, string $return): static
     {
-        return new static('Error: Invalid data', $exception->getMessage(), false, $return);
+        return new static('Error: Invalid data', $exception->getMessage(), $return, false);
     }
 }

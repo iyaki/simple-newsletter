@@ -72,6 +72,7 @@
 				}
 			</style>
 			<form action="/v1/subscriptions/" class="subscription-form">
+				<input type="hidden" name="return" value="https://simple-newsletter.com/">
 				<fieldset>
 					<div>
 						<label>
@@ -132,7 +133,7 @@
 			<pre><code><?= htmlentities(<<<HTML
 			<form action="https://simple-newsletter.com/v1/subscriptions/">
 				<input type="hidden" name="uri" value="https://your-domain.com/path/to/feed.xml">
-				<input type="hidden" name="return" value="https://your-domain.com/thanks-for-subscribing.html">
+				<input type="hidden" name="return" value="https://your-domain.com/">
 				<label>
 					Email
 					<input type="email" name="email" required>

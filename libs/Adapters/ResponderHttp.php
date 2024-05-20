@@ -52,15 +52,15 @@ final class ResponderHttp
 
             public function __construct(private readonly string $contentType) {}
 
-            public function fromString(string $title, string $message, bool $ok = true): ResponseInterface
+            public function fromString(string $title, string $message, string $return = null, bool $ok = true): ResponseInterface
             {
                 return match ($this->contentType) {
-                    'text/html' => HtmlResponse::fromString($title, $message, $ok),
+                    'text/html' => HtmlResponse::fromString($title, $message, $return, $ok),
                     default => JsonResponse::fromString($title, $message, $ok),
                 };
             }
 
-            public function fromEndUserException(EndUserException $exception): ResponseInterface
+            public function fromEndUserException(EndUserException $exception, string $return = null): ResponseInterface
             {
                 return match ($this->contentType) {
                     'text/html' => HtmlResponse::fromEndUserException($exception),
@@ -70,20 +70,25 @@ final class ResponderHttp
         };
     }
 
-    public function responseBuilderFromRedirect(string $return): object
+    public function responseBuilderFromRedirect(): object
     {
-        return new class ($return) {
-
-            public function __construct(private readonly string $return) {}
-            public function fromString(string $title, string $message, bool $ok = true): ResponseInterface
+        return new class {
+            public function fromString(string $title, string $message, string $return = null, bool $ok = true): ResponseInterface
             {
-                return RedirectResponse::fromString($title, $message, $ok, $this->return);
+                return RedirectResponse::fromString($title, $message, $return, $ok);
             }
 
-            public function fromEndUserException(EndUserException $exception): ResponseInterface
+            public function fromEndUserException(EndUserException $exception, $return): ResponseInterface
             {
-                return RedirectResponse::fromEndUserException($exception, $this->return);
+                return RedirectResponse::fromEndUserException($exception, $return);
             }
         };
+    }
+
+    private function checkURI(string $uri): void
+    {
+        if (! \filter_var($feedUri, \FILTER_VALIDATE_URL)) {
+            throw new EndUserException('Invalid return URI');
+        }
     }
 }
