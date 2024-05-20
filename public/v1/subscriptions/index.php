@@ -9,7 +9,13 @@ use SimpleNewsletter\Components\EndUserException;
 (function (): never {
     $c = new Container();
     $responder = $c->responder();
-    $responseBuilder = $responder->responseBuilderFromContentNegotiation($_SERVER['HTTP_ACCEPT']);
+
+    $return = $_GET['return'] ?? null;
+    $responseBuilder = (
+        $return
+        ? $responder->responseBuilderFromRedirect($return)
+        : $responder->responseBuilderFromContentNegotiation($_SERVER['HTTP_ACCEPT'])
+    );
 
     try {
 

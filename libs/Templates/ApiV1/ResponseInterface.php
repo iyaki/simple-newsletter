@@ -16,8 +16,4 @@ interface ResponseInterface
      * @return array<string, string>
      */
     public function getHeaders(): array;
-
-    static function fromString(string $title, string $message, bool $ok = true): static;
-
-    static function fromEndUserException(EndUserException $exception): static;
 }

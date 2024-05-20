@@ -8,6 +8,7 @@ use SimpleNewsletter\Components\EndUserException;
 use SimpleNewsletter\Components\Responder;
 use SimpleNewsletter\Templates\ApiV1\HtmlResponse;
 use SimpleNewsletter\Templates\ApiV1\JsonResponse;
+use SimpleNewsletter\Templates\ApiV1\RedirectResponse;
 use SimpleNewsletter\Templates\ApiV1\ResponseInterface;
 
 final class ResponderHttp
@@ -22,7 +23,7 @@ final class ResponderHttp
             \header(\sprintf('%s: %s', $key, $value));
         }
 
-        if (! $response->isOk()) {
+        if (! $response->isOk() && ! $response instanceof RedirectResponse) {
             \header('HTTP/1.0 400 Bad Request', true, 400);
         }
 
@@ -49,7 +50,7 @@ final class ResponderHttp
 
         return new class ($contentType) {
 
-            public function __construct(private string $contentType) {}
+            public function __construct(private readonly string $contentType) {}
 
             public function fromString(string $title, string $message, bool $ok = true): ResponseInterface
             {
@@ -65,6 +66,23 @@ final class ResponderHttp
                     'text/html' => HtmlResponse::fromEndUserException($exception),
                     default => JsonResponse::fromEndUserException($exception),
                 };
+            }
+        };
+    }
+
+    public function responseBuilderFromRedirect(string $return): object
+    {
+        return new class ($return) {
+
+            public function __construct(private readonly string $return) {}
+            public function fromString(string $title, string $message, bool $ok = true): ResponseInterface
+            {
+                return RedirectResponse::fromString($title, $message, $ok, $this->return);
+            }
+
+            public function fromEndUserException(EndUserException $exception): ResponseInterface
+            {
+                return RedirectResponse::fromEndUserException($exception, $this->return);
             }
         };
     }

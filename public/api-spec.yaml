@@ -4,7 +4,7 @@ info:
   description: Service to convert RSS and Atom feeds to newsletters
   contact:
     url: https://simple-newsletter.com/
-  version: 1.0.0
+  version: 1.1.0
 externalDocs:
   url: https://simple-newsletter.com/
 servers:
@@ -21,16 +21,27 @@ paths:
       parameters:
         - name: uri
           in: query
+          description: Feed\'s URI to subscribe
           schema:
             type: string
             format: uri
           required: true
+          example: https://example.org/feed.atom
         - name: email
           in: query
+          description: E-mail to receive articles from subscribed feed
           schema:
             type: string
             format: email
           required: true
+          example: email@example.org
+        - name: return
+          in: query
+          description: URI to return (with a 302 Redirect) the user after subscription
+          schema:
+            type: string
+            format: uri
+          required: false
       responses:
         '200':
           description: Subscription requested successfully
@@ -41,6 +52,15 @@ paths:
             text/html:
               schema:
                 type: string
+        '302':
+          description: |
+            Subscription response redirected
+            When parameter *return* is provided the response will be a 302 redirect to the specified URI with aditional query parameters indicating the result of the operation.
+
+            Additional query parameters:
+              - title
+              - result
+              - ok
         '400':
           description: Subscription request failed due to invalid parameters
           content:
@@ -50,7 +70,7 @@ paths:
             text/html:
               schema:
                 type: string
-        '500':
+        'default':
           description: Internal server error
 components:
   schemas:
