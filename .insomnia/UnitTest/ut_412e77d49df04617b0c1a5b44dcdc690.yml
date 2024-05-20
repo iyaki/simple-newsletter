@@ -1,0 +1,11 @@
+_id: ut_412e77d49df04617b0c1a5b44dcdc690
+type: UnitTest
+parentId: uts_3fe5c46eee164e1a886f0234a903e60c
+modified: 1716162717193
+created: 1716162645018
+requestId: req_90c96bd99dee40549201b4e4642bfc54
+name: Redirect Return Parameter 302
+code: |-
+  const response1 = await insomnia.send();
+  console.log(response1)
+  expect(response1.status).to.equal(302);

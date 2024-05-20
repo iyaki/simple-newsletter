@@ -1,7 +1,7 @@
 _id: req_wrk_20535f13b5464ed6af6c82ea50c340c4b13e9cad
 type: Request
 parentId: fld_wrk_20535f13b5464ed6af6c82ea50c340c49bbb0db0
-modified: 1715714557075
+modified: 1716162484954
 created: 1715712264040
 url: "{{ base_url }}/subscriptions/"
 name: /subscriptions
@@ -12,12 +12,19 @@ parameters:
   - name: uri
     disabled: true
     value: string
+    id: pair_cc9e143a28804dc69eef2f0a12a09c73
   - name: email
     disabled: true
     value: user@example.com
+    id: pair_720013663c3643f7b8fd959a6cd76e16
+  - id: pair_d7cf6d72244c4ba7942f544d76974004
+    name: return
+    value: https://iyaki.ar/
+    description: ""
+    disabled: true
 headers: []
 authentication: {}
-metaSortKey: -1715712264040
+metaSortKey: -1716031845299
 isPrivate: false
 settingStoreCookies: true
 settingSendCookies: true

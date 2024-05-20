@@ -1,11 +1,12 @@
 _id: spc_5ac9343908d1480cac71be6103e8f5ef
 type: ApiSpec
 parentId: wrk_20535f13b5464ed6af6c82ea50c340c4
-modified: 1716143994212
+modified: 1716164424273
 created: 1715710878436
 fileName: simple-newsletter.yaml
-contents: |
+contents: >
   openapi: 3.0.3
+
   info:
     title: Simple Newslertter
     description: Service to convert RSS and Atom feeds to newsletters
@@ -28,16 +29,27 @@ contents: |
         parameters:
           - name: uri
             in: query
+            description: Feed\'s URI to subscribe
             schema:
               type: string
               format: uri
             required: true
+            example: https://example.org/feed.atom
           - name: email
             in: query
+            description: E-mail to receive articles from subscribed feed
             schema:
               type: string
               format: email
             required: true
+            example: email@example.org
+          - name: return
+            in: query
+            description: URI to return (with a 302 Redirect) the user after subscription
+            schema:
+              type: string
+              format: uri
+            required: false
         responses:
           '200':
             description: Subscription requested successfully
@@ -48,6 +60,15 @@ contents: |
               text/html:
                 schema: 
                   type: string
+          '302':
+            description: |
+              Subscription response redirected
+              When parameter *return* is provided the response will be a 302 redirect to the specified URI with aditional query parameters indicating the result of the operation.
+              
+              Additional query parameters:
+                - title
+                - result
+                - ok
           '400':
             description: Subscription request failed due to invalid parameters
             content:
@@ -57,7 +78,7 @@ contents: |
               text/html:
                 schema: 
                   type: string
-          '500':
+          'default':
             description: Internal server error
   components:
     schemas:

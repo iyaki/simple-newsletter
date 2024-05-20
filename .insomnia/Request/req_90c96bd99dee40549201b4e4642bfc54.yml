@@ -1,0 +1,25 @@
+_id: req_90c96bd99dee40549201b4e4642bfc54
+type: Request
+parentId: fld_1070335468c04acab00acc710b0bb60d
+modified: 1716162608242
+created: 1716162515388
+url: "{{ base_url }}/subscriptions/"
+name: Redirect /subscriptions - Return parameter
+description: ""
+method: GET
+body: {}
+parameters:
+  - id: pair_4b9505beb88b4a87879a7f06aaaea649
+    name: return
+    value: https://iyaki.ar/
+    description: ""
+headers: []
+authentication: {}
+metaSortKey: -1716162515388
+isPrivate: false
+settingStoreCookies: true
+settingSendCookies: true
+settingDisableRenderRequestBody: false
+settingEncodeUrl: true
+settingRebuildPath: true
+settingFollowRedirects: global
