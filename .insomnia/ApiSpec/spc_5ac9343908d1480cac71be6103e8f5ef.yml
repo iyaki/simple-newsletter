@@ -1,7 +1,7 @@
 _id: spc_5ac9343908d1480cac71be6103e8f5ef
 type: ApiSpec
 parentId: wrk_20535f13b5464ed6af6c82ea50c340c4
-modified: 1716164424273
+modified: 1716168245516
 created: 1715710878436
 fileName: simple-newsletter.yaml
 contents: >
@@ -45,10 +45,16 @@ contents: >
             example: email@example.org
           - name: return
             in: query
-            description: URI to return (with a 302 Redirect) the user after subscription
+            description: URI to return the user after subscription
             schema:
               type: string
               format: uri
+            required: false
+          - name: redirect
+            in: query
+            description: After subscription redirect the user to the URI indicated with the *return* parameter
+            schema:
+              type: boolean
             required: false
         responses:
           '200':
