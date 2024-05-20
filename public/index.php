@@ -129,14 +129,17 @@
 			</header>
 			<a href="https://editor.swagger.io/?url=https://simple-newsletter.com/api-spec.yaml">OpenAPI API Docs</a>
 			<h3>Example HTML Form for publishers</h3>
-			<pre><code>&lt;form action&equals;&quot;https&colon;&sol;&sol;simple-newsletter&period;com&sol;v1&sol;subscriptions&sol;&quot;&gt;
-	&lt;input type&equals;&quot;hidden&quot; name&equals;&quot;uri&quot; value&equals;&quot;https&colon;&sol;&sol;your-domain&period;com&sol;path&sol;to&sol;feed&period;xml&quot;&gt;
-	&lt;label&gt;
-		Email
-		&lt;input type&equals;&quot;email&quot; name&equals;&quot;email&quot; required&gt;
-	&lt;&sol;label&gt;
-	&lt;button type&equals;&quot;submit&quot;&gt;Subscribe&excl;&lt;&sol;button&gt;
-&lt;&sol;form&gt;</code></pre>
+			<pre><code><?= htmlentities(<<<HTML
+			<form action="https://simple-newsletter.com/v1/subscriptions/">
+				<input type="hidden" name="uri" value="https://your-domain.com/path/to/feed.xml">
+				<input type="hidden" name="return" value="https://your-domain.com/thanks-for-subscribing.html">
+				<label>
+					Email
+					<input type="email" name="email" required>
+				</label>
+				<button type="submit">Subscribe!</button>
+			</form>
+			HTML) ?></code></pre>
 			<details>
 				<summary>Known limitations</summary>
 				<ul>
