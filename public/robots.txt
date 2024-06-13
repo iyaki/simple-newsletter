@@ -1,0 +1,8 @@
+User-agent: *
+Disallow: /v1/
+
+User-agent: *
+Disallow: /send-newsletters/
+
+User-agent: *
+Allow: /

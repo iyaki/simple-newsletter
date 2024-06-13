@@ -13,7 +13,10 @@ use SimpleNewsletter\Components\EndUserException;
 
     $c->subscriptions()->sendScheduled($datetime);
 
+    header('X-Robots-Tag: noindex, nofollow');
+
     echo $datetime->format('Y-m-d H:i:s') . "\n";
 
     exit;
+
 })();

@@ -11,6 +11,8 @@ use SimpleNewsletter\Components\EndUserException;
     $responder = $c->responder();
     $responseBuilder = $responder->responseBuilderFromContentNegotiation($_SERVER['HTTP_ACCEPT']);
 
+    header('X-Robots-Tag: noindex, nofollow');
+
     try {
         $email = $_GET['email'] ?? null;
         $feedUri = $_GET['uri'] ?? null;
