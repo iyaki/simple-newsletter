@@ -30,14 +30,17 @@ final class ResponderHttp
         echo $response->getBody();
     }
 
-    public function responseBuilderFromContentNegotiation($acceptHeaderValue): object
+    public function responseBuilderFromContentNegotiation(string $acceptHeaderValueAsString): object
     {
-        $acceptHeaderValue = \strtolower($acceptHeaderValue);
+        $acceptHeaderValues = \array_map(
+            fn (string $accept): string => \strtolower(\trim($accept)),
+            \explode(',', $acceptHeaderValueAsString)
+        );
 
         $compatibleTypes = \array_filter(
-            \explode(',', $acceptHeaderValue),
+            $acceptHeaderValues,
             fn (string $accept): bool => \in_array(
-                $accept,
+                \trim($accept),
                 [
                     self::TYPE_HTML,
                     self::TYPE_JSON,
@@ -46,7 +49,8 @@ final class ResponderHttp
             ),
         );
 
-        $contentType = $compatibleTypes[0] ?? self::TYPE_JSON;
+        $contentType = \reset($compatibleTypes);
+        $contentType = $contentType ?: self::TYPE_JSON;
 
         return new class ($contentType) {
 

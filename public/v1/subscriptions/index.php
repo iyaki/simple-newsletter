@@ -16,16 +16,17 @@ use SimpleNewsletter\Components\EndUserException;
         $return = $_GET['return'] ?? null;
         $redirect = $_GET['redirect'] ?? null;
         $redirect = $redirect === 'false' ? false : (bool) $redirect;
+        $acceptHeader = (string) ($_SERVER['HTTP_ACCEPT'] ?? '');
 
         if ($redirect && ! $return) {
-            $responseBuilder = $responder->responseBuilderFromContentNegotiation($_SERVER['HTTP_ACCEPT']);
+            $responseBuilder = $responder->responseBuilderFromContentNegotiation($acceptHeader);
             throw new EndUserException('"return" must be set when using "redirect"');
         }
 
         $responseBuilder = (
             $redirect
             ? $responder->responseBuilderFromRedirect()
-            : $responder->responseBuilderFromContentNegotiation($_SERVER['HTTP_ACCEPT'])
+            : $responder->responseBuilderFromContentNegotiation($acceptHeader)
         );
 
         if ($redirect && ! $return) {
