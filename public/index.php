@@ -103,7 +103,7 @@
 				<ul style="list-style: none; padding: 0;">
 					<li><details>
 						<summary>How do I subscribe?</summary>
-						<p>Just input the Atom or RSS feed’s URI and your email address in the form and hit submit. You’ll receive a confirmation email to finalize your subscription.</p>
+						<p>Just input the Atom or RSS feed’s URI and your email address in the form and hit submit. You’ll receive and email to confirm the subscription.</p>
 					</details></li>
 					<li><details>
 						<summary>How do I unsubscribe?</summary>

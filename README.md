@@ -12,7 +12,6 @@ Cron:
 
 `15 * * * * curl https://simple-newsletter.com/send-newsletters/ >> /root/send-newsletters.log`
 
-
 ## Cleanup
 
 ```shell
