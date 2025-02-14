@@ -29,7 +29,7 @@ final readonly class EmailTemplateFactory
             $recipient,
             $feed,
             \sprintf(
-                '%s/subscriptions/confirmation/?uri=%s&email=%s&token=%s',
+                '%s/v1/subscriptions/confirmation/?uri=%s&email=%s&token=%s',
                 $this->serviceHost,
                 \urlencode($feed->uri),
                 \urlencode($recipient),
@@ -49,7 +49,7 @@ final readonly class EmailTemplateFactory
             $feed,
             $post,
             \sprintf(
-                '%s/subscriptions/cancellation/?uri=%s&email=%s&token=%s',
+                '%s/v1/subscriptions/cancellation/?uri=%s&email=%s&token=%s',
                 $this->serviceHost,
                 \urlencode($feed->uri),
                 \urlencode($subscription->email),
