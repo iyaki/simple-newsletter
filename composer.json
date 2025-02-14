@@ -6,12 +6,10 @@
             "SimpleNewsletter\\": "libs/"
         }
     },
-    "authors": [
-        {
-            "name": "iyaki",
-            "email": "ivanyaki96@gmail.com"
-        }
-    ],
+    "authors": [{
+        "name": "iyaki",
+        "email": "me@iyaki.ar"
+    }],
     "require": {
         "laminas/laminas-feed": "^2.22",
         "laminas/laminas-http": "^2.19",
