@@ -7,27 +7,9 @@
 	<meta name="author" content="Ivan Yaki">
 	<meta name="description" content="Simple and free Atom and RSS feeds to newsletter subscription service">
 	<meta property="og:title" content="Simple Newsletter">
-
-	<!--
-		`og` stands for Open Graph, which is a protocol for how your website appears when linked to from another site. These tags are critical to ensuring your site gains an appropriate card when sharing on social media.
-
-		TODO
-	-->
 	<meta property="og:description" content="Free Atom and RSS feeds to newsletter subscription service">
-	<!-- <meta property="og:image" content="/some-image.png"> -->
-	<meta property="og:url" content="/">
+	<meta property="og:url" content="https://simple-newsletter.com/">
 	<meta property="og:site_name" content="Simple Newsletter">
-
-	<!--
-		`twitter` is similar to Open Graph, but specific to Twitter. There are multiple card types you can choose from.
-
-		Learn more on Twitter's documentation:
-		https://developer.twitter.com/en/docs/tweets/optimize-with-cards/guides/getting-started
-
-		TODO
-	-->
-	<!-- <meta name="twitter:card" content="summary_large_image"> -->
-	<!-- <meta name="twitter:image:alt" content="image description"> -->
 
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css">
 
@@ -67,6 +49,8 @@
 					margin-bottom: 2em;
 				}
 				.subscription-form fieldset button[type="submit"] {
+					background-color: var(--links);
+					color: white;
 					padding-left: 3em;
 					padding-right: 3em;
 				}
