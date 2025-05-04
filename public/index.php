@@ -61,7 +61,7 @@
 					<div>
 						<label>
 							Feed
-							<input type="url" name="uri" required>
+							<input type="url" name="uri" value="<?= $_GET['feed'] ?? ''; ?>" required>
 						</label>
 						<label>
 							Email
