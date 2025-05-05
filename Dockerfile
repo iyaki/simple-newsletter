@@ -2,8 +2,6 @@ ARG FRANKENPHP_VERSION=1
 ARG PHP_VERSION=php8.3
 FROM dunglas/frankenphp:${FRANKENPHP_VERSION}-${PHP_VERSION} AS runtime
 
-# WORKDIR /app
-
 FROM runtime AS dependencies
 
 COPY --from=composer /usr/bin/composer /usr/bin/composer
@@ -14,7 +12,8 @@ RUN apt-get update \
 	&& rm -rf \
 		/var/lib/apt/lists/* \
 		/var/lib/dpkg/info/* \
-		/var/lib/dpkg/status-old
+		/var/lib/dpkg/status-old \
+	&& install-php-extensions intl
 
 FROM dependencies AS dev-environment
 
