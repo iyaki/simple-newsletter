@@ -10,7 +10,7 @@ Service starts and updates with:
 
 Cron:
 
-`15 * * * * curl https://simple-newsletter.com/send-newsletters/ >> /root/send-newsletters.log`
+`15 * * * * docker exec simple-newsletter php /app/bin/send-newsletters.php >> /root/send-newsletters.log`
 
 ## Cleanup
 

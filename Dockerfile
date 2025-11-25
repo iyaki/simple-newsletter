@@ -33,6 +33,7 @@ FROM dependencies AS app-compilation
 
 RUN rm -rf /app
 
+COPY ./bin /app/bin
 COPY ./config /app/config
 COPY ./libs /app/libs
 COPY ./public /app/public
@@ -44,26 +45,9 @@ RUN COMPOSER_ALLOW_SUPERUSER=1 /usr/bin/composer install \
 	--classmap-authoritative \
 	--no-dev
 
-FROM dunglas/frankenphp:${FRANKENPHP_VERSION}-builder-${PHP_VERSION}-alpine AS production-builder
-
-# Copy xcaddy in the builder image
-COPY --from=caddy:builder /usr/bin/xcaddy /usr/bin/xcaddy
-
-# CGO must be enabled to build FrankenPHP
-ENV CGO_ENABLED=1 XCADDY_SETCAP=1 XCADDY_GO_BUILD_FLAGS="-ldflags '-w -s'"
-RUN xcaddy build \
-	--output /usr/local/bin/frankenphp \
-	--with github.com/dunglas/frankenphp=./ \
-	--with github.com/dunglas/frankenphp/caddy=./caddy/ \
-	--with github.com/dunglas/caddy-cbrotli \
-	# Para que cloudflare funcione adecuadamente es importante que el SSL/TLS del dominio este configurado como Full (strict)
-	--with github.com/caddy-dns/cloudflare
-
 FROM dunglas/frankenphp:${FRANKENPHP_VERSION}-${PHP_VERSION}-alpine AS production
 
 LABEL org.opencontainers.image.source=https://github.com/iyaki/simple-newsletter
-
-COPY --from=production-builder /usr/local/bin/frankenphp /usr/local/bin/frankenphp
 
 COPY .php/php.ini $PHP_INI_DIR/php.ini
 COPY .php/production.ini $PHP_INI_DIR/conf.d/prod.ini

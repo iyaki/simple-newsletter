@@ -13,7 +13,7 @@ services:
       - ./:/app/
       - .php/php.ini:/usr/local/etc/php/php.ini
       - .php/development.ini:/usr/local/etc/php/conf.d/dev.ini
-      # - ./.caddy/Caddyfile-prod:/etc/caddy/Caddyfile
+      # - ./.caddy:/etc/caddy
       - caddy_data:/data
       - caddy_config:/config
     tty: true

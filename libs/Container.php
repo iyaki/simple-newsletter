@@ -62,12 +62,8 @@ final class Container
 
     private function emailTemplateFactory(): EmailTemplateFactory
     {
-        $schema = $_SERVER['HTTPS'] ? 'https' : 'http';
-        $serverPort = $_SERVER['SERVER_PORT'];
-        $portToAppend = \in_array($serverPort, [80, 443]) ? '' : ':' . $serverPort ;
-
         return new EmailTemplateFactory(
-            $schema . '://' . $_SERVER['SERVER_NAME'] . $portToAppend
+            \getenv('URI_SELF')
         );
     }
 
