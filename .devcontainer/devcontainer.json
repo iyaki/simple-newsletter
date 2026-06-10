@@ -18,6 +18,16 @@
 		"--memory", "8g"
 	],
 	"mounts": [
+		{
+			"source": "${localEnv:HOME}/.opencode",
+			"target": "/home/codespace/.local/share/opencode",
+			"type": "bind"
+		},
+		{
+			"source": "${localEnv:HOME}/.local/state/opencode",
+			"target": "/home/codespace/.local/state/opencode",
+			"type": "bind"
+		},
 		"source=${localWorkspaceFolder}/.php/php.ini,target=/usr/local/etc/php/php.ini,type=bind",
 		"source=${localWorkspaceFolder}/.php/development.ini,target=/usr/local/etc/php/conf.d/dev.ini,type=bind",
 		"source=caddy_data,target=/data,type=volume",

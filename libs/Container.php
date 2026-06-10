@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SimpleNewsletter;
 
+use PHPMailer\PHPMailer\PHPMailer;
 use SimpleNewsletter\Adapters\FeedImporterLaminas;
 use SimpleNewsletter\Adapters\PHPMailerFactory;
 use SimpleNewsletter\Adapters\ResponderHttp;
@@ -93,7 +94,9 @@ final class Container
             \getenv('SMTP_USER'),
             \getenv('SMTP_PASSWORD'),
             \getenv('EMAIL_FROM'),
-            \getenv('EMAIL_REPLY_TO')
+            \getenv('EMAIL_REPLY_TO'),
+            ($v = \getenv('SMTP_ENCRYPTION')) !== false ? $v : PHPMailer::ENCRYPTION_STARTTLS,
+            (bool) \getenv('SMTP_ALLOW_SELF_SIGNED')
         );
         self::$sender = \WeakReference::create($sender);
 
