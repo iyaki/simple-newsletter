@@ -21,8 +21,7 @@ final readonly class SenderPHPMailer implements Sender
         string $from,
         string $replyTo,
         string $encryption = PHPMailer::ENCRYPTION_STARTTLS,
-        bool $allowSelfSigned = false,
-        string $authType = 'PLAIN'
+        bool $allowSelfSigned = false
     ) {
         $mailer = new PHPMailer(true);
 
@@ -32,7 +31,6 @@ final readonly class SenderPHPMailer implements Sender
         $mailer->Host = $host;
         $mailer->Port = $port;
         $mailer->SMTPAuth = true;
-        $mailer->AuthType = $authType;
         $mailer->Username = $user;
         $mailer->Password = $password;
 
