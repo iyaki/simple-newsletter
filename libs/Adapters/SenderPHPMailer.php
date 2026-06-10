@@ -19,18 +19,32 @@ final readonly class SenderPHPMailer implements Sender
         string $user,
         string $password,
         string $from,
-        string $replyTo
+        string $replyTo,
+        string $encryption = PHPMailer::ENCRYPTION_STARTTLS,
+        bool $allowSelfSigned = false,
+        string $authType = 'PLAIN'
     ) {
         $mailer = new PHPMailer(true);
 
         $mailer->isSMTP();
-        $mailer->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        $mailer->SMTPSecure = $encryption;
         $mailer->SMTPKeepAlive = true;
         $mailer->Host = $host;
         $mailer->Port = $port;
         $mailer->SMTPAuth = true;
+        $mailer->AuthType = $authType;
         $mailer->Username = $user;
         $mailer->Password = $password;
+
+        if ($allowSelfSigned) {
+            $mailer->SMTPOptions = [
+                'ssl' => [
+                    'verify_peer' => false,
+                    'verify_peer_name' => false,
+                    'allow_self_signed' => true,
+                ],
+            ];
+        }
 
         $mailer->setFrom($from, 'Simple Newsletter');
         $mailer->addReplyTo($replyTo, 'The Developer');
