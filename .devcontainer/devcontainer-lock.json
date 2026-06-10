@@ -1,0 +1,24 @@
+{
+  "features": {
+    "ghcr.io/devcontainers-extra/features/apt-packages:": {
+      "version": "1.0.6",
+      "resolved": "ghcr.io/devcontainers-extra/features/apt-packages@sha256:55c54412112da81b9381e470cdbbe55278564950d1ff536ce925b1e8e096babd",
+      "integrity": "sha256:55c54412112da81b9381e470cdbbe55278564950d1ff536ce925b1e8e096babd"
+    },
+    "ghcr.io/devcontainers-extra/features/opencode:": {
+      "version": "1.0.0",
+      "resolved": "ghcr.io/devcontainers-extra/features/opencode@sha256:7c15617cc9e501bc218097adc4910a00f81ed52fc5a5eef463aa1cc01317f9ba",
+      "integrity": "sha256:7c15617cc9e501bc218097adc4910a00f81ed52fc5a5eef463aa1cc01317f9ba"
+    },
+    "ghcr.io/devcontainers/features/git:": {
+      "version": "1.3.5",
+      "resolved": "ghcr.io/devcontainers/features/git@sha256:27905dc196c01f77d6ba8709cb82eeaf330b3b108772e2f02d1cd0d826de1251",
+      "integrity": "sha256:27905dc196c01f77d6ba8709cb82eeaf330b3b108772e2f02d1cd0d826de1251"
+    },
+    "ghcr.io/iyaki/devcontainer-features/lefthook:": {
+      "version": "2.0.1",
+      "resolved": "ghcr.io/iyaki/devcontainer-features/lefthook@sha256:fb888f615f4eb7f3df34ab020b0ededed229ab391af8b03a4007f8fdedc7241a",
+      "integrity": "sha256:fb888f615f4eb7f3df34ab020b0ededed229ab391af8b03a4007f8fdedc7241a"
+    }
+  }
+}
