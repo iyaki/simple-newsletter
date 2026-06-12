@@ -20,6 +20,11 @@
       "resolved": "ghcr.io/devcontainers/features/git@sha256:27905dc196c01f77d6ba8709cb82eeaf330b3b108772e2f02d1cd0d826de1251",
       "integrity": "sha256:27905dc196c01f77d6ba8709cb82eeaf330b3b108772e2f02d1cd0d826de1251"
     },
+    "ghcr.io/devcontainers/features/node:": {
+      "version": "2.0.0",
+      "resolved": "ghcr.io/devcontainers/features/node@sha256:fedd4c11f7adfb64283b578dddc7da906728daa25fa293351c9d913231acf12f",
+      "integrity": "sha256:fedd4c11f7adfb64283b578dddc7da906728daa25fa293351c9d913231acf12f"
+    },
     "ghcr.io/iyaki/devcontainer-features/lefthook:": {
       "version": "2.0.1",
       "resolved": "ghcr.io/iyaki/devcontainer-features/lefthook@sha256:fb888f615f4eb7f3df34ab020b0ededed229ab391af8b03a4007f8fdedc7241a",
