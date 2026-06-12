@@ -1,2 +1,10 @@
 .env
 /vendor/
+/.opencode/plans/*
+!/.opencode/plans/.gitignore
+*.log
+coverage/
+.phpunit.result.cache
+/tests/_output/
+/package-lock.json
+/node_modules/

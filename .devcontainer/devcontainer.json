@@ -73,6 +73,7 @@
 		"ghcr.io/devcontainers-extra/features/opencode:": {},
 		"ghcr.io/devcontainers-extra/features/gh-cli": {},
 		"ghcr.io/iyaki/devcontainer-features/oh-my-pi:": {},
+		"ghcr.io/devcontainers/features/node:": {},
 		"ghcr.io/iyaki/devcontainer-features/lefthook:": {}
 	}
 }
