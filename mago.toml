@@ -8,4 +8,4 @@ baseline = "mago-baseline.json"
 minimum-fail-level = "warning"
 
 [analyzer]
-excludes = ["vendor/**", "data/**", "migrations/**", "tests/_output/**"]
+excludes = ["vendor/**", "data/**", "migrations/**", "tests/_output/**", "node_modules/**"]

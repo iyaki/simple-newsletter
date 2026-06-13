@@ -8,14 +8,30 @@ pre-commit:
       run: vendor/bin/mago lint {staged_files}
       stage_fixed: true
 
-    - name: phpstan
+    - name: mago analyze
       glob: "*.php"
-      run: vendor/bin/phpstan analyse --no-progress --error-format=raw {staged_files}
-
+      run: vendor/bin/mago analyze {staged_files}
     - name: tests
       glob: "*.php"
-      run: vendor/bin/pest --quiet
+      run: vendor/bin/pest {staged_files}
 
     - name: lefthook validate
       glob: "lefthook.yml"
       run: npx lefthook validate
+
+pre-push:
+  commands:
+    full test suite:
+      run: composer test:coverage
+    openapi compliance:
+      run: vendor/bin/pest tests/E2e/OpenApiComplianceTest.php
+
+commit-msg:
+  commands:
+    conventional commits:
+      run: |
+        if ! grep -qE "^(feat|fix|docs|style|refactor|test|chore)(\([^)]+\))?:" "$1"; then
+          echo "Commit message must follow Conventional Commits format"
+          echo "Example: feat(auth): add double-opt-in flow"
+          exit 1
+        fi

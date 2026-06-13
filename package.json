@@ -1,4 +1,8 @@
 {
+  "scripts": {
+    "lefthook": "lefthook",
+    "validate:lefthook": "lefthook validate"
+  },
   "devDependencies": {
     "intelephense": "^1.18.4",
     "lefthook": "^2.1.9"
