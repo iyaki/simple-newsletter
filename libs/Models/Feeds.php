@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace SimpleNewsletter\Models;
 
-use Laminas\Feed\Reader\Reader;
-use Laminas\Feed\Reader\ReaderImportInterface;
 use SimpleNewsletter\Components\FeedImporter;
 use SimpleNewsletter\Data\Feed;
 use SimpleNewsletter\Data\FeedsDAO;
@@ -42,9 +40,9 @@ final readonly class Feeds
     /**
      * @return Feed[]
      */
-    public function getSchedudled(\DateTimeImmutable $datetime): array
+    public function getScheduled(\DateTimeImmutable $datetime): array
     {
-        return $this->feedsDAO->getSchedudled($datetime);
+        return $this->feedsDAO->getScheduled($datetime);
     }
 
     public function retrieveWithPosts(Feed $feed): Feed

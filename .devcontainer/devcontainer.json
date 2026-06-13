@@ -14,7 +14,6 @@
 	"forwardPorts": [8080],
 	"runArgs": [
 		"--env-file", "${localWorkspaceFolder}/.env",
-		"--userns=keep-id", // For podman users, to avoid permission issues with bind mountson on rootless mode.e
 		"--memory", "8g"
 	],
 	"mounts": [
@@ -35,12 +34,12 @@
 		{ "source": "${localEnv:HOME}/.config/gh/", "target": "/home/root/.config/gh/", "type": "bind" },
 		{
       "source": "${localEnv:HOME}/.omp",
-      "target": "/home/root/.omp",
+      "target": "/root/.omp",
       "type": "bind"
     }
 	],
-	"remoteEnv": {
-		"SERVER_NAME": "${SERVER_NAME:-http://localhost:8080}"
+	"containerEnv": {
+		"SERVER_NAME": "http://localhost:8080"
 	},
 
 	// Features to add to the dev container. More info: https://containers.dev/features.

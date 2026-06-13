@@ -1,7 +1,13 @@
 openapi: 3.0.3
 info:
-  title: Simple Newslertter
-  description: Service to convert RSS and Atom feeds to newsletters
+  title: Simple Newsletter Public API
+  description: |
+    Public API for subscribing to RSS and Atom feeds as newsletters.
+    
+    This API allows users to subscribe to feeds by providing a feed URI and
+    email address. The subscription follows a double-opt-in process: after
+    the initial request, the user must confirm their email address before
+    receiving newsletters.
   contact:
     url: https://simple-newsletter.com/
   version: 1.0.0
@@ -11,17 +17,31 @@ servers:
   - url: https://simple-newsletter.com/v1
 tags:
   - name: subscriptions
+    description: Subscription management endpoints
 paths:
   /subscriptions/:
     get:
       tags:
         - subscriptions
-      description: Starts subscription process
+      summary: Subscribe to a feed
+      description: |
+        Initiates a subscription to an RSS/Atom feed using double-opt-in.
+        
+        The user provides a feed URI and email address. The system validates
+        the inputs and attempts to fetch the feed. If successful, it creates
+        a pending subscription and sends a confirmation email.
+        
+        The user must click the confirmation link in the email to activate
+        the subscription.
+        
+        **Feed Fetching**: The feed is fetched synchronously. If the feed is
+        unreachable (404, timeout, invalid format), the subscription fails
+        with a 400 error.
       operationId: subscriptionRequest
       parameters:
         - name: uri
           in: query
-          description: Feed\'s URI to subscribe
+          description: Feed URI to subscribe to (must be a valid HTTP(S) URL)
           schema:
             type: string
             format: uri
@@ -29,61 +49,138 @@ paths:
           example: https://example.org/feed.atom
         - name: email
           in: query
-          description: E-mail to receive articles from subscribed feed
+          description: Email address to receive newsletters
           schema:
             type: string
             format: email
           required: true
-          example: email@example.org
+          example: user@example.org
         - name: return
           in: query
-          description: URI to return the user after subscription
+          description: |
+            Return URL for redirect mode. When provided with `redirect=true`,
+            redirects to this URL after processing.
           schema:
             type: string
             format: uri
           required: false
+          example: https://example.org/thank-you
         - name: redirect
           in: query
-          description: After subscription redirect the user to the URI indicated with the *return* parameter
+          description: |
+            Enable redirect mode. When `true` and `return` is provided,
+            returns a 302 redirect to the return URL with result parameters.
           schema:
             type: boolean
+            default: false
           required: false
+          example: true
       responses:
         '200':
-          description: Subscription requested successfully
+          description: Subscription requested successfully. User must confirm via email.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/JSONResponse'
+              examples:
+                success:
+                  summary: Subscription initiated
+                  value:
+                    title: Subscription requested
+                    detail: Please check your email to confirm your subscription
             text/html:
               schema:
                 type: string
+                description: HTML page with subscription confirmation message
         '302':
           description: |
-            Subscription response redirected
-            When parameter *return* is provided the response will be a 302 redirect to the specified URI with aditional query parameters indicating the result of the operation.
-
-            Additional query parameters:
-              - title
-              - result
-              - ok
+            Redirect to return URL (when `redirect=true` and `return` parameter provided).
+            
+            The return URL is appended with query parameters:
+            - `title`: Result message
+            - `result`: Operation result indicator
+            - `ok`: Success flag (1 or 0)
+          headers:
+            Location:
+              schema:
+                type: string
+                format: uri
+              description: Redirect URL with result parameters
+              example: https://example.org/thank-you?title=Subscription+requested&ok=1
         '400':
-          description: Subscription request failed due to invalid parameters
+          description: |
+            Bad request — subscription failed.
+            
+            Common causes:
+            - Invalid or missing email/URI parameters
+            - Feed URI is not a valid URL
+            - Feed fetch failed (404, timeout, parse error)
+            - Subscription already exists and is active
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/JSONResponse'
+              examples:
+                invalidUri:
+                  summary: Invalid feed URI format
+                  value:
+                    title: "Error: Invalid data"
+                    detail: "Invalid Feed URI"
+                missingFields:
+                  summary: Missing required parameters
+                  value:
+                    title: "Error: Invalid data"
+                    detail: "Fields \"email\" and \"uri\" are required"
+                feedFetchFailed:
+                  summary: Feed could not be fetched
+                  value:
+                    title: "Error: Invalid data"
+                    detail: "An error occurred when trying to process the feed. Feed failed to load, got response code 404"
+                alreadySubscribed:
+                  summary: Active subscription exists
+                  value:
+                    title: "Error: Invalid data"
+                    detail: "Subscription already active"
             text/html:
               schema:
                 type: string
+                description: HTML error page explaining the failure
         'default':
           description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JSONResponse'
+              example:
+                title: "Error: Internal server error"
+                detail: "An unexpected error occurred"
+            text/html:
+              schema:
+                type: string
+                description: HTML error page
 components:
   schemas:
     JSONResponse:
       type: object
+      description: |
+        Standard JSON response envelope for all API responses.
+        
+        All JSON responses from this API include both `title` and `detail`
+        fields, providing human-readable information about the result.
       properties:
         title:
           type: string
+          description: Short human-readable result title
+          example: Subscription confirmed
         detail:
           type: string
+          description: |
+            Additional human-readable detail. May be empty for simple success
+            messages, or contain specific error information for failures.
+          example: You are now subscribed to Example Feed.
+      required:
+        - title
+        - detail
+      example:
+        title: Subscription requested
+        detail: Please check your email to confirm

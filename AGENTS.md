@@ -83,8 +83,11 @@ No framework router. FrankenPHP serves the filesystem directly:
 # Start dev environment (with auto-reload)
 docker compose up
 
-# Run tests (once PHPUnit is configured)
-docker compose exec dev vendor/bin/phpunit
+# Run unit/integration tests
+docker compose exec dev vendor/bin/pest
+
+# Run e2e tests (requires dev server running on localhost:8080)
+./scripts/run-e2e-tests.sh
 
 # Run CLI delivery script (also triggered hourly by cron)
 docker exec simple-newsletter php /app/bin/send-newsletters.php
@@ -173,15 +176,12 @@ Manual DI via `final class Container` (no framework, no container-interop). Publ
 
 ## Testing & QA
 
-**No test infrastructure exists yet** — Phase 7+ of the implementation plan (testing and quality gates are future). When adding tests:
-
-- Framework: PHPUnit (add to composer.json require-dev)
-- Config file: `phpunit.xml.dist`
-- Test dir: `tests/` matching `libs/` structure (`tests/Models/`, `tests/Data/`, etc.)
-- DTO/DAO tests: in-memory SQLite
-- Model tests: mock external I/O (feed fetcher, email sender)
-- Test behavior, not plumbing
-- Tests live in `SimpleNewsletter\Tests\` namespace
+- **Framework**: Pest (PHPUnit-based) with 100+ unit/integration tests; e2e tests with Symfony HTTP Client
+- **Run**: `vendor/bin/pest` (unit), `./scripts/run-e2e-tests.sh` (e2e, requires running dev server)
+- **Structure**: `tests/` mirrors `libs/`; e2e tests in `tests/E2e/`
+- **Config**: `phpunit.xml.dist` excludes `tests/E2e/` from default suite; e2e uses separate testsuite
+- **Database**: In-memory SQLite for unit tests; `data/test-e2e.db` for e2e
+- **Patterns**: DAOs test in-memory SQLite; Models mock I/O; e2e tests exercise full HTTP stack
 
 ## Spec-Driven Development Workflow
 

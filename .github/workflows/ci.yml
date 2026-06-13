@@ -1,0 +1,24 @@
+name: CI
+
+on: [push, pull_request]
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          tools: composer:v2
+          extensions: pdo_sqlite, intl, mbstring, ctype
+      - run: XDEBUG_MODE=coverage vendor/bin/pest --coverage --min=100
+      - run: npm ci
+      - name: Mago Lint
+        run: vendor/bin/mago lint
+      - run: XDEBUG_MODE=coverage vendor/bin/pest --coverage --min=100
+      - run: vendor/bin/phpstan analyse --no-progress
+      - run: npx lefthook validate

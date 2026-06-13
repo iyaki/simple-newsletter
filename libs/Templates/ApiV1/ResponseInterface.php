@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace SimpleNewsletter\Templates\ApiV1;
 
-use SimpleNewsletter\Components\EndUserException;
 
 interface ResponseInterface
 {

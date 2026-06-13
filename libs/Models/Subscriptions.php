@@ -6,12 +6,8 @@ namespace SimpleNewsletter\Models;
 
 use SimpleNewsletter\Components\Auth;
 use SimpleNewsletter\Components\EndUserException;
-use SimpleNewsletter\Components\Sender;
-use SimpleNewsletter\Data\Database;
-use SimpleNewsletter\Data\FeedsDAO;
 use SimpleNewsletter\Data\Subscription;
 use SimpleNewsletter\Data\SubscriptionsDAO;
-use SimpleNewsletter\Templates\Email\SubscriptionConfirmation;
 
 final readonly class Subscriptions
 {
@@ -52,7 +48,7 @@ final readonly class Subscriptions
         );
     }
 
-    public function confirm(string $feedUri, string $email, string $token): void
+    public function confirm(string $feedUri, string $email, #[\SensitiveParameter] string $token): void
     {
         if (!$this->auth->verify($email, $token)) {
             throw new EndUserException('Invalid token');
@@ -67,19 +63,22 @@ final readonly class Subscriptions
         $this->subscriptionsDAO->activate($subscription);
     }
 
-    public function cancel(string $feedUri, string $email, string $token): void
+    public function cancel(string $feedUri, string $email, #[\SensitiveParameter] string $token): void
     {
         if (!$this->auth->verify($email, $token)) {
             throw new EndUserException('Invalid token');
         }
 
         $subscription = $this->subscriptionsDAO->find($feedUri, $email);
+        if ($subscription === null) {
+            throw new EndUserException('Subscription not found');
+        }
         $this->subscriptionsDAO->deactivate($subscription);
     }
 
     public function sendScheduled(\DateTimeImmutable $datetime): void
     {
-        $scheduledFeeds = $this->feeds->getSchedudled($datetime);
+        $scheduledFeeds = $this->feeds->getScheduled($datetime);
 
         foreach ($scheduledFeeds as $scheduledFeed) {
             $feed = $this->feeds->retrieveWithPosts($scheduledFeed);

@@ -23,11 +23,17 @@ final class SubscriptionsDAO
 
         $result = $stmt->fetch(\PDO::FETCH_ASSOC);
 
-        if (! $result) {
+        if (! \is_array($result)) {
             return null;
         }
 
-        return self::SubscriptionDTOFactory(...$result);
+        /** @var array{feed_uri: string, email: string, active: string} $result */
+
+        return self::SubscriptionDTOFactory(
+            $result['feed_uri'],
+            $result['email'],
+            (int) $result['active'],
+        );
     }
 
     public function activate(Subscription $subscription): void
@@ -79,6 +85,9 @@ final class SubscriptionsDAO
         ]);
     }
 
+    /**
+     * @return Subscription[]
+     */
     public function findActiveSubscriptionsFor(Feed $feed): array
     {
         $stmt = $this->db->prepare("SELECT {$this->FIELDS_FULL} FROM {$this->TABLE} WHERE feed_uri = :feedUri AND active = 1");

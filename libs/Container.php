@@ -6,27 +6,28 @@ namespace SimpleNewsletter;
 
 use PHPMailer\PHPMailer\PHPMailer;
 use SimpleNewsletter\Adapters\FeedImporterLaminas;
-use SimpleNewsletter\Adapters\PHPMailerFactory;
 use SimpleNewsletter\Adapters\ResponderHttp;
 use SimpleNewsletter\Adapters\SenderPHPMailer;
 use SimpleNewsletter\Components\Auth;
 use SimpleNewsletter\Components\EmailTemplateFactory;
-use SimpleNewsletter\Components\Sender;
-use SimpleNewsletter\Data\Database;
 use SimpleNewsletter\Data\FeedsDAO;
 use SimpleNewsletter\Data\SubscriptionsDAO;
 use SimpleNewsletter\Models\Feeds;
 use SimpleNewsletter\Models\Newsletter;
 use SimpleNewsletter\Models\Subscriptions;
+use SimpleNewsletter\Components\RateLimiter;
 
+// mago-ignore
 final class Container
 {
     private const DATABASE_COFIG_PATH = __DIR__ . '/../config/database.php';
 
     private static ?\PDO $database = null;
 
+    /** @var \WeakReference<\SimpleNewsletter\Components\Auth> */
     private static ?\WeakReference $auth = null;
 
+    /** @var \WeakReference<\SimpleNewsletter\Adapters\SenderPHPMailer> */
     private static ?\WeakReference $sender = null;
 
     private function feeds(): Feeds
@@ -61,10 +62,15 @@ final class Container
         );
     }
 
+    public function rateLimiter(): RateLimiter
+    {
+        return new RateLimiter($this->database());
+    }
+
     private function emailTemplateFactory(): EmailTemplateFactory
     {
         return new EmailTemplateFactory(
-            \getenv('URI_SELF')
+            \getenv('URI_SELF') ?: '',
         );
     }
 
@@ -75,7 +81,7 @@ final class Container
             return $auth;
         }
 
-        $auth = new Auth(\getenv('SECRET_KEY'));
+        $auth = new Auth(\getenv('SECRET_KEY') ?: '');
         self::$auth = \WeakReference::create($auth);
 
         return $auth;
@@ -84,17 +90,17 @@ final class Container
     private function sender(): SenderPHPMailer
     {
         $sender = self::$sender?->get();
-        if ($sender instanceof Sender) {
+        if ($sender instanceof SenderPHPMailer) {
             return $sender;
         }
 
         $sender = new SenderPHPMailer(
-            \getenv('SMTP_HOST'),
+            \getenv('SMTP_HOST') ?: '',
             (int) \getenv('SMTP_PORT'),
-            \getenv('SMTP_USER'),
-            \getenv('SMTP_PASSWORD'),
-            \getenv('EMAIL_FROM'),
-            \getenv('EMAIL_REPLY_TO'),
+            \getenv('SMTP_USER') ?: '',
+            \getenv('SMTP_PASSWORD') ?: '',
+            \getenv('EMAIL_FROM') ?: '',
+            \getenv('EMAIL_REPLY_TO') ?: '',
             ($e = \getenv('SMTP_ENCRYPTION')) !== false ? $e : PHPMailer::ENCRYPTION_STARTTLS,
             (bool) \getenv('SMTP_ALLOW_SELF_SIGNED')
         );

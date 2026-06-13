@@ -1,5 +1,6 @@
 {
   "devDependencies": {
-    "intelephense": "^1.18.4"
+    "intelephense": "^1.18.4",
+    "lefthook": "^2.1.9"
   }
 }

@@ -1,3 +1,4 @@
+<?php declare(strict_types=1); ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,7 +9,7 @@
 	<meta name="description" content="Simple and free Atom and RSS feeds to newsletter subscription service">
 	<meta property="og:title" content="Simple Newsletter">
 	<meta property="og:description" content="Free Atom and RSS feeds to newsletter subscription service">
-	<meta property="og:url" content="https://simple-newsletter.com/">
+	<meta property="og:url" content="<?= \getenv('URI_SELF') ?>">
 	<meta property="og:site_name" content="Simple Newsletter">
 
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css">
@@ -56,7 +57,7 @@
 				}
 			</style>
 			<form action="/v1/subscriptions/" class="subscription-form">
-				<input type="hidden" name="return" value="https://simple-newsletter.com/">
+				<input type="hidden" name="return" value="<?= \getenv('URI_SELF') ?>">
 				<fieldset>
 					<div>
 						<label>
@@ -115,7 +116,7 @@
 			<a href="https://editor.swagger.io/?url=https://simple-newsletter.com/api-spec.yaml">OpenAPI API Docs</a>
 			<h3>Example HTML Form for publishers</h3>
 			<pre><code><?= htmlentities(<<<HTML
-			<form action="https://simple-newsletter.com/v1/subscriptions/">
+			<form action="<?= \getenv('URI_SELF') ?>/v1/subscriptions/">
 				<input type="hidden" name="uri" value="https://your-domain.com/path/to/feed.xml">
 				<input type="hidden" name="return" value="https://your-domain.com/">
 				<label>

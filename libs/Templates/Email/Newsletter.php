@@ -10,9 +10,6 @@ use SimpleNewsletter\Data\Subscription;
 
 final readonly class Newsletter implements EmailInterface
 {
-    /**
-     * @param string[] $recipients
-     */
     public function __construct(
         private Subscription $subscription,
         private Feed $feed,

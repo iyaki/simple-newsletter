@@ -1,0 +1,283 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Call to an undefined method Laminas\\Feed\\Reader\\Feed\\FeedInterface\:\:method\(\)\.$#'
+			identifier: method.notFound
+			count: 4
+			path: tests/Adapters/FeedImporterLaminasTest.php
+
+		-
+			message: '#^Call to protected method createMock\(\) of class PHPUnit\\Framework\\TestCase\.$#'
+			identifier: method.protected
+			count: 6
+			path: tests/Adapters/FeedImporterLaminasTest.php
+
+		-
+			message: '#^Function configureFeedIterator\(\) has parameter \$entries with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Adapters/FeedImporterLaminasTest.php
+
+		-
+			message: '#^Function configureFeedIterator\(\) has parameter \$mock with generic interface Laminas\\Feed\\Reader\\Feed\\FeedInterface but does not specify its types\: TItem$#'
+			identifier: missingType.generics
+			count: 1
+			path: tests/Adapters/FeedImporterLaminasTest.php
+
+		-
+			message: '#^Method TestFeedImporter\:\:setMockFeed\(\) has parameter \$feed with generic interface Laminas\\Feed\\Reader\\Feed\\FeedInterface but does not specify its types\: TItem$#'
+			identifier: missingType.generics
+			count: 1
+			path: tests/Adapters/FeedImporterLaminasTest.php
+
+		-
+			message: '#^Property TestFeedImporter\:\:\$mockFeed with generic interface Laminas\\Feed\\Reader\\Feed\\FeedInterface does not specify its types\: TItem$#'
+			identifier: missingType.generics
+			count: 1
+			path: tests/Adapters/FeedImporterLaminasTest.php
+
+		-
+			message: '#^Call to an undefined method object\:\:fromEndUserException\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: tests/Adapters/ResponderHttpTest.php
+
+		-
+			message: '#^Call to an undefined method object\:\:fromString\(\)\.$#'
+			identifier: method.notFound
+			count: 4
+			path: tests/Adapters/ResponderHttpTest.php
+
+		-
+			message: '#^Cannot access offset ''detail'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: tests/Adapters/ResponderHttpTest.php
+
+		-
+			message: '#^Cannot access offset ''title'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: tests/Adapters/ResponderHttpTest.php
+
+		-
+			message: '#^Parameter \#1 \$json of function json_decode expects string, string\|false given\.$#'
+			identifier: argument.type
+			count: 2
+			path: tests/Adapters/ResponderHttpTest.php
+
+		-
+			message: '#^Unable to resolve the template type TValue in call to function expect$#'
+			identifier: argument.templateType
+			count: 6
+			path: tests/Adapters/ResponderHttpTest.php
+
+		-
+			message: '#^Call to protected method createMock\(\) of class PHPUnit\\Framework\\TestCase\.$#'
+			identifier: method.protected
+			count: 3
+			path: tests/Adapters/SenderPHPMailerTest.php
+
+		-
+			message: '#^Call to protected method once\(\) of class PHPUnit\\Framework\\TestCase\.$#'
+			identifier: method.protected
+			count: 11
+			path: tests/Adapters/SenderPHPMailerTest.php
+
+		-
+			message: '#^Unable to resolve the template type TValue in call to function expect$#'
+			identifier: argument.templateType
+			count: 1
+			path: tests/ContainerTest.php
+
+		-
+			message: '#^Access to an undefined property PHPUnit\\Framework\\TestCase\:\:\$dao\.$#'
+			identifier: property.notFound
+			count: 9
+			path: tests/Data/FeedsDAOTest.php
+
+		-
+			message: '#^Access to an undefined property PHPUnit\\Framework\\TestCase\:\:\$db\.$#'
+			identifier: property.notFound
+			count: 4
+			path: tests/Data/FeedsDAOTest.php
+
+		-
+			message: '#^Argument of an invalid type list\<string\>\|false supplied for foreach, only iterables are supported\.$#'
+			identifier: foreach.nonIterable
+			count: 1
+			path: tests/Data/FeedsDAOTest.php
+
+		-
+			message: '#^Parameter \#1 \$statement of method PDO\:\:exec\(\) expects string, string\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Data/FeedsDAOTest.php
+
+		-
+			message: '#^Access to an undefined property PHPUnit\\Framework\\TestCase\:\:\$dao\.$#'
+			identifier: property.notFound
+			count: 16
+			path: tests/Data/SubscriptionsDAOTest.php
+
+		-
+			message: '#^Access to an undefined property PHPUnit\\Framework\\TestCase\:\:\$db\.$#'
+			identifier: property.notFound
+			count: 1
+			path: tests/Data/SubscriptionsDAOTest.php
+
+		-
+			message: '#^Argument of an invalid type list\<string\>\|false supplied for foreach, only iterables are supported\.$#'
+			identifier: foreach.nonIterable
+			count: 1
+			path: tests/Data/SubscriptionsDAOTest.php
+
+		-
+			message: '#^Parameter \#1 \$statement of method PDO\:\:exec\(\) expects string, string\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Data/SubscriptionsDAOTest.php
+
+		-
+			message: '#^Argument of an invalid type list\<string\>\|false supplied for foreach, only iterables are supported\.$#'
+			identifier: foreach.nonIterable
+			count: 1
+			path: tests/Integration/ApiEndpointsTest.php
+
+		-
+			message: '#^Call to function in_array\(\) with arguments ''ftp'', array\{''http'', ''https''\} and true will always evaluate to false\.$#'
+			identifier: function.impossibleType
+			count: 1
+			path: tests/Integration/ApiEndpointsTest.php
+
+		-
+			message: '#^Cannot access offset ''detail'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: tests/Integration/ApiEndpointsTest.php
+
+		-
+			message: '#^Cannot access offset ''title'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: tests/Integration/ApiEndpointsTest.php
+
+		-
+			message: '#^Cannot access property \$active on SimpleNewsletter\\Data\\Subscription\|null\.$#'
+			identifier: property.nonObject
+			count: 2
+			path: tests/Integration/ApiEndpointsTest.php
+
+		-
+			message: '#^Function checkJsonResponseSchema\(\) has parameter \$response with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Integration/ApiEndpointsTest.php
+
+		-
+			message: '#^Parameter \#1 \$response of function checkJsonResponseSchema expects array, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: tests/Integration/ApiEndpointsTest.php
+
+		-
+			message: '#^Parameter \#1 \$statement of method PDO\:\:exec\(\) expects string, string\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Integration/ApiEndpointsTest.php
+
+		-
+			message: '#^Call to protected method createMock\(\) of class PHPUnit\\Framework\\TestCase\.$#'
+			identifier: method.protected
+			count: 12
+			path: tests/Models/FeedsTest.php
+
+		-
+			message: '#^Call to protected method never\(\) of class PHPUnit\\Framework\\TestCase\.$#'
+			identifier: method.protected
+			count: 4
+			path: tests/Models/FeedsTest.php
+
+		-
+			message: '#^Call to protected method once\(\) of class PHPUnit\\Framework\\TestCase\.$#'
+			identifier: method.protected
+			count: 10
+			path: tests/Models/FeedsTest.php
+
+		-
+			message: '#^Call to protected method createMock\(\) of class PHPUnit\\Framework\\TestCase\.$#'
+			identifier: method.protected
+			count: 12
+			path: tests/Models/NewsletterTest.php
+
+		-
+			message: '#^Call to protected method exactly\(\) of class PHPUnit\\Framework\\TestCase\.$#'
+			identifier: method.protected
+			count: 3
+			path: tests/Models/NewsletterTest.php
+
+		-
+			message: '#^Call to protected method once\(\) of class PHPUnit\\Framework\\TestCase\.$#'
+			identifier: method.protected
+			count: 7
+			path: tests/Models/NewsletterTest.php
+
+		-
+			message: '#^Access to an undefined property PHPUnit\\Framework\\TestCase\:\:\$auth\.$#'
+			identifier: property.notFound
+			count: 20
+			path: tests/Models/SubscriptionsTest.php
+
+		-
+			message: '#^Access to an undefined property PHPUnit\\Framework\\TestCase\:\:\$feeds\.$#'
+			identifier: property.notFound
+			count: 26
+			path: tests/Models/SubscriptionsTest.php
+
+		-
+			message: '#^Access to an undefined property PHPUnit\\Framework\\TestCase\:\:\$newsletter\.$#'
+			identifier: property.notFound
+			count: 19
+			path: tests/Models/SubscriptionsTest.php
+
+		-
+			message: '#^Access to an undefined property PHPUnit\\Framework\\TestCase\:\:\$subscriptionsDAO\.$#'
+			identifier: property.notFound
+			count: 33
+			path: tests/Models/SubscriptionsTest.php
+
+		-
+			message: '#^Call to protected method createMock\(\) of class PHPUnit\\Framework\\TestCase\.$#'
+			identifier: method.protected
+			count: 4
+			path: tests/Models/SubscriptionsTest.php
+
+		-
+			message: '#^Call to protected method exactly\(\) of class PHPUnit\\Framework\\TestCase\.$#'
+			identifier: method.protected
+			count: 4
+			path: tests/Models/SubscriptionsTest.php
+
+		-
+			message: '#^Call to protected method never\(\) of class PHPUnit\\Framework\\TestCase\.$#'
+			identifier: method.protected
+			count: 11
+			path: tests/Models/SubscriptionsTest.php
+
+		-
+			message: '#^Call to protected method once\(\) of class PHPUnit\\Framework\\TestCase\.$#'
+			identifier: method.protected
+			count: 27
+			path: tests/Models/SubscriptionsTest.php
+
+		-
+			message: '#^Cannot access offset ''detail'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: tests/Templates/ApiV1/JsonResponseTest.php
+
+		-
+			message: '#^Cannot access offset ''title'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: tests/Templates/ApiV1/JsonResponseTest.php

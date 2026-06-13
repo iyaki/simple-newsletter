@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace SimpleNewsletter\Adapters;
 
 use SimpleNewsletter\Components\EndUserException;
-use SimpleNewsletter\Components\Responder;
 use SimpleNewsletter\Templates\ApiV1\HtmlResponse;
 use SimpleNewsletter\Templates\ApiV1\JsonResponse;
 use SimpleNewsletter\Templates\ApiV1\RedirectResponse;
@@ -77,22 +76,16 @@ final class ResponderHttp
     public function responseBuilderFromRedirect(): object
     {
         return new class {
-            public function fromString(string $title, string $message, string $return = null, bool $ok = true): ResponseInterface
+            public function fromString(string $title, string $message, ?string $return = null, bool $ok = true): ResponseInterface
             {
-                return RedirectResponse::fromString($title, $message, $return, $ok);
+            return RedirectResponse::fromString($title, $message, $return ?? '', $ok);
             }
 
-            public function fromEndUserException(EndUserException $exception, $return): ResponseInterface
+            public function fromEndUserException(EndUserException $exception, ?string $return): ResponseInterface
             {
-                return RedirectResponse::fromEndUserException($exception, $return);
+            return RedirectResponse::fromEndUserException($exception, $return ?? '');
             }
         };
     }
 
-    private function checkURI(string $uri): void
-    {
-        if (! \filter_var($feedUri, \FILTER_VALIDATE_URL)) {
-            throw new EndUserException('Invalid return URI');
-        }
-    }
 }

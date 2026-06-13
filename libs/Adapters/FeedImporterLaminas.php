@@ -6,12 +6,13 @@ namespace SimpleNewsletter\Adapters;
 
 use Laminas\Feed\Reader\Feed\FeedInterface;
 use Laminas\Feed\Reader\Reader;
-use Laminas\Http\Client\Adapter\Exception\RuntimeException as HttpClientException;
 use Laminas\Feed\Reader\Exception\RuntimeException as FeedException;
 use SimpleNewsletter\Components\EndUserException;
 use SimpleNewsletter\Components\FeedImporter;
 use SimpleNewsletter\Data\Feed;
 use SimpleNewsletter\Data\Post;
+use Symfony\Component\HtmlSanitizer\HtmlSanitizer;
+use Symfony\Component\HtmlSanitizer\HtmlSanitizerConfig;
 
 final readonly class FeedImporterLaminas implements FeedImporter
 {
@@ -20,8 +21,8 @@ final readonly class FeedImporterLaminas implements FeedImporter
         $sourceFeed = $this->import($uri);
         return new Feed(
             $uri,
-            $sourceFeed->getTitle(),
-            $sourceFeed->getLink(),
+            $sourceFeed->getTitle() ?? '',
+            $sourceFeed->getLink() ?? '',
             new \DateTimeImmutable()
         );
     }
@@ -31,8 +32,8 @@ final readonly class FeedImporterLaminas implements FeedImporter
         $sourceFeed = $this->import($feed->uri);
         return new Feed(
             $feed->uri,
-            $sourceFeed->getTitle(),
-            $sourceFeed->getLink(),
+            $sourceFeed->getTitle() ?? '',
+            $sourceFeed->getLink() ?? '',
             new \DateTimeImmutable(),
             $feed->lastSentPostUri
         );
@@ -44,30 +45,38 @@ final readonly class FeedImporterLaminas implements FeedImporter
 
         /** @var \Generator<int, Post> */
         $posts = (function () use ($sourceFeed): \Generator {
+            $sanitizer = new HtmlSanitizer(
+                (new HtmlSanitizerConfig())
+                    ->allowSafeElements()
+            );
             foreach ($sourceFeed as $sourcePost) {
+                $cleanContent = $sanitizer->sanitize($sourcePost->getContent());
                 yield new Post(
                     $sourcePost->getPermalink() ?: $sourcePost->getLink(),
                     $sourcePost->getTitle(),
-                    $sourcePost->getContent()
+                    $cleanContent
                 );
             }
         })();
 
         return new Feed(
             $feed->uri,
-            $sourceFeed->getTitle(),
-            $sourceFeed->getLink(),
+            $sourceFeed->getTitle() ?? '',
+            $sourceFeed->getLink() ?? '',
             new \DateTimeImmutable(),
             $feed->lastSentPostUri,
             $posts
         );
     }
 
-    private function import(string $uri): FeedInterface
+    /**
+     * @return \Laminas\Feed\Reader\Feed\FeedInterface<\Laminas\Feed\Reader\Entry\EntryInterface>
+     */
+    protected function import(string $uri): FeedInterface
     {
         try {
             return Reader::import($uri);
-        } catch (HttpClientException|FeedException $e) {
+        } catch (FeedException $e) {
             throw new EndUserException('An error occurred when trying to process the feed. ' . $e->getMessage(), 0, $e);
         }
     }
