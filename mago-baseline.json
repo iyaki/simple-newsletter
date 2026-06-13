@@ -1,0 +1,175 @@
+variant = "loose"
+
+[[issues]]
+file = "libs/Adapters/FeedImporterLaminas.php"
+code = "no-shorthand-ternary"
+message = "Use of the shorthand ternary operator."
+count = 1
+
+[[issues]]
+file = "libs/Adapters/FeedImporterLaminas.php"
+code = "prefer-static-closure"
+message = "This closure does not use `$this` and should be declared static."
+count = 1
+
+[[issues]]
+file = "libs/Adapters/ResponderHttp.php"
+code = "literal-named-argument"
+message = "Literal argument `400` should be passed as a named argument for clarity."
+count = 1
+
+[[issues]]
+file = "libs/Adapters/ResponderHttp.php"
+code = "literal-named-argument"
+message = "Literal argument `true` should be passed as a named argument for clarity."
+count = 2
+
+[[issues]]
+file = "libs/Adapters/ResponderHttp.php"
+code = "no-boolean-flag-parameter"
+message = "Avoid boolean flag parameters."
+count = 2
+
+[[issues]]
+file = "libs/Adapters/ResponderHttp.php"
+code = "no-shorthand-ternary"
+message = "Use of the shorthand ternary operator."
+count = 1
+
+[[issues]]
+file = "libs/Adapters/ResponderHttp.php"
+code = "prefer-static-closure"
+message = "This arrow function does not use `$this` and should be declared static."
+count = 2
+
+[[issues]]
+file = "libs/Adapters/SenderPHPMailer.php"
+code = "excessive-parameter-list"
+message = "Parameter list is too long."
+count = 1
+
+[[issues]]
+file = "libs/Adapters/SenderPHPMailer.php"
+code = "literal-named-argument"
+message = "Literal argument `'8bit'` should be passed as a named argument for clarity."
+count = 1
+
+[[issues]]
+file = "libs/Adapters/SenderPHPMailer.php"
+code = "no-redundant-readonly"
+message = "The `readonly` modifier is redundant as the class is already readonly."
+count = 1
+
+[[issues]]
+file = "libs/Components/Auth.php"
+code = "sensitive-parameter"
+message = "Parameters that may contain sensitive information should be marked with the `#[SensitiveParameter]` attribute."
+count = 1
+
+[[issues]]
+file = "libs/Container.php"
+code = "no-shorthand-ternary"
+message = "Use of the shorthand ternary operator."
+count = 7
+
+[[issues]]
+file = "libs/Container.php"
+code = "too-many-methods"
+message = "Class has too many methods."
+count = 1
+
+[[issues]]
+file = "libs/Data/Feed.php"
+code = "excessive-parameter-list"
+message = "Parameter list is too long."
+count = 1
+
+[[issues]]
+file = "libs/Data/FeedsDAO.php"
+code = "literal-named-argument"
+message = "Literal argument `23` should be passed as a named argument for clarity."
+count = 1
+
+[[issues]]
+file = "libs/Data/FeedsDAO.php"
+code = "prefer-static-closure"
+message = "This arrow function does not use `$this` and should be declared static."
+count = 1
+
+[[issues]]
+file = "libs/Data/SubscriptionsDAO.php"
+code = "braced-string-interpolation"
+message = "Unbraced variable in string interpolation."
+count = 1
+
+[[issues]]
+file = "libs/Data/SubscriptionsDAO.php"
+code = "prefer-static-closure"
+message = "This arrow function does not use `$this` and should be declared static."
+count = 1
+
+[[issues]]
+file = "libs/Models/Feeds.php"
+code = "no-redundant-readonly"
+message = "The `readonly` modifier is redundant as the class is already readonly."
+count = 2
+
+[[issues]]
+file = "libs/Models/Subscriptions.php"
+code = "loop-does-not-iterate"
+message = "Loop is unconditionally terminated and will not iterate."
+count = 1
+
+[[issues]]
+file = "libs/Models/Subscriptions.php"
+code = "no-else-clause"
+message = "Avoid `else` clauses."
+count = 1
+
+[[issues]]
+file = "libs/Templates/ApiV1/HtmlResponse.php"
+code = "no-boolean-flag-parameter"
+message = "Avoid boolean flag parameters."
+count = 1
+
+[[issues]]
+file = "libs/Templates/ApiV1/JsonResponse.php"
+code = "no-boolean-flag-parameter"
+message = "Avoid boolean flag parameters."
+count = 1
+
+[[issues]]
+file = "libs/Templates/ApiV1/JsonResponse.php"
+code = "no-shorthand-ternary"
+message = "Use of the shorthand ternary operator."
+count = 1
+
+[[issues]]
+file = "libs/Templates/ApiV1/RedirectResponse.php"
+code = "no-boolean-flag-parameter"
+message = "Avoid boolean flag parameters."
+count = 1
+
+[[issues]]
+file = "libs/bootstrap.php"
+code = "literal-named-argument"
+message = "Literal argument `'.php'` should be passed as a named argument for clarity."
+count = 1
+
+[[issues]]
+file = "public/v1/subscriptions/index.php"
+code = "cyclomatic-complexity"
+message = "Closure has high complexity."
+count = 1
+
+[[issues]]
+file = "public/v1/subscriptions/index.php"
+code = "literal-named-argument"
+message = "Literal argument `true` should be passed as a named argument for clarity."
+count = 1
+
+[[issues]]
+file = "public/v1/subscriptions/index.php"
+code = "no-redundant-parentheses"
+message = "Redundant parentheses around expression."
+count = 1

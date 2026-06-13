@@ -1,0 +1,21 @@
+assert_lefthook_installed: true
+
+pre-commit:
+  parallel: true
+  jobs:
+    - name: mago lint
+      glob: "*.php"
+      run: vendor/bin/mago lint {staged_files}
+      stage_fixed: true
+
+    - name: phpstan
+      glob: "*.php"
+      run: vendor/bin/phpstan analyse --no-progress --error-format=raw {staged_files}
+
+    - name: tests
+      glob: "*.php"
+      run: vendor/bin/pest --quiet
+
+    - name: lefthook validate
+      glob: "lefthook.yml"
+      run: npx lefthook validate

@@ -15,17 +15,140 @@ tags:
   - name: subscriptions
     description: Internal subscription management endpoints
 paths:
+  /subscriptions/:
+    get:
+      tags:
+        - subscriptions
+      summary: Subscribe to a feed
+      description: |
+        Initiates a subscription to an RSS/Atom feed. Validates the feed URI
+        and email address, then attempts to fetch the feed. If successful,
+        creates an unconfirmed subscription and returns a success message.
+
+        This endpoint performs double-opt-in: the user must confirm via the
+        confirmation link sent to their email (handled by a separate endpoint).
+
+        Note: If the feed URI is unreachable or invalid, this endpoint returns
+        a 400 error. The feed is fetched synchronously during subscription.
+      operationId: subscribeToFeed
+      parameters:
+        - name: uri
+          in: query
+          description: Feed URI to subscribe to (must be a valid URL)
+          required: true
+          schema:
+            type: string
+            format: uri
+          example: https://blog.example.com/feed.xml
+        - name: email
+          in: query
+          description: Email address to receive newsletters
+          required: true
+          schema:
+            type: string
+            format: email
+          example: user@example.com
+        - name: return
+          in: query
+          description: |
+            Return URL for redirect mode. When provided with `redirect=true`,
+            the endpoint returns a 302 redirect to this URL with query parameters
+            indicating the result.
+          required: false
+          schema:
+            type: string
+            format: uri
+          example: https://example.com/thank-you
+        - name: redirect
+          in: query
+          description: |
+            Enable redirect mode. When `true` and `return` is provided, returns
+            a 302 redirect instead of HTML/JSON response.
+          required: false
+          schema:
+            type: boolean
+            default: false
+          example: true
+      responses:
+        '200':
+          description: Subscription initiated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JSONResponse'
+              example:
+                title: Subscription requested
+                detail: Please check your email to confirm
+            text/html:
+              schema:
+                type: string
+                description: HTML page with subscription confirmation message
+        '400':
+          description: |
+            Bad request — invalid parameters or feed fetch failure.
+            
+            Common causes:
+            - Invalid or missing email/URI
+            - Feed URI is not a valid URL
+            - Feed could not be fetched (404, timeout, etc.)
+            - Already subscribed (active subscription exists)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JSONResponse'
+              examples:
+                invalidUri:
+                  summary: Invalid feed URI
+                  value:
+                    title: "Error: Invalid data"
+                    detail: "Invalid Feed URI"
+                missingFields:
+                  summary: Missing required fields
+                  value:
+                    title: "Error: Invalid data"
+                    detail: "Fields \"email\" and \"uri\" are required"
+                feedFetchFailed:
+                  summary: Feed fetch failed
+                  value:
+                    title: "Error: Invalid data"
+                    detail: "An error occurred when trying to process the feed. Feed failed to load, got response code 404"
+                alreadySubscribed:
+                  summary: Already subscribed
+                  value:
+                    title: "Error: Invalid data"
+                    detail: "Subscription already active"
+            text/html:
+              schema:
+                type: string
+                description: HTML error page
+        '302':
+          description: |
+            Redirect to return URL (when `redirect=true` and `return` parameter provided).
+            Query parameters appended to return URL:
+            - `title`: Result message
+            - `result`: Operation result code
+            - `ok`: Success indicator (1 or 0)
+          headers:
+            Location:
+              schema:
+                type: string
+                format: uri
+              description: Redirect URL with result parameters
   /subscriptions/confirmation/:
     get:
       tags:
         - subscriptions
       summary: Confirm a subscription
       description: |
-        Confirms a pending subscription. The link is sent via email
-        during the subscription flow and includes a signed token that
-        authorizes the operation.
+        Confirms a pending subscription using a signed token. The token is
+        generated as HMAC-SHA256 of the email address using the server's
+        SECRET_KEY.
 
-        This endpoint is NOT published in the public OpenAPI spec.
+        On success, the subscription is activated and the user will receive
+        newsletters.
+
+        This endpoint includes `X-Robots-Tag: noindex, nofollow` header to
+        prevent search engines from indexing confirmation pages.
       operationId: confirmSubscription
       parameters:
         - name: uri
@@ -47,8 +170,8 @@ paths:
         - name: token
           in: query
           description: |
-            Signed authentication token (HMAC hash of the email).
-            Generated by the server when the subscription is created.
+            Signed authentication token (HMAC-SHA256 of the email).
+            Must match the token generated with the server's SECRET_KEY.
           required: true
           schema:
             type: string
@@ -71,10 +194,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/JSONResponse'
+              example:
+                title: Subscription confirmed
+                detail: ""
         '400':
           description: |
-            Confirmation failed — invalid or missing parameters, or token
-            does not match the email address
+            Confirmation failed — invalid or missing parameters, or token mismatch.
+            
+            Common causes:
+            - Invalid or missing token
+            - Token does not match email (HMAC mismatch)
+            - Subscription not found
+            - Already confirmed
           headers:
             X-Robots-Tag:
               schema:
@@ -88,17 +219,24 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/JSONResponse'
+              example:
+                title: "Error: Invalid data"
+                detail: "Invalid token"
   /subscriptions/cancellation/:
     get:
       tags:
         - subscriptions
       summary: Cancel a subscription (unsubscribe)
       description: |
-        Cancels an active subscription. The link is included in every
-        newsletter email footer and includes a signed token that
-        authorizes the operation.
+        Cancels an active subscription using a signed token. The token is
+        generated as HMAC-SHA256 of the email address using the server's
+        SECRET_KEY.
 
-        This endpoint is NOT published in the public OpenAPI spec.
+        On success, the subscription is deactivated and the user will no
+        longer receive newsletters.
+
+        This endpoint includes `X-Robots-Tag: noindex, nofollow` header to
+        prevent search engines from indexing cancellation pages.
       operationId: cancelSubscription
       parameters:
         - name: uri
@@ -120,7 +258,7 @@ paths:
         - name: token
           in: query
           description: |
-            Signed authentication token (HMAC hash of the email).
+            Signed authentication token (HMAC-SHA256 of the email).
             Must match the token used during subscription.
           required: true
           schema:
@@ -144,10 +282,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/JSONResponse'
+              example:
+                title: Subscription successfully cancelled.
+                detail: ""
         '400':
           description: |
-            Cancellation failed — invalid or missing parameters, or token
-            does not match the email address
+            Cancellation failed — invalid or missing parameters, or token mismatch.
+            
+            Common causes:
+            - Invalid or missing token
+            - Token does not match email (HMAC mismatch)
+            - Subscription not found
+            - Already inactive
           headers:
             X-Robots-Tag:
               schema:
@@ -161,11 +307,16 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/JSONResponse'
+              example:
+                title: "Error: Invalid data"
+                detail: "Invalid token"
 components:
   schemas:
     JSONResponse:
       type: object
-      description: Standard JSON response envelope for API responses
+      description: |
+        Standard JSON response envelope for API responses.
+        All JSON responses from the Internal API follow this schema.
       properties:
         title:
           type: string
@@ -173,7 +324,10 @@ components:
           example: Subscription confirmed
         detail:
           type: string
-          description: Additional human-readable detail (may be empty)
+          description: |
+            Additional human-readable detail. May be empty string.
+            Error messages include specific details here.
           example: You are now subscribed to Example Feed.
       required:
         - title
+        - detail

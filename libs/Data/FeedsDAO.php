@@ -22,11 +22,19 @@ final class FeedsDAO
 
         $result = $stmt->fetch(\PDO::FETCH_ASSOC);
 
-        if (! $result) {
+        if (! \is_array($result)) {
             return null;
         }
 
-        return self::FeedDTOFactory(...$result);
+        /** @var array{uri: string, title: string, link: string, last_update: string, last_sent_post_uri: ?string} $result */
+
+        return self::FeedDTOFactory(
+            $result['uri'],
+            $result['title'],
+            $result['link'],
+            (int) $result['last_update'],
+            $result['last_sent_post_uri'],
+        );
     }
 
     public function update(Feed $feed): void
@@ -76,7 +84,7 @@ final class FeedsDAO
     /**
      * @return Feed[]
      */
-    public function getSchedudled(\DateTimeImmutable $datetime): array
+    public function getScheduled(\DateTimeImmutable $datetime): array
     {
         $stmt = $this->db->prepare(<<<SQL
         SELECT DISTINCT(f.uri), f.title, f.link, f.last_update, f.last_sent_post_uri

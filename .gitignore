@@ -8,3 +8,5 @@ coverage/
 /tests/_output/
 /package-lock.json
 /node_modules/
+/clover.xml
+/.phpunit.cache/

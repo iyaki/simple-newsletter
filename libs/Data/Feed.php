@@ -9,6 +9,7 @@ final readonly class Feed
     /**
      * @param iterable<int, Post> $posts
      */
+    // mago-ignore
     public function __construct(
         public string $uri,
         public string $title,

@@ -6,6 +6,11 @@
             "SimpleNewsletter\\": "libs/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
     "authors": [{
         "name": "iyaki",
         "email": "me@iyaki.ar"
@@ -14,6 +19,23 @@
         "laminas/laminas-feed": "^2.22",
         "laminas/laminas-http": "^2.19",
         "phpmailer/phpmailer": "^7.0",
-        "sentry/sentry": "^4.7"
+        "sentry/sentry": "^4.7",
+        "symfony/html-sanitizer": "^7.4"
+    },
+    "require-dev": {
+        "pestphp/pest": "^3.0",
+        "phpstan/phpstan": "^2.0",
+        "infection/infection": "^0.29",
+        "carthage-software/mago": "^1.30.0",
+        "dg/bypass-finals": "^1.10",
+        "mockery/mockery": "^1.6",
+        "symfony/http-client": "^7.4",
+        "cebe/php-openapi": "^1.8"
+    },
+    "config": {
+        "allow-plugins": {
+            "infection/extension-installer": true,
+            "pestphp/pest-plugin": true
+        }
     }
 }

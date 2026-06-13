@@ -20,7 +20,7 @@ final readonly class EmailTemplateFactory
     public function createConfirmation(
         Subscription $subscription,
         Feed $feed,
-        string $token,
+        #[\SensitiveParameter] string $token,
     ): SubscriptionConfirmation
     {
         $recipient = $subscription->email;
@@ -42,7 +42,7 @@ final readonly class EmailTemplateFactory
         Subscription $subscription,
         Feed $feed,
         Post $post,
-        string $token
+        #[\SensitiveParameter] string $token
     ): Newsletter {
         return new Newsletter(
             $subscription,

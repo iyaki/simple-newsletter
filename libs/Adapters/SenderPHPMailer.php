@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace SimpleNewsletter\Adapters;
 
-use Laminas\Http\Header\KeepAlive;
 use PHPMailer\PHPMailer\PHPMailer;
 use SimpleNewsletter\Components\Sender;
 use SimpleNewsletter\Templates\Email\EmailInterface;
@@ -13,17 +12,19 @@ final readonly class SenderPHPMailer implements Sender
 {
     private readonly PHPMailer $mailer;
 
+    // mago-ignore
     public function __construct(
         string $host,
         int $port,
         string $user,
-        string $password,
+        #[\SensitiveParameter] string $password,
         string $from,
         string $replyTo,
         string $encryption = PHPMailer::ENCRYPTION_STARTTLS,
-        bool $allowSelfSigned = false
+        bool $allowSelfSigned = false,
+        ?PHPMailer $mailer = null,
     ) {
-        $mailer = new PHPMailer(true);
+        $mailer ??= new PHPMailer(true);
 
         $mailer->isSMTP();
         $mailer->SMTPSecure = $encryption;

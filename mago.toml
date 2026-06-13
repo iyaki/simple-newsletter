@@ -1,0 +1,11 @@
+version = "1"
+php-version = "8.3"
+no-version-check = true
+
+[linter]
+excludes = ["vendor/**", "data/**", "migrations/**", "tests/_output/**"]
+baseline = "mago-baseline.json"
+minimum-fail-level = "warning"
+
+[analyzer]
+excludes = ["vendor/**", "data/**", "migrations/**", "tests/_output/**"]

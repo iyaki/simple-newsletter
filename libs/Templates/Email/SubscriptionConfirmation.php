@@ -8,9 +8,6 @@ use SimpleNewsletter\Data\Feed;
 
 final readonly class SubscriptionConfirmation implements EmailInterface
 {
-    /**
-     * @param string[] $recipients
-     */
     public function __construct(
         private string $recipient,
         private Feed $feed,

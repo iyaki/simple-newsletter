@@ -29,7 +29,7 @@ final class JsonResponse implements ResponseInterface
         return \json_encode([
             'title' => $this->title,
             'detail' => $this->message,
-        ]);
+        ]) ?: '{}';
     }
 
     public function isOk(): bool
