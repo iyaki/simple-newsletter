@@ -24,17 +24,25 @@
     },
     "require-dev": {
         "pestphp/pest": "^3.0",
+        "pestphp/pest-plugin-mutate": "^3.0",
         "phpstan/phpstan": "^2.0",
-        "infection/infection": "^0.29",
         "carthage-software/mago": "^1.30.0",
         "dg/bypass-finals": "^1.10",
         "mockery/mockery": "^1.6",
         "symfony/http-client": "^7.4",
         "cebe/php-openapi": "^1.8"
     },
+    "scripts": {
+        "test": "vendor/bin/pest",
+        "test:coverage": "XDEBUG_MODE=coverage vendor/bin/pest --coverage --min=100",
+        "test:e2e": "vendor/bin/pest --testsuite e2e",
+        "test:mutation": "vendor/bin/pest --mutate --min=90",
+        "lint": "vendor/bin/mago lint",
+        "analyze": "vendor/bin/mago analyze",
+        "check": ["@lint", "@analyze", "@test:coverage"]
+    },
     "config": {
         "allow-plugins": {
-            "infection/extension-installer": true,
             "pestphp/pest-plugin": true
         }
     }
