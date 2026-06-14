@@ -20,14 +20,14 @@ use SimpleNewsletter\Components\RateLimiter;
 // mago-ignore
 final class Container
 {
-    private const DATABASE_COFIG_PATH = __DIR__ . '/../config/database.php';
+    private const string DATABASE_COFIG_PATH = __DIR__ . '/../config/database.php';
 
     private static ?\PDO $database = null;
 
-    /** @var \WeakReference<\SimpleNewsletter\Components\Auth> */
+    /** @var \WeakReference<Auth> */
     private static ?\WeakReference $auth = null;
 
-    /** @var \WeakReference<\SimpleNewsletter\Adapters\SenderPHPMailer> */
+    /** @var \WeakReference<SenderPHPMailer> */
     private static ?\WeakReference $sender = null;
 
     private function feeds(): Feeds
@@ -111,7 +111,7 @@ final class Container
 
     private function database(): \PDO
     {
-        if (self::$database === null) {
+        if (!self::$database instanceof \PDO) {
             self::$database = new \PDO((require self::DATABASE_COFIG_PATH)['dsn']);
         }
 
@@ -131,6 +131,6 @@ final class Container
      */
     public function __sleep()
     {
-        throw new \Exception('This class can\'t be serialized');
+        throw new \Exception("This class can't be serialized");
     }
 }

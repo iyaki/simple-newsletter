@@ -7,6 +7,7 @@ namespace SimpleNewsletter\Data;
 final class SubscriptionsDAO
 {
     private string $TABLE = 'subscriptions';
+
     private string $FIELDS_FULL = 'feed_uri, email, active';
 
     public function __construct(
@@ -16,7 +17,7 @@ final class SubscriptionsDAO
     public function find(string $feedUri, string $email): ?Subscription
     {
         try {
-            $stmt = $this->db->prepare("SELECT {$this->FIELDS_FULL} FROM {$this->TABLE} WHERE feed_uri = :feed_uri AND email = :email");
+            $stmt = $this->db->prepare(sprintf('SELECT %s FROM %s WHERE feed_uri = :feed_uri AND email = :email', $this->FIELDS_FULL, $this->TABLE));
             $stmt->execute([
                 'feed_uri' => $feedUri,
                 'email' => $email,
@@ -30,13 +31,9 @@ final class SubscriptionsDAO
 
             /** @var array{feed_uri: string, email: string, active: string} $result */
 
-            return self::SubscriptionDTOFactory(
-                $result['feed_uri'],
-                $result['email'],
-                (int) $result['active'],
-            );
-        } catch (\PDOException $e) {
-            throw new EndUserException('A technical error occurred. Please try again later.', 0, $e);
+            return $this->SubscriptionDTOFactory($result['feed_uri'], $result['email'], (int) $result['active']);
+        } catch (\PDOException $pdoException) {
+            throw new EndUserException('A technical error occurred. Please try again later.', 0, $pdoException);
         }
     }
 
@@ -55,8 +52,8 @@ final class SubscriptionsDAO
                 'feed_uri' => $subscription->feedUri,
                 'email' => $subscription->email,
             ]);
-        } catch (\PDOException $e) {
-            throw new EndUserException('A technical error occurred. Please try again later.', 0, $e);
+        } catch (\PDOException $pdoException) {
+            throw new EndUserException('A technical error occurred. Please try again later.', 0, $pdoException);
         }
     }
 
@@ -75,8 +72,8 @@ final class SubscriptionsDAO
                 'feed_uri' => $subscription->feedUri,
                 'email' => $subscription->email,
             ]);
-        } catch (\PDOException $e) {
-            throw new EndUserException('A technical error occurred. Please try again later.', 0, $e);
+        } catch (\PDOException $pdoException) {
+            throw new EndUserException('A technical error occurred. Please try again later.', 0, $pdoException);
         }
     }
 
@@ -96,8 +93,8 @@ final class SubscriptionsDAO
                 'email' => $subscription->email,
                 'active' => (int) $subscription->active,
             ]);
-        } catch (\PDOException $e) {
-            throw new EndUserException('A technical error occurred. Please try again later.', 0, $e);
+        } catch (\PDOException $pdoException) {
+            throw new EndUserException('A technical error occurred. Please try again later.', 0, $pdoException);
         }
     }
 
@@ -110,7 +107,7 @@ final class SubscriptionsDAO
     public function findActiveSubscriptionsFor(Feed $feed): array
     {
         try {
-            $stmt = $this->db->prepare("SELECT {$this->FIELDS_FULL} FROM {$this->TABLE} WHERE feed_uri = :feed_uri AND active = 1");
+            $stmt = $this->db->prepare(sprintf('SELECT %s FROM %s WHERE feed_uri = :feed_uri AND active = 1', $this->FIELDS_FULL, $this->TABLE));
             $stmt->execute([
                 'feed_uri' => $feed->uri,
             ]);
@@ -121,19 +118,13 @@ final class SubscriptionsDAO
                 return [];
             }
 
-            return \array_map(function (array $row): Subscription {
-                return self::SubscriptionDTOFactory(
-                    $row['feed_uri'],
-                    $row['email'],
-                    (int) $row['active'],
-                );
-            }, $result);
-        } catch (\PDOException $e) {
-            throw new EndUserException('A technical error occurred. Please try again later.', 0, $e);
+            return \array_map(fn(array $row): Subscription => $this->SubscriptionDTOFactory($row['feed_uri'], $row['email'], (int) $row['active']), $result);
+        } catch (\PDOException $pdoException) {
+            throw new EndUserException('A technical error occurred. Please try again later.', 0, $pdoException);
         }
     }
 
-    static private function SubscriptionDTOFactory(
+    private function SubscriptionDTOFactory(
         string $feed_uri,
         string $email,
         int $active,

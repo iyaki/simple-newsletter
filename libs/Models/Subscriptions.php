@@ -70,9 +70,10 @@ final readonly class Subscriptions
         }
 
         $subscription = $this->subscriptionsDAO->find($feedUri, $email);
-        if ($subscription === null) {
+        if (!$subscription instanceof Subscription) {
             throw new EndUserException('Subscription not found');
         }
+
         $this->subscriptionsDAO->deactivate($subscription);
     }
 

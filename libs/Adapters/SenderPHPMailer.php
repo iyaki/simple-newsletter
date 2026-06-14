@@ -10,7 +10,7 @@ use SimpleNewsletter\Templates\Email\EmailInterface;
 
 final readonly class SenderPHPMailer implements Sender
 {
-    private readonly PHPMailer $mailer;
+    private PHPMailer $mailer;
 
     // mago-ignore
     public function __construct(

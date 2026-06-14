@@ -7,6 +7,7 @@ namespace SimpleNewsletter\Components;
 final readonly class RateLimiter
 {
     private const int WINDOW_SECONDS = 60;
+
     private const int MAX_REQUESTS = 10;
 
     public function __construct(
@@ -41,10 +42,8 @@ final readonly class RateLimiter
                 'INSERT INTO rate_limits (ip, endpoint, window_start) VALUES (:ip, :endpoint, :window)'
             );
             $stmt->execute(['ip' => $ip, 'endpoint' => $endpoint, 'window' => $now]);
-        } catch (EndUserException $e) {
-            throw $e;
-        } catch (\PDOException $e) {
-            throw new EndUserException('A technical error occurred. Please try again later.', 0, $e);
+        } catch (\PDOException $pdoException) {
+            throw new EndUserException('A technical error occurred. Please try again later.', 0, $pdoException);
         }
     }
 }

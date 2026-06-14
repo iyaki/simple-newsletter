@@ -12,8 +12,9 @@ use SimpleNewsletter\Templates\ApiV1\ResponseInterface;
 
 final class ResponderHttp
 {
-    private const TYPE_HTML = 'text/html';
-    private const TYPE_JSON = 'application/json';
+    private const string TYPE_HTML = 'text/html';
+
+    private const string TYPE_JSON = 'application/json';
 
     public function sendResponse(ResponseInterface $response): void
     {
@@ -32,13 +33,13 @@ final class ResponderHttp
     public function responseBuilderFromContentNegotiation(string $acceptHeaderValueAsString): object
     {
         $acceptHeaderValues = \array_map(
-            fn (string $accept): string => \strtolower(\trim($accept)),
+            static fn (string $accept): string => \strtolower(\trim($accept)),
             \explode(',', $acceptHeaderValueAsString)
         );
 
         $compatibleTypes = \array_filter(
             $acceptHeaderValues,
-            fn (string $accept): bool => \in_array(
+            static fn (string $accept): bool => \in_array(
                 \trim($accept),
                 [
                     self::TYPE_HTML,
@@ -51,11 +52,11 @@ final class ResponderHttp
         $contentType = \reset($compatibleTypes);
         $contentType = $contentType ?: self::TYPE_JSON;
 
-        return new class ($contentType) {
+        return new readonly class ($contentType) {
 
-            public function __construct(private readonly string $contentType) {}
+            public function __construct(private string $contentType) {}
 
-            public function fromString(string $title, string $message, string $return = null, bool $ok = true): ResponseInterface
+            public function fromString(string $title, string $message, ?string $return = null, bool $ok = true): ResponseInterface
             {
                 return match ($this->contentType) {
                     'text/html' => HtmlResponse::fromString($title, $message, $return, $ok),
@@ -63,7 +64,7 @@ final class ResponderHttp
                 };
             }
 
-            public function fromEndUserException(EndUserException $exception, string $return = null): ResponseInterface
+            public function fromEndUserException(EndUserException $exception, ?string $return = null): ResponseInterface
             {
                 return match ($this->contentType) {
                     'text/html' => HtmlResponse::fromEndUserException($exception),

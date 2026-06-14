@@ -7,6 +7,7 @@ namespace SimpleNewsletter\Data;
 final class FeedsDAO
 {
     private string $TABLE = 'feeds';
+
     private string $FIELDS_FULL = 'uri, title, link, last_update, last_sent_post_uri';
 
     public function __construct(
@@ -16,7 +17,7 @@ final class FeedsDAO
     public function find(string $uri): ?Feed
     {
         try {
-            $stmt = $this->db->prepare("SELECT {$this->FIELDS_FULL} FROM {$this->TABLE} WHERE uri = :uri");
+            $stmt = $this->db->prepare(sprintf('SELECT %s FROM %s WHERE uri = :uri', $this->FIELDS_FULL, $this->TABLE));
             $stmt->execute([
                 'uri' => $uri,
             ]);
@@ -29,15 +30,9 @@ final class FeedsDAO
 
             /** @var array{uri: string, title: string, link: string, last_update: string, last_sent_post_uri: ?string} $result */
 
-            return self::FeedDTOFactory(
-                $result['uri'],
-                $result['title'],
-                $result['link'],
-                (int) $result['last_update'],
-                $result['last_sent_post_uri'],
-            );
-        } catch (\PDOException $e) {
-            throw new EndUserException('A technical error occurred. Please try again later.', 0, $e);
+            return $this->FeedDTOFactory($result['uri'], $result['title'], $result['link'], (int) $result['last_update'], $result['last_sent_post_uri']);
+        } catch (\PDOException $pdoException) {
+            throw new EndUserException('A technical error occurred. Please try again later.', 0, $pdoException);
         }
     }
 
@@ -58,8 +53,8 @@ final class FeedsDAO
                 'last_update' => $feed->lastUpdate->getTimestamp(),
                 'last_sent_post_uri' => $feed->lastSentPostUri,
             ]);
-        } catch (\PDOException $e) {
-            throw new EndUserException('A technical error occurred. Please try again later.', 0, $e);
+        } catch (\PDOException $pdoException) {
+            throw new EndUserException('A technical error occurred. Please try again later.', 0, $pdoException);
         }
     }
 
@@ -88,8 +83,8 @@ final class FeedsDAO
                 'last_update' => $feed->lastUpdate->getTimestamp(),
                 'trigger_hour' => random_int(0, 23),
             ]);
-        } catch (\PDOException $e) {
-            throw new EndUserException('A technical error occurred. Please try again later.', 0, $e);
+        } catch (\PDOException $pdoException) {
+            throw new EndUserException('A technical error occurred. Please try again later.', 0, $pdoException);
         }
     }
 
@@ -121,21 +116,13 @@ final class FeedsDAO
                 return [];
             }
 
-            return \array_map(function (array $row): Feed {
-                return self::FeedDTOFactory(
-                    $row['uri'],
-                    $row['title'],
-                    $row['link'],
-                    (int) $row['last_update'],
-                    $row['last_sent_post_uri'],
-                );
-            }, $results);
-        } catch (\PDOException $e) {
-            throw new EndUserException('A technical error occurred. Please try again later.', 0, $e);
+            return \array_map(fn(array $row): Feed => $this->FeedDTOFactory($row['uri'], $row['title'], $row['link'], (int) $row['last_update'], $row['last_sent_post_uri']), $results);
+        } catch (\PDOException $pdoException) {
+            throw new EndUserException('A technical error occurred. Please try again later.', 0, $pdoException);
         }
     }
 
-    static private function FeedDTOFactory(
+    private function FeedDTOFactory(
         string $uri,
         string $title,
         string $link,

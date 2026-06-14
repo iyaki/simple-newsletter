@@ -6,16 +6,17 @@ namespace SimpleNewsletter\Templates\ApiV1;
 
 use SimpleNewsletter\Components\EndUserException;
 
-final class RedirectResponse implements ResponseInterface
+final readonly class RedirectResponse implements ResponseInterface
 {
 
     private function __construct(
-        private readonly string $title,
-        private readonly string $message,
-        private readonly string $return,
-        private readonly bool $ok
+        private string $title,
+        private string $message,
+        private string $return,
+        private bool $ok
 
     ) { }
+
     public function getBody(): string
     {
         return '';
@@ -42,13 +43,13 @@ final class RedirectResponse implements ResponseInterface
         ];
     }
 
-    static function fromString(string $title, string $message, string $return, bool $ok = true): static
+    public static function fromString(string $title, string $message, string $return, bool $ok = true): static
     {
-        return new static($title, $message, $return, $ok);
+        return new self($title, $message, $return, $ok);
     }
 
-    static function fromEndUserException(EndUserException $exception, string $return): static
+    public static function fromEndUserException(EndUserException $exception, string $return): static
     {
-        return new static('Error: Invalid data', $exception->getMessage(), $return, false);
+        return new self('Error: Invalid data', $exception->getMessage(), $return, false);
     }
 }

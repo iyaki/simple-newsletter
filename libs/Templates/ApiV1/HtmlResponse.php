@@ -6,28 +6,28 @@ namespace SimpleNewsletter\Templates\ApiV1;
 
 use SimpleNewsletter\Components\EndUserException;
 
-final class HtmlResponse implements ResponseInterface
+final readonly class HtmlResponse implements ResponseInterface
 {
     private function __construct(
-        private readonly string $title,
-        private readonly string $message,
-        private readonly ?string $return,
-        private readonly bool $ok
+        private string $title,
+        private string $message,
+        private ?string $return,
+        private bool $ok
     ) { }
 
     static public function fromString(string $title, string $message, ?string $return = null, bool $ok = true): static
     {
-        return new static($title, $message, $return, $ok);
+        return new self($title, $message, $return, $ok);
     }
 
     static public function fromEndUserException(EndUserException $exception, ?string $return = null): static
     {
-        return new static('Error: Invalid data', $exception->getMessage(), $return, false);
+        return new self('Error: Invalid data', $exception->getMessage(), $return, false);
     }
 
     public function getBody(): string
     {
-        $redirectLink = $this->return ? "<br><p style=\"text-align: center;\"><a href=\"{$this->return}\">Return to {$this->return}</a><p>" : '';
+        $redirectLink = $this->return ? sprintf('<br><p style="text-align: center;"><a href="%s">Return to %s</a><p>', $this->return, $this->return) : '';
 
         return <<<HTML
         <!DOCTYPE html>

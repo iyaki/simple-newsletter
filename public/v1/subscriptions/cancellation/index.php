@@ -6,7 +6,7 @@ namespace SimpleNewsletter;
 
 use SimpleNewsletter\Components\EndUserException;
 
-(function (): never {
+(static function (): never {
     $c = new Container();
     $responder = $c->responder();
     $responseBuilder = $responder->responseBuilderFromContentNegotiation(
@@ -31,8 +31,9 @@ use SimpleNewsletter\Components\EndUserException;
             'Subscription successfully cancelled.',
             ''
         ));
-    } catch (EndUserException $e) {
-        $responder->sendResponse($responseBuilder->fromEndUserException($e));
+    } catch (EndUserException $endUserException) {
+        $responder->sendResponse($responseBuilder->fromEndUserException($endUserException));
     }
+
     exit;
 })();

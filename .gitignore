@@ -10,3 +10,4 @@ coverage/
 /node_modules/
 /clover.xml
 /.phpunit.cache/
+/.cache/

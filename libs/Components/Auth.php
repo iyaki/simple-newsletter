@@ -15,6 +15,7 @@ final readonly class Auth
     {
         return \hash_hmac('sha256', $key, $this->secret);
     }
+
     public function verify(#[\SensitiveParameter] string $key, #[\SensitiveParameter] string $token): bool
     {
         return \hash_equals($this->hash($key), $token);
