@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace SimpleNewsletter;
 
-(function (): never {
+(static function (): never {
     try {
         $c = new Container();
 
@@ -13,8 +13,8 @@ namespace SimpleNewsletter;
         $c->subscriptions()->sendScheduled($datetime);
 
         echo $datetime->format('Y-m-d H:i:s') . PHP_EOL;
-    } catch (\Throwable $exception) {
-        error_log('Newsletter delivery failed: ' . $exception->getMessage());
+    } catch (\Throwable $throwable) {
+        error_log('Newsletter delivery failed: ' . $throwable->getMessage());
         // Don't exit with error code - partial success is OK
     }
 

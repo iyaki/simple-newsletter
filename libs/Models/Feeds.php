@@ -12,8 +12,8 @@ use SimpleNewsletter\Data\Post;
 final readonly class Feeds
 {
     public function __construct(
-        private readonly FeedsDAO $feedsDAO,
-        private readonly FeedImporter $feedImporter
+        private FeedsDAO $feedsDAO,
+        private FeedImporter $feedImporter
     )
     {}
 

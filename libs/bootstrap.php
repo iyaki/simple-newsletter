@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
-(function () {
+use function Sentry\init;
+
+(static function (): void {
     if (! \file_exists(__DIR__ . '/../vendor/autoload.php')) {
         $rawFile = $_SERVER["SCRIPT_FILENAME"] ?? null;
         $scriptFilename = \is_string($rawFile) ? $rawFile : '';
@@ -17,7 +19,7 @@ declare(strict_types=1);
 
     $SENTRY_DSN = \getenv('SENTRY_DSN');
     if (function_exists('\Sentry\init') && $SENTRY_DSN) {
-        \Sentry\init([
+        init([
             'dsn' => $SENTRY_DSN,
         ]);
     }

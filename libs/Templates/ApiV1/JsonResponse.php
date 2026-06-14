@@ -6,22 +6,22 @@ namespace SimpleNewsletter\Templates\ApiV1;
 
 use SimpleNewsletter\Components\EndUserException;
 
-final class JsonResponse implements ResponseInterface
+final readonly class JsonResponse implements ResponseInterface
 {
     private function __construct(
-        private readonly string $title,
-        private readonly string $message,
-        private readonly bool $ok
+        private string $title,
+        private string $message,
+        private bool $ok
     ) { }
 
     static public function fromString(string $title, string $message, bool $ok = true): static
     {
-        return new static($title, $message, $ok);
+        return new self($title, $message, $ok);
     }
 
     static public function fromEndUserException(EndUserException $exception): static
     {
-        return new static('Error: Invalid data', $exception->getMessage(), false);
+        return new self('Error: Invalid data', $exception->getMessage(), false);
     }
 
     public function getBody(): string
@@ -29,7 +29,7 @@ final class JsonResponse implements ResponseInterface
         return \json_encode([
             'title' => $this->title,
             'detail' => $this->message,
-        ]) ?: '{}';
+        ], JSON_THROW_ON_ERROR) ?: '{}';
     }
 
     public function isOk(): bool

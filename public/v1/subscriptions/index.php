@@ -7,7 +7,7 @@ namespace SimpleNewsletter;
 use SimpleNewsletter\Components\EndUserException;
 
 // mago-ignore
-(function (): never {
+(static function (): never {
     $c = new Container();
     $responder = $c->responder();
 
@@ -22,7 +22,8 @@ use SimpleNewsletter\Components\EndUserException;
         if ($return !== null && !\filter_var($return, \FILTER_VALIDATE_URL)) {
             throw new EndUserException('Invalid return URL');
         }
-        $scheme = $return !== null ? \parse_url($return, \PHP_URL_SCHEME) : null;
+
+        $scheme = $return !== null ? \parse_url((string) $return, \PHP_URL_SCHEME) : null;
         if ($scheme !== null && !\in_array($scheme, ['http', 'https'], true)) {
             throw new EndUserException('Return URL must use http or https scheme');
         }
@@ -50,13 +51,13 @@ use SimpleNewsletter\Components\EndUserException;
         $c->subscriptions()->add($feedUri, $email);
 
         $responder->sendResponse($responseBuilder->fromString(
-            "An email confirmation has been sent to {$email}.",
+            sprintf('An email confirmation has been sent to %s.', $email),
             'Please check your inbox (and your spam folder).',
             $return
         ));
-    } catch (EndUserException $e) {
+    } catch (EndUserException $endUserException) {
         $responder->sendResponse($responseBuilder->fromEndUserException(
-            $e,
+            $endUserException,
             $return
         ));
     }
