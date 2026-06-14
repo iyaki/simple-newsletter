@@ -8,6 +8,10 @@ use PHPMailer\PHPMailer\PHPMailer;
 use SimpleNewsletter\Adapters\FeedImporterLaminas;
 use SimpleNewsletter\Adapters\ResponderHttp;
 use SimpleNewsletter\Adapters\SenderPHPMailer;
+use SimpleNewsletter\Adapters\SmtpConfig;
+use SimpleNewsletter\Adapters\SmtpConnection;
+use SimpleNewsletter\Adapters\SmtpCredentials;
+use SimpleNewsletter\Adapters\SmtpSender;
 use SimpleNewsletter\Components\Auth;
 use SimpleNewsletter\Components\EmailTemplateFactory;
 use SimpleNewsletter\Components\RateLimiter;
@@ -17,11 +21,13 @@ use SimpleNewsletter\Models\Feeds;
 use SimpleNewsletter\Models\Newsletter;
 use SimpleNewsletter\Models\Subscriptions;
 
-// mago-ignore
+/**
+ * Container for dependency injection
+ *
+ * @mago-ignore too-many-methods
+ */
 final class Container
 {
-    private const string DATABASE_COFIG_PATH = __DIR__ . '/../config/database.php';
-
     private static ?\PDO $database = null;
 
     /** @var \WeakReference<Auth> */
@@ -62,7 +68,7 @@ final class Container
 
     private function emailTemplateFactory(): EmailTemplateFactory
     {
-        return new EmailTemplateFactory(\getenv('URI_SELF') ?: '');
+        return new EmailTemplateFactory(\getenv('URI_SELF') ?? '');
     }
 
     private function auth(): Auth
@@ -72,7 +78,7 @@ final class Container
             return $auth;
         }
 
-        $auth = new Auth(\getenv('SECRET_KEY') ?: '');
+        $auth = new Auth(\getenv('SECRET_KEY') ?? '');
         self::$auth = \WeakReference::create($auth);
 
         return $auth;
@@ -85,16 +91,19 @@ final class Container
             return $sender;
         }
 
-        $sender = new SenderPHPMailer(
-            \getenv('SMTP_HOST') ?: '',
-            (int) \getenv('SMTP_PORT'),
-            \getenv('SMTP_USER') ?: '',
-            \getenv('SMTP_PASSWORD') ?: '',
-            \getenv('EMAIL_FROM') ?: '',
-            \getenv('EMAIL_REPLY_TO') ?: '',
-            ($e = \getenv('SMTP_ENCRYPTION')) !== false ? $e : PHPMailer::ENCRYPTION_STARTTLS,
-            (bool) \getenv('SMTP_ALLOW_SELF_SIGNED'),
+        $connection = new SmtpConnection(
+            host: \getenv('SMTP_HOST') ?? 'localhost',
+            port: (int) (\getenv('SMTP_PORT') ?? 587),
+            encryption: \getenv('SMTP_ENCRYPTION') ?? PHPMailer::ENCRYPTION_STARTTLS,
+            allowSelfSigned: (bool) (\getenv('SMTP_ALLOW_SELF_SIGNED') ?? false),
         );
+        $credentials = new SmtpCredentials(user: \getenv('SMTP_USER') ?? '', password: \getenv('SMTP_PASSWORD') ?? '');
+        $senderConfig = new SmtpSender(
+            from: \getenv('EMAIL_FROM') ?? 'noreply@example.com',
+            replyTo: \getenv('EMAIL_REPLY_TO') ?? 'noreply@example.com',
+        );
+        $config = new SmtpConfig($connection, $credentials, $senderConfig);
+        $sender = new SenderPHPMailer($config);
         self::$sender = \WeakReference::create($sender);
 
         return $sender;
@@ -107,21 +116,5 @@ final class Container
         }
 
         return self::$database;
-    }
-
-    /**
-     * @codeCoverageIgnore
-     */
-    public function __clone()
-    {
-        throw new \Exception('Cloning this class is not allowed');
-    }
-
-    /**
-     * @codeCoverageIgnore
-     */
-    public function __sleep()
-    {
-        throw new \Exception("This class can't be serialized");
     }
 }

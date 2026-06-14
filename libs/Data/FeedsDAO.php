@@ -87,7 +87,7 @@ final class FeedsDAO
                 'title' => $feed->title,
                 'link' => $feed->link,
                 'last_update' => $feed->lastUpdate->getTimestamp(),
-                'trigger_hour' => random_int(0, 23),
+                'trigger_hour' => random_int(min: 0, max: 23),
             ]);
         } catch (\PDOException $pdoException) {
             throw new EndUserException('A technical error occurred. Please try again later.', 0, $pdoException);

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 // Set test database path
 $testDbPath = __DIR__ . '/../../data/test-e2e.db';
-\putenv('NEWSLETTER_DB_PATH=' . $testDbPath);
-\putenv('SECRET_KEY=test-e2e-secret-key-32chars!');
-\putenv('SERVER_NAME=http://localhost:8080');
+$_ENV['NEWSLETTER_DB_PATH'] = $testDbPath;
+$_ENV['SECRET_KEY'] = 'test-e2e-secret-key-32chars!';
+$_ENV['SERVER_NAME'] = 'http://localhost:8080';
 
 require __DIR__ . '/../../vendor/autoload.php';
 
@@ -14,7 +14,7 @@ require __DIR__ . '/../../vendor/autoload.php';
  * Initialize test database with fresh schema
  */
 if (! function_exists('initTestDatabase')) {
-    function initTestDatabase(string $dbPath): void
+    function init_test_database(string $dbPath): void
     {
         if (\file_exists($dbPath)) {
             \unlink($dbPath);

@@ -24,7 +24,7 @@ final class ResponderHttp
         }
 
         if (! $response->isOk() && ! $response instanceof RedirectResponse) {
-            \header('HTTP/1.0 400 Bad Request', true, 400);
+            \header(replace: true, response_code: 400, name: 'HTTP/1.0 400 Bad Request');
         }
 
         echo $response->getBody();
@@ -43,11 +43,11 @@ final class ResponderHttp
                 self::TYPE_HTML,
                 self::TYPE_JSON,
             ],
-            true,
+            strict: true,
         ));
 
         $contentType = \reset($compatibleTypes);
-        $contentType = $contentType ?: self::TYPE_JSON;
+        $contentType ??= self::TYPE_JSON;
 
         return new readonly class($contentType) {
             public function __construct(

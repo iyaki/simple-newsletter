@@ -15,7 +15,7 @@ use SimpleNewsletter\Data\Post;
 use Symfony\Component\HtmlSanitizer\HtmlSanitizer;
 use Symfony\Component\HtmlSanitizer\HtmlSanitizerConfig;
 
-final readonly class FeedImporterLaminas implements FeedImporter
+readonly class FeedImporterLaminas implements FeedImporter
 {
     #[\Override]
     public function fetchNew(string $uri): Feed
@@ -48,7 +48,7 @@ final readonly class FeedImporterLaminas implements FeedImporter
             foreach ($sourceFeed as $sourcePost) {
                 $cleanContent = $sanitizer->sanitize($sourcePost->getContent());
                 yield new Post(
-                    $sourcePost->getPermalink() ?: $sourcePost->getLink(),
+                    $sourcePost->getPermalink() ?? $sourcePost->getLink(),
                     $sourcePost->getTitle(),
                     $cleanContent,
                 );

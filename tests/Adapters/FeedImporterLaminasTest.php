@@ -8,57 +8,19 @@ use SimpleNewsletter\Adapters\FeedImporterLaminas;
 use SimpleNewsletter\Components\EndUserException;
 use SimpleNewsletter\Data\Feed;
 use SimpleNewsletter\Data\Post;
+use Tests\Adapters\FeedTestServer;
+use Tests\Adapters\TestFeedImporter;
 
 const FEED_TEST_PORT = 9995;
 
 const FEED_TEST_BASE = 'http://127.0.0.1:' . FEED_TEST_PORT;
 
 beforeAll(function (): void {
-    $feedDir = '/tmp/feedtest';
-    if (! \is_dir($feedDir)) {
-        \mkdir($feedDir, 0o777, true);
-        \file_put_contents($feedDir . '/valid.xml', <<<XML
-            <?xml version="1.0" encoding="UTF-8"?>
-            <rss version="2.0">
-            <channel>
-            <title>Test Blog</title>
-            <link>https://example.com</link>
-            <item>
-            <title>First Post</title>
-            <link>https://example.com/post1</link>
-            </item>
-            </channel>
-            </rss>
-            XML);
-        \file_put_contents($feedDir . '/invalid.txt', 'not xml');
-    }
-
-    $cmd = \sprintf('php -S 0.0.0.0:%d -t %s >/dev/null 2>&1', FEED_TEST_PORT, \escapeshellarg($feedDir));
-    $proc = @\proc_open($cmd, [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
-    if (! \is_resource($proc)) {
-        throw new \RuntimeException('Failed to start PHP test server');
-    }
-    \fclose($pipes[0]);
-    \fclose($pipes[1]);
-    \fclose($pipes[2]);
-
-    for ($i = 0; $i < 15; $i++) {
-        $sock = @\fsockopen('127.0.0.1', FEED_TEST_PORT, $e, $s, 1);
-        if (\is_resource($sock)) {
-            \fclose($sock);
-            break;
-        }
-        \usleep(100_000);
-    }
-
-    $GLOBALS['_feed_server'] = $proc;
+    FeedTestServer::start();
 });
 
 afterAll(function (): void {
-    if (isset($GLOBALS['_feed_server']) && \is_resource($GLOBALS['_feed_server'])) {
-        @\proc_terminate($GLOBALS['_feed_server']);
-        @\proc_close($GLOBALS['_feed_server']);
-    }
+    FeedTestServer::stop();
 });
 
 // ─── Production import tests (real HTTP server) ───────────────────────────
@@ -88,28 +50,10 @@ test('fetchNew wraps invalid feed content in EndUserException', function () {
 
 // ─── Test double tests (mock import) ──────────────────────────────────────
 
-class TestFeedImporter extends FeedImporterLaminas
-{
-    private ?FeedInterface $mockFeed = null;
-
-    public function setMockFeed(FeedInterface $feed): void
-    {
-        $this->mockFeed = $feed;
-    }
-
-    protected function import(string $uri): FeedInterface
-    {
-        $feed = $this->mockFeed;
-        \assert($feed !== null, 'Mock feed must be set before calling import');
-
-        return $feed;
-    }
-}
-
 /**
  * Helper: configure a mock FeedInterface to yield the given entries on iteration.
  */
-function configureFeedIterator(FeedInterface $mock, array &$entries): void
+function configure_feed_iterator(FeedInterface $mock, array &$entries): void
 {
     $mock->method('rewind')->willReturnCallback(function () use (&$entries): void {
         \reset($entries);
@@ -174,7 +118,7 @@ test('fetchWithPosts yields Post objects with sanitized content (mock)', functio
     $sourceFeed = $this->createMock(FeedInterface::class);
     $sourceFeed->method('getTitle')->willReturn('Test Feed');
     $sourceFeed->method('getLink')->willReturn('https://example.com');
-    configureFeedIterator($sourceFeed, $entries);
+    configure_feed_iterator($sourceFeed, $entries);
 
     $inputFeed = new Feed('https://example.com/feed', 'Test Feed', 'https://example.com', new \DateTimeImmutable());
 
@@ -203,7 +147,7 @@ test('fetchWithPosts falls back to getLink when getPermalink returns null (mock)
     $sourceFeed = $this->createMock(FeedInterface::class);
     $sourceFeed->method('getTitle')->willReturn('Test Feed');
     $sourceFeed->method('getLink')->willReturn('https://example.com');
-    configureFeedIterator($sourceFeed, $entries);
+    configure_feed_iterator($sourceFeed, $entries);
 
     $inputFeed = new Feed('https://example.com/feed', 'Test Feed', 'https://example.com', new \DateTimeImmutable());
 

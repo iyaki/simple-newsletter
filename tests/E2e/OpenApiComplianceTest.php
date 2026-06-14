@@ -108,7 +108,7 @@ it('returns valid confirmation response structure', function () {
         0,
     ]);
 
-    $token = hash_hmac('sha256', 'test@example.com', getenv('SECRET_KEY'));
+    $token = hash_hmac(algo: 'sha256', data: 'test@example.com', key: (string) getenv('SECRET_KEY'));
 
     $response = self::get('/v1/subscriptions/confirmation/', [
         'uri' => 'https://example.com/feed.xml',
@@ -142,7 +142,7 @@ it('returns valid error structure for invalid confirmation token', function () {
     $response = self::get('/v1/subscriptions/confirmation/', [
         'uri' => 'https://example.com/feed.xml',
         'email' => 'test@example.com',
-        'token' => 'invalid-token',
+        'token' => 'wrong-token',
     ]);
 
     expect($response->getStatusCode())->toBe(400);
@@ -175,7 +175,7 @@ it('returns valid cancellation response structure', function () {
         1,
     ]);
 
-    $token = hash_hmac('sha256', 'test@example.com', getenv('SECRET_KEY'));
+    $token = hash_hmac(algo: 'sha256', data: 'test@example.com', key: (string) getenv('SECRET_KEY'));
 
     $response = self::get('/v1/subscriptions/cancellation/', [
         'uri' => 'https://example.com/feed.xml',
@@ -205,7 +205,7 @@ it('returns valid error structure for invalid cancellation token', function () {
     $response = self::get('/v1/subscriptions/cancellation/', [
         'uri' => 'https://example.com/feed.xml',
         'email' => 'test@example.com',
-        'token' => 'invalid-token',
+        'token' => 'wrong-token',
     ]);
 
     expect($response->getStatusCode())->toBe(400);
