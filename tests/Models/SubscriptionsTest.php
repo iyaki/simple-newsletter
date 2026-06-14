@@ -118,7 +118,7 @@ it('throws when subscription already active in add', function () {
     );
 
     $subs->add($feedUri, $email);
-})->throws(EndUserException::class, 'Already subscribed');
+})->throws(EndUserException::class, 'You are already subscribed to this feed.');
 
 it('activates subscription on valid confirm token', function () {
     $feedUri = 'https://example.com/feed';
@@ -196,7 +196,7 @@ it('throws when subscription not found in confirm', function () {
     );
 
     $subs->confirm($feedUri, $email, 'valid-token');
-})->throws(EndUserException::class, 'Invalid subscripion');
+})->throws(EndUserException::class, 'Subscription not found');
 
 it('deactivates subscription on valid cancel token', function () {
     $feedUri = 'https://example.com/feed';

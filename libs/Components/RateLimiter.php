@@ -15,30 +15,36 @@ final readonly class RateLimiter
 
     public function check(string $ip, string $endpoint): void
     {
-        $now = \time();
-        $windowStart = $now - self::WINDOW_SECONDS;
+        try {
+            $now = \time();
+            $windowStart = $now - self::WINDOW_SECONDS;
 
-        // Purge old entries for this IP+endpoint
-        $stmt = $this->db->prepare(
-            'DELETE FROM rate_limits WHERE ip = :ip AND endpoint = :endpoint AND window_start < :window'
-        );
-        $stmt->execute(['ip' => $ip, 'endpoint' => $endpoint, 'window' => $windowStart]);
+            // Purge old entries for this IP+endpoint
+            $stmt = $this->db->prepare(
+                'DELETE FROM rate_limits WHERE ip = :ip AND endpoint = :endpoint AND window_start < :window'
+            );
+            $stmt->execute(['ip' => $ip, 'endpoint' => $endpoint, 'window' => $windowStart]);
 
-        // Count requests in current window
-        $stmt = $this->db->prepare(
-            'SELECT COUNT(*) FROM rate_limits WHERE ip = :ip AND endpoint = :endpoint AND window_start >= :window'
-        );
-        $stmt->execute(['ip' => $ip, 'endpoint' => $endpoint, 'window' => $windowStart]);
-        $count = (int) $stmt->fetchColumn();
+            // Count requests in current window
+            $stmt = $this->db->prepare(
+                'SELECT COUNT(*) FROM rate_limits WHERE ip = :ip AND endpoint = :endpoint AND window_start >= :window'
+            );
+            $stmt->execute(['ip' => $ip, 'endpoint' => $endpoint, 'window' => $windowStart]);
+            $count = (int) $stmt->fetchColumn();
 
-        if ($count >= self::MAX_REQUESTS) {
-            throw new EndUserException('Too many requests. Please try again later.');
+            if ($count >= self::MAX_REQUESTS) {
+                throw new EndUserException('Too many requests. Please wait a minute and try again.');
+            }
+
+            // Record this request
+            $stmt = $this->db->prepare(
+                'INSERT INTO rate_limits (ip, endpoint, window_start) VALUES (:ip, :endpoint, :window)'
+            );
+            $stmt->execute(['ip' => $ip, 'endpoint' => $endpoint, 'window' => $now]);
+        } catch (EndUserException $e) {
+            throw $e;
+        } catch (\PDOException $e) {
+            throw new EndUserException('A technical error occurred. Please try again later.', 0, $e);
         }
-
-        // Record this request
-        $stmt = $this->db->prepare(
-            'INSERT INTO rate_limits (ip, endpoint, window_start) VALUES (:ip, :endpoint, :window)'
-        );
-        $stmt->execute(['ip' => $ip, 'endpoint' => $endpoint, 'window' => $now]);
     }
 }

@@ -15,100 +15,124 @@ final class FeedsDAO
 
     public function find(string $uri): ?Feed
     {
-        $stmt = $this->db->prepare("SELECT {$this->FIELDS_FULL} FROM {$this->TABLE} WHERE uri = :uri");
-        $stmt->execute([
-            'uri' => $uri,
-        ]);
+        try {
+            $stmt = $this->db->prepare("SELECT {$this->FIELDS_FULL} FROM {$this->TABLE} WHERE uri = :uri");
+            $stmt->execute([
+                'uri' => $uri,
+            ]);
 
-        $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+            $result = $stmt->fetch(\PDO::FETCH_ASSOC);
 
-        if (! \is_array($result)) {
-            return null;
+            if (! \is_array($result)) {
+                return null;
+            }
+
+            /** @var array{uri: string, title: string, link: string, last_update: string, last_sent_post_uri: ?string} $result */
+
+            return self::FeedDTOFactory(
+                $result['uri'],
+                $result['title'],
+                $result['link'],
+                (int) $result['last_update'],
+                $result['last_sent_post_uri'],
+            );
+        } catch (\PDOException $e) {
+            throw new EndUserException('A technical error occurred. Please try again later.', 0, $e);
         }
-
-        /** @var array{uri: string, title: string, link: string, last_update: string, last_sent_post_uri: ?string} $result */
-
-        return self::FeedDTOFactory(
-            $result['uri'],
-            $result['title'],
-            $result['link'],
-            (int) $result['last_update'],
-            $result['last_sent_post_uri'],
-        );
     }
 
     public function update(Feed $feed): void
     {
-        $stmt = $this->db->prepare(<<<SQL
-        UPDATE {$this->TABLE}
-        SET
-            title = :title,
-            last_update = :last_update,
-            last_sent_post_uri = :last_sent_post_uri
-        WHERE uri = :uri
-        SQL);
-        $stmt->execute([
-            'uri' => $feed->uri,
-            'title' => $feed->title,
-            'last_update' => $feed->lastUpdate->getTimestamp(),
-            'last_sent_post_uri' => $feed->lastSentPostUri,
-        ]);
+        try {
+            $stmt = $this->db->prepare(<<<SQL
+            UPDATE {$this->TABLE}
+            SET
+                title = :title,
+                last_update = :last_update,
+                last_sent_post_uri = :last_sent_post_uri
+            WHERE uri = :uri
+            SQL);
+            $stmt->execute([
+                'uri' => $feed->uri,
+                'title' => $feed->title,
+                'last_update' => $feed->lastUpdate->getTimestamp(),
+                'last_sent_post_uri' => $feed->lastSentPostUri,
+            ]);
+        } catch (\PDOException $e) {
+            throw new EndUserException('A technical error occurred. Please try again later.', 0, $e);
+        }
     }
 
     public function new(Feed $feed): void
     {
-        $stmt = $this->db->prepare(<<<SQL
-        INSERT INTO {$this->TABLE} (
-            uri,
-            title,
-            link,
-            last_update,
-            trigger_hour
-        ) VALUES (
-            :uri,
-            :title,
-            :link,
-            :last_update,
-            :trigger_hour
-        )
-        SQL);
-        $stmt->execute([
-            'uri' => $feed->uri,
-            'title' => $feed->title,
-            'link' => $feed->link,
-            'last_update' => $feed->lastUpdate->getTimestamp(),
-            'trigger_hour' => \rand(0, 23),
-        ]);
+        try {
+            $stmt = $this->db->prepare(<<<SQL
+            INSERT INTO {$this->TABLE} (
+                uri,
+                title,
+                link,
+                last_update,
+                trigger_hour
+            ) VALUES (
+                :uri,
+                :title,
+                :link,
+                :last_update,
+                :trigger_hour
+            )
+            SQL);
+            $stmt->execute([
+                'uri' => $feed->uri,
+                'title' => $feed->title,
+                'link' => $feed->link,
+                'last_update' => $feed->lastUpdate->getTimestamp(),
+                'trigger_hour' => random_int(0, 23),
+            ]);
+        } catch (\PDOException $e) {
+            throw new EndUserException('A technical error occurred. Please try again later.', 0, $e);
+        }
     }
 
     /**
      * @return Feed[]
      */
+    /**
+     * @return Feed[]
+     */
     public function getScheduled(\DateTimeImmutable $datetime): array
     {
-        $stmt = $this->db->prepare(<<<SQL
-        SELECT DISTINCT(f.uri), f.title, f.link, f.last_update, f.last_sent_post_uri
-        FROM {$this->TABLE} f
-        INNER JOIN
-            subscriptions s ON s.feed_uri = f.uri
-        WHERE
-            trigger_hour = :trigger_hour
-        AND s.active = 1
-        SQL);
-        $stmt->execute([
-            'trigger_hour' => (int) $datetime->format('H'),
-        ]);
+        try {
+            $stmt = $this->db->prepare(<<<SQL
+            SELECT DISTINCT f.uri, f.title, f.link, f.last_update, f.last_sent_post_uri
+            FROM {$this->TABLE} f
+            INNER JOIN
+                subscriptions s ON s.feed_uri = f.uri
+            WHERE
+                trigger_hour = :trigger_hour
+            AND s.active = 1
+            SQL);
+            $stmt->execute([
+                'trigger_hour' => (int) $datetime->format('H'),
+            ]);
 
-        $results = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            $results = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
-        if (! $results) {
-            return [];
+            if (! \is_array($results)) {
+                return [];
+            }
+
+            return \array_map(function (array $row): Feed {
+                return self::FeedDTOFactory(
+                    $row['uri'],
+                    $row['title'],
+                    $row['link'],
+                    (int) $row['last_update'],
+                    $row['last_sent_post_uri'],
+                );
+            }, $results);
+        } catch (\PDOException $e) {
+            throw new EndUserException('A technical error occurred. Please try again later.', 0, $e);
         }
-
-        return \array_map(
-            fn (array $row): Feed => self::FeedDTOFactory(...$row),
-            $results
-        );
     }
 
     static private function FeedDTOFactory(

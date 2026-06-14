@@ -1,5 +1,5 @@
 version = "1"
-php-version = "8.3"
+php-version = "8.5"
 no-version-check = true
 
 [linter]
