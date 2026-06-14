@@ -53,16 +53,20 @@ final readonly class SenderPHPMailer implements Sender
 
     public function send(EmailInterface $template): void
     {
-        $this->mailer->addAddress($template->recipient());
-        $this->mailer->Subject = $template->subject();
-        $this->mailer->isHTML();
-        $this->mailer->Body = \mb_convert_encoding($template->body(), '8bit');
+        try {
+            $this->mailer->addAddress($template->recipient());
+            $this->mailer->Subject = $template->subject();
+            $this->mailer->isHTML();
+            $this->mailer->Body = \mb_convert_encoding($template->body(), encoding: '8bit');
 
-        $this->mailer->send();
+            $this->mailer->send();
 
-        $this->mailer->clearAllRecipients();
-        $this->mailer->clearAttachments();
-        $this->mailer->Subject = '';
-        $this->mailer->Body = '';
+            $this->mailer->clearAllRecipients();
+            $this->mailer->clearAttachments();
+            $this->mailer->Subject = '';
+            $this->mailer->Body = '';
+        } catch (\Exception $exception) {
+            throw new EndUserException('We could not send the confirmation email. Please check your email address or contact support.', 0, $exception);
+        }
     }
 }

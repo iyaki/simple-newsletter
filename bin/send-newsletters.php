@@ -5,13 +5,18 @@ declare(strict_types=1);
 namespace SimpleNewsletter;
 
 (function (): never {
-    $c = new Container();
+    try {
+        $c = new Container();
 
-    $datetime = new \DateTimeImmutable();
+        $datetime = new \DateTimeImmutable();
 
-    $c->subscriptions()->sendScheduled($datetime);
+        $c->subscriptions()->sendScheduled($datetime);
 
-    echo $datetime->format('Y-m-d H:i:s') . "\n";
+        echo $datetime->format('Y-m-d H:i:s') . PHP_EOL;
+    } catch (\Throwable $exception) {
+        error_log('Newsletter delivery failed: ' . $exception->getMessage());
+        // Don't exit with error code - partial success is OK
+    }
 
     exit;
 })();

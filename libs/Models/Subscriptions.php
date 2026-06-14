@@ -35,7 +35,7 @@ final readonly class Subscriptions
 
         if ($subscription instanceof Subscription) {
             if ($subscription->active) {
-                throw new EndUserException('Already subscribed');
+                throw new EndUserException('You are already subscribed to this feed.');
             }
         } else {
             $subscription = new Subscription($feedUri, $email);
@@ -51,13 +51,13 @@ final readonly class Subscriptions
     public function confirm(string $feedUri, string $email, #[\SensitiveParameter] string $token): void
     {
         if (!$this->auth->verify($email, $token)) {
-            throw new EndUserException('Invalid token');
+            throw new EndUserException('Invalid token. Please check your confirmation link and try again.');
         }
 
         $subscription = $this->subscriptionsDAO->find($feedUri, $email);
 
         if (! $subscription instanceof Subscription) {
-            throw new EndUserException('Invalid subscripion');
+            throw new EndUserException('Subscription not found. The link may be invalid or expired.');
         }
 
         $this->subscriptionsDAO->activate($subscription);
@@ -66,7 +66,7 @@ final readonly class Subscriptions
     public function cancel(string $feedUri, string $email, #[\SensitiveParameter] string $token): void
     {
         if (!$this->auth->verify($email, $token)) {
-            throw new EndUserException('Invalid token');
+            throw new EndUserException('Invalid token. Please check your cancellation link and try again.');
         }
 
         $subscription = $this->subscriptionsDAO->find($feedUri, $email);

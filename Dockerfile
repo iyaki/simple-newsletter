@@ -1,6 +1,4 @@
-ARG FRANKENPHP_VERSION=1
-ARG PHP_VERSION=php8.3
-FROM dunglas/frankenphp:${FRANKENPHP_VERSION}-${PHP_VERSION} AS runtime
+FROM dunglas/frankenphp:1-php8.5 AS runtime
 
 FROM runtime AS dependencies
 
@@ -45,7 +43,7 @@ RUN COMPOSER_ALLOW_SUPERUSER=1 /usr/bin/composer install \
 	--classmap-authoritative \
 	--no-dev
 
-FROM dunglas/frankenphp:${FRANKENPHP_VERSION}-${PHP_VERSION}-alpine AS production
+FROM dunglas/frankenphp:1-php8.5-alpine AS production
 
 LABEL org.opencontainers.image.source=https://github.com/iyaki/simple-newsletter
 
