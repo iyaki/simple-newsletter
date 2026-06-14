@@ -31,7 +31,7 @@ beforeEach(function () {
 });
 
 it('cancels subscription with valid token', function () {
-    $token = hash_hmac('sha256', 'test@example.com', getenv('SECRET_KEY'));
+    $token = hash_hmac(algo: 'sha256', data: 'test@example.com', key: (string) getenv('SECRET_KEY'));
 
     $response = self::get('/v1/subscriptions/cancellation/', [
         'feed_uri' => 'https://example.com/feed.xml',

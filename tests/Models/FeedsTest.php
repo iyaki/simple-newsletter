@@ -126,15 +126,15 @@ test('updateLastSentPost updates DAO with new lastSentPostUri', function () {
     $feedsDAO
         ->expects($this->once())
         ->method('update')
-        ->with($this->callback(function (Feed $f) use ($expectedUpdated): bool {
-            return (
+        ->with($this->callback(
+            fn (Feed $f): bool => (
                 $f->uri === $expectedUpdated->uri
                 && $f->title === $expectedUpdated->title
                 && $f->link === $expectedUpdated->link
                 && $f->lastUpdate === $expectedUpdated->lastUpdate
                 && $f->lastSentPostUri === $expectedUpdated->lastSentPostUri
-            );
-        }));
+            ),
+        ));
 
     $feeds = new Feeds($feedsDAO, $feedImporter);
     $feeds->updateLastSentPost($feed, $post);

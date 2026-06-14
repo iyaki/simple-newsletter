@@ -37,7 +37,7 @@ it('completes subscription flow end-to-end', function () {
     expect($sub['active'])->toBe(0); // Unconfirmed
 
     // 3. Generate confirmation token
-    $token = hash_hmac('sha256', 'test@example.com', getenv('SECRET_KEY'));
+    $token = hash_hmac('sha256', data: 'test@example.com', key: getenv('SECRET_KEY'));
 
     // 4. Confirm subscription
     $confirmResponse = self::get('/v1/subscriptions/confirmation/', [

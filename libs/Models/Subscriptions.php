@@ -83,7 +83,7 @@ final readonly class Subscriptions
             $posts = $feed->posts;
             foreach ($posts as $post) {
                 if ($post->uri === $feed->lastSentPostUri) {
-                    break;
+                    continue;
                 }
 
                 $this->newsletter->sendPostToSubscribers(

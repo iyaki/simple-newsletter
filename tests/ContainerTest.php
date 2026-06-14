@@ -5,15 +5,15 @@ declare(strict_types=1);
 use SimpleNewsletter\Container;
 
 beforeEach(function () {
-    putenv('NEWSLETTER_DB_PATH=:memory:');
-    putenv('SECRET_KEY=test-secret');
-    putenv('SMTP_HOST=localhost');
-    putenv('SMTP_PORT=587');
-    putenv('SMTP_USER=test');
-    putenv('SMTP_PASSWORD=test');
-    putenv('EMAIL_FROM=test@example.com');
-    putenv('EMAIL_REPLY_TO=test@example.com');
-    putenv('URI_SELF=http://localhost');
+    $_ENV['NEWSLETTER_DB_PATH'] = ':memory:';
+    $_ENV['SECRET_KEY'] = 'test-secret';
+    $_ENV['SMTP_HOST'] = 'localhost';
+    $_ENV['SMTP_PORT'] = '587';
+    $_ENV['SMTP_USER'] = 'test';
+    $_ENV['SMTP_PASSWORD'] = 'test';
+    $_ENV['EMAIL_FROM'] = 'test@example.com';
+    $_ENV['EMAIL_REPLY_TO'] = 'test@example.com';
+    $_ENV['URI_SELF'] = 'http://localhost';
 });
 
 test('responder returns ResponderHttp instance', function () {
@@ -33,13 +33,13 @@ test('subscriptions returns Subscriptions instance', function () {
 
 test('database returns PDO instance', function () {
     $container = new Container();
-    $getDb = \Closure::bind(fn (): \PDO => $this->database(), $container, Container::class);
+    $getDb = \Closure::bind(method: $container->database(...), new: null, scope: Container::class);
     expect($getDb())->toBeInstanceOf(\PDO::class);
 });
 
 test('database returns same instance on second call', function () {
     $container = new Container();
-    $getDb = \Closure::bind(fn (): \PDO => $this->database(), $container, Container::class);
+    $getDb = \Closure::bind(method: $container->database(...), new: null, scope: Container::class);
     $db1 = $getDb();
     $db2 = $getDb();
     expect($db1)->toBe($db2);
@@ -52,12 +52,13 @@ test('__clone throws Exception', function () {
 
 test('__sleep throws Exception', function () {
     $container = new Container();
-    expect(fn () => $container->__sleep())->toThrow(\Exception::class);
+    expect(fn () => \Closure::bind(method: $container->__sleep(...), new: $container, scope: Container::class)())
+        ->toThrow(\Exception::class);
 });
 
 test('sender creates and caches same instance on second call', function () {
     $container = new Container();
-    $getSender = \Closure::bind(fn () => $this->sender(), $container, Container::class);
+    $getSender = \Closure::bind(method: $container->sender(...), new: null, scope: Container::class);
 
     $s1 = $getSender();
     $s2 = $getSender();

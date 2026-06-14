@@ -9,7 +9,7 @@ use SimpleNewsletter\Components\EndUserException;
 (static function (): never {
     $c = new Container();
     $responder = $c->responder();
-    $responseBuilder = $responder->responseBuilderFromContentNegotiation( ($_SERVER['HTTP_ACCEPT'] ?? ''));
+    $responseBuilder = $responder->responseBuilderFromContentNegotiation($_SERVER['HTTP_ACCEPT'] ?? '');
 
     header('X-Robots-Tag: noindex, nofollow');
 

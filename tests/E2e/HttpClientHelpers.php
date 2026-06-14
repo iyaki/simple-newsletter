@@ -18,7 +18,7 @@ trait HttpClientHelpers
      */
     public static function httpClient(): HttpClientInterface
     {
-        if (! isset(self::$httpClient)) {
+        if (self::$httpClient === null) {
             self::$httpClient = HttpClient::create(['base_uri' => self::$baseUrl]);
         }
         return self::$httpClient;
@@ -33,7 +33,7 @@ trait HttpClientHelpers
     public static function get(string $path, array $queryParams = [], array $headers = []): ResponseInterface
     {
         $url = $path;
-        if (! empty($queryParams)) {
+        if (\count($queryParams) > 0) {
             $url .= '?' . http_build_query($queryParams);
         }
 
@@ -62,7 +62,7 @@ trait HttpClientHelpers
     public static function getContentSafe(ResponseInterface $response): string
     {
         try {
-            return  $response->getContent();
+            return $response->getContent();
         } catch (\Symfony\Component\HttpClient\Exception\ClientException $e) {
             // For 4xx errors, try to get the body anyway
             try {
@@ -86,11 +86,11 @@ trait HttpClientHelpers
     public static function toArraySafe(ResponseInterface $response): array
     {
         $content = self::getContentSafe($response);
-        if (empty($content)) {
+        if (\count($content) === 0) {
             return [];
         }
 
-        $decoded = json_decode($content, true);
+        $decoded = \json_decode($content, associative: true);
         return is_array($decoded) ? $decoded : [];
     }
 }

@@ -64,6 +64,7 @@ disallowed-functions = { functions = [
     'popen'
 ] }
 no-protected-in-final = { enabled = true }
+no-literal-password = { exclude = ["tests/*"]}
 
 [analyzer]
 plugins = ["stdlib"]

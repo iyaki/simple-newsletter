@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 use SimpleNewsletter\Components\Auth;
 use SimpleNewsletter\Components\EndUserException;
 use SimpleNewsletter\Data\Feed;
@@ -20,14 +19,14 @@ use SimpleNewsletter\Templates\ApiV1\RedirectResponse;
  * and verify response structures match the JSONResponse schema.
  */
 
-const TEST_SECRET = 'test-secret-for-contract';
+const TEST_SECRET = 'test-for-contract-compliance';
 
 const TEST_EMAIL = 'user@example.com';
 
 const TEST_FEED_URI = 'https://blog.example.com/feed.xml';
 
 // Reusable test helpers
-function createTestDb(): \PDO
+function create_test_db(): \PDO
 {
     $db = new \PDO('sqlite::memory:');
     $db->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
@@ -37,25 +36,25 @@ function createTestDb(): \PDO
     return $db;
 }
 
-function seedFeed(\PDO $db): FeedsDAO
+function seed_feed(\PDO $db): FeedsDAO
 {
     $dao = new FeedsDAO($db);
     $dao->new(new Feed(TEST_FEED_URI, 'Test Blog', 'https://blog.example.com', new \DateTimeImmutable()));
     return $dao;
 }
 
-function seedSubscription(\PDO $db): void
+function seed_subscription(\PDO $db): void
 {
     $dao = new SubscriptionsDAO($db);
     $dao->new(new Subscription(TEST_FEED_URI, TEST_EMAIL));
 }
 
-function activateSubscription(\PDO $db): void
+function activate_subscription(\PDO $db): void
 {
     new SubscriptionsDAO($db)->activate(new Subscription(TEST_FEED_URI, TEST_EMAIL));
 }
 
-function makeAuth(): Auth
+function make_auth(): Auth
 {
     return new Auth(TEST_SECRET);
 }
@@ -64,7 +63,7 @@ function makeAuth(): Auth
  * Validate a JSON response matches the OpenAPI JSONResponse schema.
  * JSONResponse: { title: string, detail: string }
  */
-function checkJsonResponseSchema(array $response): void
+function check_json_response_schema(array $response): void
 {
     expect($response)->toHaveKeys(['title', 'detail']);
     expect($response['title'])->toBeString();
@@ -86,7 +85,7 @@ describe('Subscription API validations', function (): void {
         $return = 'ftp://bad.com';
         expect(\filter_var($return, \FILTER_VALIDATE_URL))->not->toBeFalse();
         $scheme = \parse_url($return, \PHP_URL_SCHEME);
-        expect(\in_array($scheme, ['http', 'https'], true))->toBeFalse();
+        expect(\in_array($scheme, haystack: ['http', 'https'], strict: true))->toBeFalse();
     });
 });
 
@@ -95,10 +94,10 @@ describe('Subscription API validations', function (): void {
 describe('Confirmation flow', function (): void {
     it('confirms subscription with valid token', function () {
         $db = createTestDb();
-        seedFeed($db);
-        seedSubscription($db);
+        seed_feed($db);
+        seed_subscription($db);
 
-        $token = makeAuth()->hash(TEST_EMAIL);
+        $token = make_auth()->hash(TEST_EMAIL);
         $subsDao = new SubscriptionsDAO($db);
         $subsDao->activate(new Subscription(TEST_FEED_URI, TEST_EMAIL));
 
@@ -110,11 +109,11 @@ describe('Confirmation flow', function (): void {
 
     it('rejects invalid token', function () {
         $db = createTestDb();
-        seedFeed($db);
-        seedSubscription($db);
+        seed_feed($db);
+        seed_subscription($db);
 
         // Invalid token should not match
-        $auth = makeAuth();
+        $auth = make_auth();
         $result = $auth->verify(TEST_EMAIL, 'invalid-token');
         expect($result)->toBeFalse();
     });
@@ -125,11 +124,11 @@ describe('Confirmation flow', function (): void {
 describe('Cancellation flow', function (): void {
     it('deactivates subscription with valid token', function () {
         $db = createTestDb();
-        seedFeed($db);
-        seedSubscription($db);
-        activateSubscription($db);
+        seed_feed($db);
+        seed_subscription($db);
+        activate_subscription($db);
 
-        $token = makeAuth()->hash(TEST_EMAIL);
+        $token = make_auth()->hash(TEST_EMAIL);
 
         // Verify by deactivating
         $subsDao = new SubscriptionsDAO($db);
@@ -146,8 +145,8 @@ describe('Cancellation flow', function (): void {
 describe('JSONResponse schema compliance (OpenAPI)', function (): void {
     it('JsonResponse::fromString produces valid JSONResponse', function () {
         $response = JsonResponse::fromString('Subscription confirmed', 'You are now subscribed.');
-        $body = \json_decode($response->getBody(), true);
-        checkJsonResponseSchema($body);
+        $body = \json_decode($response->getBody(), associative: true);
+        check_json_response_schema($body);
         expect($body['title'])->toEqual('Subscription confirmed');
         expect($body['detail'])->toEqual('You are now subscribed.');
     });
@@ -155,8 +154,8 @@ describe('JSONResponse schema compliance (OpenAPI)', function (): void {
     it('JsonResponse::fromEndUserException produces valid JSONResponse', function () {
         $e = new EndUserException('Invalid token');
         $response = JsonResponse::fromEndUserException($e);
-        $body = \json_decode($response->getBody(), true);
-        checkJsonResponseSchema($body);
+        $body = \json_decode($response->getBody(), associative: true);
+        check_json_response_schema($body);
         expect($body['title'])->toEqual('Error: Invalid data');
         expect($body['detail'])->toEqual('Invalid token');
     });
@@ -212,13 +211,13 @@ describe('RateLimiter', function (): void {
 
 describe('Auth component', function (): void {
     it('hash and verify round-trips correctly', function () {
-        $auth = makeAuth();
+        $auth = make_auth();
         $token = $auth->hash(TEST_EMAIL);
         expect($auth->verify(TEST_EMAIL, $token))->toBeTrue();
     });
 
     it('verify rejects different key', function () {
-        $auth = makeAuth();
+        $auth = make_auth();
         $token = $auth->hash(TEST_EMAIL);
         expect($auth->verify('other@example.com', $token))->toBeFalse();
     });

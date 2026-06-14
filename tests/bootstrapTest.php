@@ -5,9 +5,9 @@ declare(strict_types=1);
 const BOOTSTRAP_PATH = __DIR__ . '/../libs/bootstrap.php';
 
 test('bootstrap loads without error and handles Sentry init', function () {
-    \putenv('SENTRY_DSN=https://examplePublicKey@o0.ingest.sentry.io/0');
+    $_ENV['SENTRY_DSN'] = 'https://examplePublicKey@o0.ingest.sentry.io/0';
     include BOOTSTRAP_PATH;
-    \putenv('SENTRY_DSN');
+    unset($_ENV['SENTRY_DSN']);
     expect(true)->toBeTrue();
 });
 test('bootstrap handles missing autoload file gracefully', function () {

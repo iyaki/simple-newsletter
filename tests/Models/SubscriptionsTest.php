@@ -49,16 +49,17 @@ it('calls feeds->retrieve and newsletter->sendConfirmation on valid input', func
     $this->subscriptionsDAO
         ->expects($this->once())
         ->method('new')
-        ->with($this->callback(function (Subscription $sub) use ($feedUri, $email): bool {
-            return $sub->feedUri === $feedUri && $sub->email === $email && !$sub->active ;
-        }));
+        ->with($this->callback(
+            fn (Subscription $sub): bool => $sub->feedUri === $feedUri && $sub->email === $email && ! $sub->active,
+        ));
 
     $this->newsletter
         ->expects($this->once())
         ->method('sendConfirmation')
-        ->with($feed, $this->callback(function (Subscription $sub) use ($feedUri, $email): bool {
-            return $sub->feedUri === $feedUri && $sub->email === $email;
-        }));
+        ->with(
+            $feed,
+            $this->callback(fn (Subscription $sub): bool => $sub->feedUri === $feedUri && $sub->email === $email),
+        );
 
     $subs = new Subscriptions($this->subscriptionsDAO, $this->feeds, $this->newsletter, $this->auth);
 

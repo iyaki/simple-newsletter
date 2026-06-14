@@ -10,7 +10,7 @@ test('fromString creates response with correct JSON body', function () {
 
     expect($response->isOk())->toBeTrue();
     $body = $response->getBody();
-    expect(\json_decode($body, true))->toBe([
+    expect(\json_decode($body, associative: true))->toBe([
         'title' => 'Success',
         'detail' => 'All good',
     ]);
@@ -22,7 +22,7 @@ test('fromEndUserException creates response with error title', function () {
 
     expect($response->isOk())->toBeFalse();
     $body = $response->getBody();
-    $decoded = \json_decode($body, true);
+    $decoded = \json_decode($body, associative: true);
     expect($decoded['title'])->toBe('Error: Invalid data');
     expect($decoded['detail'])->toBe('Invalid value');
 });

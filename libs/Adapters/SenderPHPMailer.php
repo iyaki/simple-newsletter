@@ -12,31 +12,22 @@ final readonly class SenderPHPMailer implements Sender
 {
     private PHPMailer $mailer;
 
-    // mago-ignore
     public function __construct(
-        string $host,
-        int $port,
-        string $user,
-        #[\SensitiveParameter]
-        string $password,
-        string $from,
-        string $replyTo,
-        string $encryption = PHPMailer::ENCRYPTION_STARTTLS,
-        bool $allowSelfSigned = false,
+        SmtpConfig $config,
         ?PHPMailer $mailer = null,
     ) {
         $mailer ??= new PHPMailer(true);
 
         $mailer->isSMTP();
-        $mailer->SMTPSecure = $encryption;
+        $mailer->SMTPSecure = $config->encryption;
         $mailer->SMTPKeepAlive = true;
-        $mailer->Host = $host;
-        $mailer->Port = $port;
+        $mailer->Host = $config->host;
+        $mailer->Port = $config->port;
         $mailer->SMTPAuth = true;
-        $mailer->Username = $user;
-        $mailer->Password = $password;
+        $mailer->Username = $config->user;
+        $mailer->Password = $config->password;
 
-        if ($allowSelfSigned) {
+        if ($config->allowSelfSigned) {
             $mailer->SMTPOptions = [
                 'ssl' => [
                     'verify_peer' => false,
@@ -46,8 +37,8 @@ final readonly class SenderPHPMailer implements Sender
             ];
         }
 
-        $mailer->setFrom($from, 'Simple Newsletter');
-        $mailer->addReplyTo($replyTo, 'The Developer');
+        $mailer->setFrom($config->from, 'Simple Newsletter');
+        $mailer->addReplyTo($config->replyTo, 'The Developer');
 
         $this->mailer = $mailer;
     }

@@ -16,7 +16,7 @@ test('sendResponse with JsonResponse echoes body', function () {
     $output = ob_get_clean();
 
     expect($output)->toBeString();
-    $decoded = \json_decode($output, true);
+    $decoded = \json_decode($output, associative: true);
     expect($decoded['title'])->toEqual('Test Title');
     expect($decoded['detail'])->toEqual('Test Message');
 });
@@ -62,7 +62,7 @@ test('sendResponse with non-ok non-redirect sets 400 status', function () {
     $output = ob_get_clean();
 
     expect($output)->toBeString();
-    $decoded = \json_decode($output, true);
+    $decoded = \json_decode($output, associative: true);
     expect($decoded['title'])->toEqual('Error');
 });
 
