@@ -1,10 +1,11 @@
 <?php
+
 declare(strict_types=1);
 
 require_once __DIR__ . '/bootstrap.php';
 
-use Tests\E2e\HttpClientHelpers;
 use Tests\E2e\DatabaseCleaner;
+use Tests\E2e\HttpClientHelpers;
 
 uses(HttpClientHelpers::class, DatabaseCleaner::class);
 

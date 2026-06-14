@@ -9,8 +9,6 @@ final readonly class Post
     public function __construct(
         public string $uri,
         public string $title,
-        public string $content
-    )
-    {}
-
+        public string $content,
+    ) {}
 }

@@ -13,5 +13,4 @@ interface FeedImporter
     public function fetch(Feed $feed): Feed;
 
     public function fetchWithPosts(Feed $feed): Feed;
-
 }

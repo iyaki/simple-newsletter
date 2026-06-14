@@ -17,7 +17,8 @@ final readonly class SenderPHPMailer implements Sender
         string $host,
         int $port,
         string $user,
-        #[\SensitiveParameter] string $password,
+        #[\SensitiveParameter]
+        string $password,
         string $from,
         string $replyTo,
         string $encryption = PHPMailer::ENCRYPTION_STARTTLS,
@@ -51,6 +52,7 @@ final readonly class SenderPHPMailer implements Sender
         $this->mailer = $mailer;
     }
 
+    #[\Override]
     public function send(EmailInterface $template): void
     {
         try {
@@ -66,7 +68,11 @@ final readonly class SenderPHPMailer implements Sender
             $this->mailer->Subject = '';
             $this->mailer->Body = '';
         } catch (\Exception $exception) {
-            throw new EndUserException('We could not send the confirmation email. Please check your email address or contact support.', 0, $exception);
+            throw new EndUserException(
+                'We could not send the confirmation email. Please check your email address or contact support.',
+                0,
+                $exception,
+            );
         }
     }
 }

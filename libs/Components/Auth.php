@@ -7,9 +7,9 @@ namespace SimpleNewsletter\Components;
 final readonly class Auth
 {
     public function __construct(
-        #[\SensitiveParameter] private string $secret
-    )
-    {}
+        #[\SensitiveParameter]
+        private string $secret,
+    ) {}
 
     public function hash(string $key): string
     {

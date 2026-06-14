@@ -1,11 +1,100 @@
-version = "1"
-php-version = "8.5"
-no-version-check = true
+# Welcome to Mago!
+# For full documentation, see https://mago.carthage.software/tools/overview
+php-version = "8.5.0"
+
+[source]
+workspace = "."
+paths = ["bin", "config", "libs", "public", "tests"]
+includes = ["vendor"]
+excludes = []
+
+[formatter]
+preset = "default"
+
+space-after-logical-not-unary-prefix-operator = true
+space-before-arrow-function-parameter-list-parenthesis = true
+preserve-breaking-parameter-list = true
 
 [linter]
-excludes = ["vendor/**", "data/**", "migrations/**", "tests/_output/**"]
-baseline = "mago-baseline.json"
-minimum-fail-level = "warning"
+
+# baseline = ".mago/lint-baseline.toml"
+
+[linter.rules]
+no-inline = {
+    enabled = true,
+    exclude = ["public/*"]
+}
+prefer-pre-increment = { enabled = true }
+no-short-bool-cast = { enabled = true }
+# literal-named-argument = { enabled = false }
+# no-shorthand-ternary = { enabled = false }
+# ambiguous-function-call = { enabled = false }
+# no-isset = { enabled = false }
+no-else-clause = { enabled = false }
+no-boolean-flag-parameter = { enabled = false }
+tagged-todo = { enabled = false }
+tagged-fixme = { enabled = false }
+assertion-style = { style = "this" }
+disallowed-functions = { functions = [
+    'd',
+    'dd',
+    'var_dump',
+    'print_r',
+    'debug_print_backtrace',
+    'debug_backtrace',
+    'extract',
+    'shell_exec',
+    'print',
+    'compact',
+    'method_exists',
+    'property_exists',
+    'spl_autoload_register',
+    'spl_autoload_unregister',
+    'array_walk',
+    'eval',
+    'create_function',
+    'putenv',
+    'var_export',
+    'phpinfo',
+    'exec',
+    'passthru',
+    'proc_open',
+    'system',
+    'pcntl_exec',
+    'popen'
+] }
+no-protected-in-final = { enabled = true }
 
 [analyzer]
-excludes = ["vendor/**", "data/**", "migrations/**", "tests/_output/**", "node_modules/**"]
+plugins = ["stdlib"]
+
+# baseline = ".mago/analysis-baseline.toml"
+
+find-unused-expressions = true
+find-unused-definitions = true
+find-overly-wide-return-types = true
+analyze-dead-code = true
+check-throws = true
+check-missing-override = true
+find-unused-parameters = true
+check-missing-type-hints = true
+check-closure-missing-type-hints = true
+check-arrow-function-missing-type-hints = true
+enforce-class-finality = true
+require-api-or-internal = true
+check-experimental = true
+strict-list-index-checks = true
+strict-array-index-existence = true
+no-boolean-literal-comparison = true
+trust-existence-checks = false
+
+[analyzer.performance]
+saturation-complexity-threshold = 16384
+disjunction-complexity-threshold = 8192
+negation-complexity-threshold = 8192
+consensus-limit-threshold = 512
+formula-size-threshold = 1024
+string-combination-threshold = 256
+integer-combination-threshold = 256
+array-combination-threshold = 256
+loop-assignment-depth-threshold = 4

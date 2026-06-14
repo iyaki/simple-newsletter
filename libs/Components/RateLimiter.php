@@ -11,7 +11,7 @@ final readonly class RateLimiter
     private const int MAX_REQUESTS = 10;
 
     public function __construct(
-        private \PDO $db
+        private \PDO $db,
     ) {}
 
     public function check(string $ip, string $endpoint): void
@@ -22,13 +22,13 @@ final readonly class RateLimiter
 
             // Purge old entries for this IP+endpoint
             $stmt = $this->db->prepare(
-                'DELETE FROM rate_limits WHERE ip = :ip AND endpoint = :endpoint AND window_start < :window'
+                'DELETE FROM rate_limits WHERE ip = :ip AND endpoint = :endpoint AND window_start < :window',
             );
             $stmt->execute(['ip' => $ip, 'endpoint' => $endpoint, 'window' => $windowStart]);
 
             // Count requests in current window
             $stmt = $this->db->prepare(
-                'SELECT COUNT(*) FROM rate_limits WHERE ip = :ip AND endpoint = :endpoint AND window_start >= :window'
+                'SELECT COUNT(*) FROM rate_limits WHERE ip = :ip AND endpoint = :endpoint AND window_start >= :window',
             );
             $stmt->execute(['ip' => $ip, 'endpoint' => $endpoint, 'window' => $windowStart]);
             $count = (int) $stmt->fetchColumn();
@@ -39,7 +39,7 @@ final readonly class RateLimiter
 
             // Record this request
             $stmt = $this->db->prepare(
-                'INSERT INTO rate_limits (ip, endpoint, window_start) VALUES (:ip, :endpoint, :window)'
+                'INSERT INTO rate_limits (ip, endpoint, window_start) VALUES (:ip, :endpoint, :window)',
             );
             $stmt->execute(['ip' => $ip, 'endpoint' => $endpoint, 'window' => $now]);
         } catch (\PDOException $pdoException) {

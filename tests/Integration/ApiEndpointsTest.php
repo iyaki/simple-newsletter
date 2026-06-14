@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
+
 use SimpleNewsletter\Components\Auth;
+use SimpleNewsletter\Components\EndUserException;
 use SimpleNewsletter\Data\Feed;
 use SimpleNewsletter\Data\FeedsDAO;
 use SimpleNewsletter\Data\Subscription;
 use SimpleNewsletter\Data\SubscriptionsDAO;
-use SimpleNewsletter\Components\EndUserException;
-use SimpleNewsletter\Adapters\ResponderHttp;
 use SimpleNewsletter\Templates\ApiV1\JsonResponse;
 use SimpleNewsletter\Templates\ApiV1\RedirectResponse;
 
@@ -21,7 +21,9 @@ use SimpleNewsletter\Templates\ApiV1\RedirectResponse;
  */
 
 const TEST_SECRET = 'test-secret-for-contract';
+
 const TEST_EMAIL = 'user@example.com';
+
 const TEST_FEED_URI = 'https://blog.example.com/feed.xml';
 
 // Reusable test helpers
@@ -50,7 +52,7 @@ function seedSubscription(\PDO $db): void
 
 function activateSubscription(\PDO $db): void
 {
-    (new SubscriptionsDAO($db))->activate(new Subscription(TEST_FEED_URI, TEST_EMAIL));
+    new SubscriptionsDAO($db)->activate(new Subscription(TEST_FEED_URI, TEST_EMAIL));
 }
 
 function makeAuth(): Auth
@@ -72,7 +74,6 @@ function checkJsonResponseSchema(array $response): void
 // ─── Subscription endpoint contract ────────────────────────────────────────
 
 describe('Subscription API validations', function (): void {
-
     it('rejects invalid feed URI', function () {
         expect(\filter_var('not-a-valid-url', \FILTER_VALIDATE_URL))->toBeFalse();
     });
@@ -92,7 +93,6 @@ describe('Subscription API validations', function (): void {
 // ─── Confirmation endpoint contract ────────────────────────────────────────
 
 describe('Confirmation flow', function (): void {
-
     it('confirms subscription with valid token', function () {
         $db = createTestDb();
         seedFeed($db);
@@ -105,7 +105,7 @@ describe('Confirmation flow', function (): void {
         // Verify the subscription is active
         $sub = $subsDao->find(TEST_FEED_URI, TEST_EMAIL);
         expect($sub)->not->toBeNull();
-        expect($sub->active)->toBeTrue();
+        expect($sub?->active)->toBeTrue();
     });
 
     it('rejects invalid token', function () {
@@ -123,7 +123,6 @@ describe('Confirmation flow', function (): void {
 // ─── Cancellation endpoint contract ────────────────────────────────────────
 
 describe('Cancellation flow', function (): void {
-
     it('deactivates subscription with valid token', function () {
         $db = createTestDb();
         seedFeed($db);
@@ -138,14 +137,13 @@ describe('Cancellation flow', function (): void {
 
         $sub = $subsDao->find(TEST_FEED_URI, TEST_EMAIL);
         expect($sub)->not->toBeNull();
-        expect($sub->active)->toBeFalse();
+        expect($sub?->active)->toBeFalse();
     });
 });
 
 // ─── JSON Response schema contract ─────────────────────────────────────────
 
 describe('JSONResponse schema compliance (OpenAPI)', function (): void {
-
     it('JsonResponse::fromString produces valid JSONResponse', function () {
         $response = JsonResponse::fromString('Subscription confirmed', 'You are now subscribed.');
         $body = \json_decode($response->getBody(), true);
@@ -185,7 +183,6 @@ describe('JSONResponse schema compliance (OpenAPI)', function (): void {
 // ─── Rate limiter contract ─────────────────────────────────────────────────
 
 describe('RateLimiter', function (): void {
-
     it('allows requests under the limit', function () {
         $db = createTestDb();
         $limiter = new \SimpleNewsletter\Components\RateLimiter($db);
@@ -214,7 +211,6 @@ describe('RateLimiter', function (): void {
 // ─── Auth contract ─────────────────────────────────────────────────────────
 
 describe('Auth component', function (): void {
-
     it('hash and verify round-trips correctly', function () {
         $auth = makeAuth();
         $token = $auth->hash(TEST_EMAIL);

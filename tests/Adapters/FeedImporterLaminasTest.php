@@ -10,31 +10,32 @@ use SimpleNewsletter\Data\Feed;
 use SimpleNewsletter\Data\Post;
 
 const FEED_TEST_PORT = 9995;
+
 const FEED_TEST_BASE = 'http://127.0.0.1:' . FEED_TEST_PORT;
 
 beforeAll(function (): void {
     $feedDir = '/tmp/feedtest';
-    if (!\is_dir($feedDir)) {
-        \mkdir($feedDir, 0777, true);
+    if (! \is_dir($feedDir)) {
+        \mkdir($feedDir, 0o777, true);
         \file_put_contents($feedDir . '/valid.xml', <<<XML
-        <?xml version="1.0" encoding="UTF-8"?>
-        <rss version="2.0">
-        <channel>
-        <title>Test Blog</title>
-        <link>https://example.com</link>
-        <item>
-        <title>First Post</title>
-        <link>https://example.com/post1</link>
-        </item>
-        </channel>
-        </rss>
-        XML);
+            <?xml version="1.0" encoding="UTF-8"?>
+            <rss version="2.0">
+            <channel>
+            <title>Test Blog</title>
+            <link>https://example.com</link>
+            <item>
+            <title>First Post</title>
+            <link>https://example.com/post1</link>
+            </item>
+            </channel>
+            </rss>
+            XML);
         \file_put_contents($feedDir . '/invalid.txt', 'not xml');
     }
 
     $cmd = \sprintf('php -S 0.0.0.0:%d -t %s >/dev/null 2>&1', FEED_TEST_PORT, \escapeshellarg($feedDir));
     $proc = @\proc_open($cmd, [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
-    if (!\is_resource($proc)) {
+    if (! \is_resource($proc)) {
         throw new \RuntimeException('Failed to start PHP test server');
     }
     \fclose($pipes[0]);
@@ -47,7 +48,7 @@ beforeAll(function (): void {
             \fclose($sock);
             break;
         }
-        \usleep(100000);
+        \usleep(100_000);
     }
 
     $GLOBALS['_feed_server'] = $proc;
@@ -77,13 +78,12 @@ test('fetchWithPosts uses real import for valid feed', function () {
 
     $posts = \iterator_to_array($result->posts);
     expect($posts)->toHaveCount(1);
-    expect($posts[0]->title)->toEqual('First Post');
+    expect($posts[0]?->title)->toEqual('First Post');
 });
 
 test('fetchNew wraps invalid feed content in EndUserException', function () {
     $importer = new FeedImporterLaminas();
-    expect(fn () => $importer->fetchNew(FEED_TEST_BASE . '/invalid.txt'))
-        ->toThrow(EndUserException::class);
+    expect(fn () => $importer->fetchNew(FEED_TEST_BASE . '/invalid.txt'))->toThrow(EndUserException::class);
 });
 
 // ─── Test double tests (mock import) ──────────────────────────────────────
@@ -176,12 +176,7 @@ test('fetchWithPosts yields Post objects with sanitized content (mock)', functio
     $sourceFeed->method('getLink')->willReturn('https://example.com');
     configureFeedIterator($sourceFeed, $entries);
 
-    $inputFeed = new Feed(
-        'https://example.com/feed',
-        'Test Feed',
-        'https://example.com',
-        new \DateTimeImmutable(),
-    );
+    $inputFeed = new Feed('https://example.com/feed', 'Test Feed', 'https://example.com', new \DateTimeImmutable());
 
     $importer = new TestFeedImporter();
     $importer->setMockFeed($sourceFeed);
@@ -191,9 +186,9 @@ test('fetchWithPosts yields Post objects with sanitized content (mock)', functio
 
     expect($posts)->toHaveCount(1);
     expect($posts[0])->toBeInstanceOf(Post::class);
-    expect($posts[0]->uri)->toEqual('https://example.com/post1');
-    expect($posts[0]->title)->toEqual('Post One');
-    expect($posts[0]->content)->not->toContain('<script');
+    expect($posts[0]?->uri)->toEqual('https://example.com/post1');
+    expect($posts[0]?->title)->toEqual('Post One');
+    expect($posts[0]?->content)->not->toContain('<script');
     expect($posts[0]->content)->toContain('<p>Hello</p>');
 });
 
@@ -210,12 +205,7 @@ test('fetchWithPosts falls back to getLink when getPermalink returns null (mock)
     $sourceFeed->method('getLink')->willReturn('https://example.com');
     configureFeedIterator($sourceFeed, $entries);
 
-    $inputFeed = new Feed(
-        'https://example.com/feed',
-        'Test Feed',
-        'https://example.com',
-        new \DateTimeImmutable(),
-    );
+    $inputFeed = new Feed('https://example.com/feed', 'Test Feed', 'https://example.com', new \DateTimeImmutable());
 
     $importer = new TestFeedImporter();
     $importer->setMockFeed($sourceFeed);
@@ -224,5 +214,5 @@ test('fetchWithPosts falls back to getLink when getPermalink returns null (mock)
     $posts = \iterator_to_array($resultFeed->posts);
 
     expect($posts)->toHaveCount(1);
-    expect($posts[0]->uri)->toEqual('https://example.com/fallback-link');
+    expect($posts[0]?->uri)->toEqual('https://example.com/fallback-link');
 });

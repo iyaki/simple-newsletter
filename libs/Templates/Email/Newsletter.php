@@ -14,29 +14,31 @@ final readonly class Newsletter implements EmailInterface
         private Subscription $subscription,
         private Feed $feed,
         private Post $post,
-        private string $cancellationURI
-    )
-    {}
+        private string $cancellationURI,
+    ) {}
 
+    #[\Override]
     public function recipient(): string
     {
         return $this->subscription->email;
     }
 
+    #[\Override]
     public function subject(): string
     {
         return $this->post->title . ' - ' . $this->feed->title;
     }
 
+    #[\Override]
     public function body(): string
     {
         $fontStack = "Rockwell,'Rockwell Nova','Roboto Slab','DejaVu Serif','Sitka Small',serif";
         return <<<HTML
-        <a href="{$this->post->uri}">Visit original website</a>
-        <div style="max-width:60ch;margin:0 auto;font-size:18px;line-height:1.5;font-family:{$fontStack}">
-            {$this->post->content}
-        </div>
-        <p><a href="{$this->cancellationURI}">To cancel your subscription to this newsletter click here</a></p>
-        HTML;
+            <a href="{$this->post->uri}">Visit original website</a>
+            <div style="max-width:60ch;margin:0 auto;font-size:18px;line-height:1.5;font-family:{$fontStack}">
+                {$this->post->content}
+            </div>
+            <p><a href="{$this->cancellationURI}">To cancel your subscription to this newsletter click here</a></p>
+            HTML;
     }
 }

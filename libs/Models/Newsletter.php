@@ -16,21 +16,18 @@ final readonly class Newsletter
     public function __construct(
         private Sender $sender,
         private EmailTemplateFactory $emailTemplateFactory,
-        private Auth $auth
-    )
-    {}
+        private Auth $auth,
+    ) {}
 
     public function sendConfirmation(
         Feed $feed,
-        Subscription $subscription
+        Subscription $subscription,
     ): void {
-        $this->sender->send(
-            $this->emailTemplateFactory->createConfirmation(
-                $subscription,
-                $feed,
-                $this->auth->hash($subscription->email)
-            )
-        );
+        $this->sender->send($this->emailTemplateFactory->createConfirmation(
+            $subscription,
+            $feed,
+            $this->auth->hash($subscription->email),
+        ));
     }
 
     public function sendPostToSubscribers(
@@ -39,14 +36,12 @@ final readonly class Newsletter
         Subscription ...$subscriptions,
     ): void {
         foreach ($subscriptions as $subscription) {
-            $this->sender->send(
-                $this->emailTemplateFactory->createNewsletter(
-                    $subscription,
-                    $feed,
-                    $post,
-                    $this->auth->hash($subscription->email)
-                )
-            );
+            $this->sender->send($this->emailTemplateFactory->createNewsletter(
+                $subscription,
+                $feed,
+                $post,
+                $this->auth->hash($subscription->email),
+            ));
         }
     }
 }

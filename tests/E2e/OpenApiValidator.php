@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Tests\E2e;
@@ -33,7 +34,7 @@ trait OpenApiValidator
         string $method,
         string $path,
         ResponseInterface $response,
-        array $requestParams = []
+        array $requestParams = [],
     ): array {
         $spec = self::loadOpenApiSpec();
         $errors = [];
@@ -46,13 +47,13 @@ trait OpenApiValidator
         $operation = null;
 
         foreach ($spec->paths as $specPath => $pathItem) {
-            if (self::pathMatches($path, $specPath)) {
-                $methodLower = strtolower($method);
+            if (!(self::pathMatches($path, $specPath))) { continue; }
+
+$methodLower = strtolower($method);
                 if (isset($pathItem->$methodLower)) {
                     $operation = $pathItem->$methodLower;
                     break;
                 }
-            }
         }
 
         if ($operation === null) {
@@ -79,13 +80,13 @@ trait OpenApiValidator
 
         $matchedMediaType = null;
         foreach (array_keys($contentSpec) as $mediaType) {
-            if (str_contains($contentType, $mediaType)) {
-                $matchedMediaType = $mediaType;
+            if (!(str_contains($contentType, $mediaType))) { continue; }
+
+$matchedMediaType = $mediaType;
                 break;
-            }
         }
 
-        if ($matchedMediaType === null && !empty($contentSpec)) {
+        if ($matchedMediaType === null && ! empty($contentSpec)) {
             // Only error if we have both request/response content specs
             $expectedTypes = implode(', ', array_keys($contentSpec));
             // Not a hard error for now - just skip schema validation
@@ -141,16 +142,17 @@ trait OpenApiValidator
         // Check required properties
         $required = $schema->required ?? [];
         foreach ($required as $prop) {
-            if (!array_key_exists($prop, $body)) {
-                $errors[] = "Missing required property: {$prop}";
-            }
+            if (array_key_exists($prop, $body)) { continue; }
+
+$errors[] = "Missing required property: {$prop}";
         }
 
         // Check property types
         $properties = $schema->properties ?? [];
         foreach ($properties as $propName => $propSchema) {
-            if (array_key_exists($propName, $body)) {
-                $value = $body[$propName];
+            if (!(array_key_exists($propName, $body))) { continue; }
+
+$value = $body[$propName];
                 $expectedType = $propSchema->type;
 
                 if ($expectedType !== null) {
@@ -170,12 +172,11 @@ trait OpenApiValidator
                             ? in_array($actualType, $expected, true)
                             : $actualType === $expected;
 
-                        if (!$matches) {
+                        if (! $matches) {
                             $errors[] = "Property {$propName} has wrong type: expected {$expectedType}, got {$actualType}";
                         }
                     }
                 }
-            }
         }
 
         return $errors;
