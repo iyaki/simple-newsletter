@@ -15,9 +15,8 @@ final readonly class Subscriptions
         private SubscriptionsDAO $subscriptionsDAO,
         private Feeds $feeds,
         private Newsletter $newsletter,
-        private Auth $auth
-    )
-    {}
+        private Auth $auth,
+    ) {}
 
     public function add(string $feedUri, string $email): void
     {
@@ -27,7 +26,7 @@ final readonly class Subscriptions
 
         $feed = $this->feeds->retrieve($feedUri);
 
-        if (!\filter_var($email, \FILTER_VALIDATE_EMAIL)) {
+        if (! \filter_var($email, \FILTER_VALIDATE_EMAIL)) {
             throw new EndUserException('Invalid email address');
         }
 
@@ -42,15 +41,12 @@ final readonly class Subscriptions
             $this->subscriptionsDAO->new($subscription);
         }
 
-        $this->newsletter->sendConfirmation(
-            $feed,
-            $subscription
-        );
+        $this->newsletter->sendConfirmation($feed, $subscription);
     }
 
     public function confirm(string $feedUri, string $email, #[\SensitiveParameter] string $token): void
     {
-        if (!$this->auth->verify($email, $token)) {
+        if (! $this->auth->verify($email, $token)) {
             throw new EndUserException('Invalid token. Please check your confirmation link and try again.');
         }
 
@@ -65,12 +61,12 @@ final readonly class Subscriptions
 
     public function cancel(string $feedUri, string $email, #[\SensitiveParameter] string $token): void
     {
-        if (!$this->auth->verify($email, $token)) {
+        if (! $this->auth->verify($email, $token)) {
             throw new EndUserException('Invalid token. Please check your cancellation link and try again.');
         }
 
         $subscription = $this->subscriptionsDAO->find($feedUri, $email);
-        if (!$subscription instanceof Subscription) {
+        if (! $subscription instanceof Subscription) {
             throw new EndUserException('Subscription not found');
         }
 

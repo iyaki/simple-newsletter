@@ -13,9 +13,8 @@ final readonly class Feeds
 {
     public function __construct(
         private FeedsDAO $feedsDAO,
-        private FeedImporter $feedImporter
-    )
-    {}
+        private FeedImporter $feedImporter,
+    ) {}
 
     public function retrieve(string $uri): Feed
     {
@@ -52,14 +51,7 @@ final readonly class Feeds
 
     public function updateLastSentPost(Feed $feed, Post $post): void
     {
-        $updatedFeed = new Feed(
-            $feed->uri,
-            $feed->title,
-            $feed->link,
-            $feed->lastUpdate,
-            $post->uri
-        );
+        $updatedFeed = new Feed($feed->uri, $feed->title, $feed->link, $feed->lastUpdate, $post->uri);
         $this->feedsDAO->update($updatedFeed);
     }
-
 }

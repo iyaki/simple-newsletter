@@ -1,10 +1,11 @@
 <?php
+
 declare(strict_types=1);
 
 require_once __DIR__ . '/bootstrap.php';
 
-use Tests\E2e\HttpClientHelpers;
 use Tests\E2e\DatabaseCleaner;
+use Tests\E2e\HttpClientHelpers;
 use Tests\E2e\OpenApiValidator;
 
 uses(HttpClientHelpers::class, DatabaseCleaner::class, OpenApiValidator::class);
@@ -27,8 +28,7 @@ it('returns valid JSON error response structure', function () {
         $body = self::toArraySafe($response);
 
         // Validate JSONResponse schema structure
-        expect($body)->toHaveKey('title')
-            ->because('JSONResponse requires title field');
+        expect($body)->toHaveKey('title')->because('JSONResponse requires title field');
 
         if (array_key_exists('detail', $body)) {
             expect($body['detail'])->toBeString();
@@ -51,7 +51,7 @@ it('returns valid structure for missing required parameters', function () {
 
     // Check response structure
     $contentType = $response->getHeaders()['content-type'][0] ?? '';
-    
+
     if (str_contains($contentType, 'application/json')) {
         $body = self::toArraySafe($response);
         expect($body)->toHaveKey('title');
@@ -67,10 +67,10 @@ it('returns HTML by default (content negotiation)', function () {
     ]);
 
     $contentType = $response->getHeaders()['content-type'][0] ?? '';
-    
+
     // By default, should return HTML unless Accept: application/json is sent
     expect($contentType)->toContain('text/html');
-    
+
     $content = self::getContentSafe($response);
     expect($content)->not->toBeEmpty();
 });
@@ -85,7 +85,7 @@ it('returns 404 for unknown routes with valid error structure', function () {
     // Even 404 should have proper structure
     $contentType = $response->getHeaders()['content-type'][0] ?? '';
     $content = self::getContentSafe($response);
-    
+
     // Should return some content (error page)
     expect($content)->not->toBeEmpty();
 });
@@ -95,10 +95,18 @@ it('returns valid confirmation response structure', function () {
 
     $pdo = new \PDO('sqlite:' . getenv('NEWSLETTER_DB_PATH'));
     $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
-    $pdo->prepare('INSERT INTO feeds (uri, title, link, last_update, trigger_hour) VALUES (?, ?, ?, ?, ?)')
-        ->execute(['https://example.com/feed.xml', 'Test Feed', 'https://example.com', time(), 12]);
-    $pdo->prepare('INSERT INTO subscriptions (feed_uri, email, active) VALUES (?, ?, ?)')
-        ->execute(['https://example.com/feed.xml', 'test@example.com', 0]);
+    $pdo->prepare('INSERT INTO feeds (uri, title, link, last_update, trigger_hour) VALUES (?, ?, ?, ?, ?)')->execute([
+        'https://example.com/feed.xml',
+        'Test Feed',
+        'https://example.com',
+        time(),
+        12,
+    ]);
+    $pdo->prepare('INSERT INTO subscriptions (feed_uri, email, active) VALUES (?, ?, ?)')->execute([
+        'https://example.com/feed.xml',
+        'test@example.com',
+        0,
+    ]);
 
     $token = hash_hmac('sha256', 'test@example.com', getenv('SECRET_KEY'));
 
@@ -111,14 +119,12 @@ it('returns valid confirmation response structure', function () {
     expect($response->getStatusCode())->toBe(200);
 
     $contentType = $response->getHeaders()['content-type'][0] ?? '';
-    
+
     // Check for X-Robots-Tag header per OpenAPI spec
     $headers = $response->getHeaders();
-    expect($headers)->toHaveKey('x-robots-tag')
-        ->because('OpenAPI spec requires X-Robots-Tag header');
-    
-    expect($headers['x-robots-tag'][0])->toContain('noindex')
-        ->because('X-Robots-Tag should prevent indexing');
+    expect($headers)->toHaveKey('x-robots-tag')->because('OpenAPI spec requires X-Robots-Tag header');
+
+    expect($headers['x-robots-tag'][0])->toContain('noindex')->because('X-Robots-Tag should prevent indexing');
 
     // Response body should be HTML or JSON
     if (str_contains($contentType, 'application/json')) {
@@ -142,13 +148,12 @@ it('returns valid error structure for invalid confirmation token', function () {
     expect($response->getStatusCode())->toBe(400);
 
     $contentType = $response->getHeaders()['content-type'][0] ?? '';
-    
+
     // Error response should have valid structure
     if (str_contains($contentType, 'application/json')) {
         $body = self::toArraySafe($response);
         expect($body)->toHaveKey('title');
-        expect($body['title'])->toContain('Invalid')
-            ->or($body['title'])->toContain('Error');
+        expect($body['title'])->toContain('Invalid')->or($body['title'])->toContain('Error');
     }
 });
 
@@ -157,10 +162,18 @@ it('returns valid cancellation response structure', function () {
 
     $pdo = new \PDO('sqlite:' . getenv('NEWSLETTER_DB_PATH'));
     $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
-    $pdo->prepare('INSERT INTO feeds (uri, title, link, last_update, trigger_hour) VALUES (?, ?, ?, ?, ?)')
-        ->execute(['https://example.com/feed.xml', 'Test Feed', 'https://example.com', time(), 12]);
-    $pdo->prepare('INSERT INTO subscriptions (feed_uri, email, active) VALUES (?, ?, ?)')
-        ->execute(['https://example.com/feed.xml', 'test@example.com', 1]);
+    $pdo->prepare('INSERT INTO feeds (uri, title, link, last_update, trigger_hour) VALUES (?, ?, ?, ?, ?)')->execute([
+        'https://example.com/feed.xml',
+        'Test Feed',
+        'https://example.com',
+        time(),
+        12,
+    ]);
+    $pdo->prepare('INSERT INTO subscriptions (feed_uri, email, active) VALUES (?, ?, ?)')->execute([
+        'https://example.com/feed.xml',
+        'test@example.com',
+        1,
+    ]);
 
     $token = hash_hmac('sha256', 'test@example.com', getenv('SECRET_KEY'));
 
@@ -173,11 +186,10 @@ it('returns valid cancellation response structure', function () {
     expect($response->getStatusCode())->toBe(200);
 
     $headers = $response->getHeaders();
-    
+
     // Check for X-Robots-Tag header per OpenAPI spec
-    expect($headers)->toHaveKey('x-robots-tag')
-        ->because('OpenAPI spec requires X-Robots-Tag header');
-    
+    expect($headers)->toHaveKey('x-robots-tag')->because('OpenAPI spec requires X-Robots-Tag header');
+
     expect($headers['x-robots-tag'][0])->toContain('noindex');
 
     $contentType = $response->getHeaders()['content-type'][0] ?? '';
@@ -199,7 +211,7 @@ it('returns valid error structure for invalid cancellation token', function () {
     expect($response->getStatusCode())->toBe(400);
 
     $contentType = $response->getHeaders()['content-type'][0] ?? '';
-    
+
     if (str_contains($contentType, 'application/json')) {
         $body = self::toArraySafe($response);
         expect($body)->toHaveKey('title');
@@ -210,24 +222,26 @@ it('validates JSON response when Accept header is set', function () {
     initTestDatabase(getenv('NEWSLETTER_DB_PATH'));
 
     // Request JSON explicitly
-    $response = self::get('/v1/subscriptions/', [
-        'uri' => 'https://example.com/feed.xml',
-        'email' => 'test@example.com',
-    ], ['Accept' => 'application/json']);
+    $response = self::get(
+        '/v1/subscriptions/',
+        [
+            'uri' => 'https://example.com/feed.xml',
+            'email' => 'test@example.com',
+        ],
+        ['Accept' => 'application/json'],
+    );
 
     $contentType = $response->getHeaders()['content-type'][0] ?? '';
-    
+
     if (str_contains($contentType, 'application/json')) {
         $body = self::toArraySafe($response);
-        
+
         // Validate JSONResponse schema from OpenAPI spec
-        expect($body)->toHaveKey('title')
-            ->because('OpenAPI JSONResponse requires title');
-        
+        expect($body)->toHaveKey('title')->because('OpenAPI JSONResponse requires title');
+
         // If detail is present, validate its type
         if (array_key_exists('detail', $body)) {
-            expect($body['detail'])->toBeString()
-                ->because('detail should be string per schema');
+            expect($body['detail'])->toBeString()->because('detail should be string per schema');
         }
     }
 });

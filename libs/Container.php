@@ -10,12 +10,12 @@ use SimpleNewsletter\Adapters\ResponderHttp;
 use SimpleNewsletter\Adapters\SenderPHPMailer;
 use SimpleNewsletter\Components\Auth;
 use SimpleNewsletter\Components\EmailTemplateFactory;
+use SimpleNewsletter\Components\RateLimiter;
 use SimpleNewsletter\Data\FeedsDAO;
 use SimpleNewsletter\Data\SubscriptionsDAO;
 use SimpleNewsletter\Models\Feeds;
 use SimpleNewsletter\Models\Newsletter;
 use SimpleNewsletter\Models\Subscriptions;
-use SimpleNewsletter\Components\RateLimiter;
 
 // mago-ignore
 final class Container
@@ -32,10 +32,7 @@ final class Container
 
     private function feeds(): Feeds
     {
-        return new Feeds(
-            new FeedsDAO($this->database()),
-            new FeedImporterLaminas()
-        );
+        return new Feeds(new FeedsDAO($this->database()), new FeedImporterLaminas());
     }
 
     public function subscriptions(): Subscriptions
@@ -44,7 +41,7 @@ final class Container
             new SubscriptionsDAO($this->database()),
             $this->feeds(),
             $this->newsletter(),
-            $this->auth()
+            $this->auth(),
         );
     }
 
@@ -55,11 +52,7 @@ final class Container
 
     private function newsletter(): Newsletter
     {
-        return new Newsletter(
-            $this->sender(),
-            $this->emailTemplateFactory(),
-            $this->auth()
-        );
+        return new Newsletter($this->sender(), $this->emailTemplateFactory(), $this->auth());
     }
 
     public function rateLimiter(): RateLimiter
@@ -69,9 +62,7 @@ final class Container
 
     private function emailTemplateFactory(): EmailTemplateFactory
     {
-        return new EmailTemplateFactory(
-            \getenv('URI_SELF') ?: '',
-        );
+        return new EmailTemplateFactory(\getenv('URI_SELF') ?: '');
     }
 
     private function auth(): Auth
@@ -102,7 +93,7 @@ final class Container
             \getenv('EMAIL_FROM') ?: '',
             \getenv('EMAIL_REPLY_TO') ?: '',
             ($e = \getenv('SMTP_ENCRYPTION')) !== false ? $e : PHPMailer::ENCRYPTION_STARTTLS,
-            (bool) \getenv('SMTP_ALLOW_SELF_SIGNED')
+            (bool) \getenv('SMTP_ALLOW_SELF_SIGNED'),
         );
         self::$sender = \WeakReference::create($sender);
 
@@ -111,7 +102,7 @@ final class Container
 
     private function database(): \PDO
     {
-        if (!self::$database instanceof \PDO) {
+        if (! self::$database instanceof \PDO) {
             self::$database = new \PDO((require self::DATABASE_COFIG_PATH)['dsn']);
         }
 

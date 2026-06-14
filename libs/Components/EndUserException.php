@@ -4,6 +4,4 @@ declare(strict_types=1);
 
 namespace SimpleNewsletter\Components;
 
-final class EndUserException extends \Exception
-{
-}
+final class EndUserException extends \Exception {}

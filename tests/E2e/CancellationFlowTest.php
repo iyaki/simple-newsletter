@@ -1,10 +1,11 @@
 <?php
+
 declare(strict_types=1);
 
 require_once __DIR__ . '/bootstrap.php';
 
-use Tests\E2e\HttpClientHelpers;
 use Tests\E2e\DatabaseCleaner;
+use Tests\E2e\HttpClientHelpers;
 
 uses(HttpClientHelpers::class, DatabaseCleaner::class);
 
@@ -15,10 +16,18 @@ beforeEach(function () {
     // Create active subscription with feed
     $pdo = new \PDO('sqlite:' . getenv('NEWSLETTER_DB_PATH'));
     $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
-    $pdo->prepare('INSERT INTO feeds (uri, title, link, last_update, trigger_hour) VALUES (?, ?, ?, ?, ?)')
-        ->execute(['https://example.com/feed.xml', 'Test Feed', 'https://example.com', time(), 12]);
-    $pdo->prepare('INSERT INTO subscriptions (feed_uri, email, active) VALUES (?, ?, ?)')
-        ->execute(['https://example.com/feed.xml', 'test@example.com', 1]);
+    $pdo->prepare('INSERT INTO feeds (uri, title, link, last_update, trigger_hour) VALUES (?, ?, ?, ?, ?)')->execute([
+        'https://example.com/feed.xml',
+        'Test Feed',
+        'https://example.com',
+        time(),
+        12,
+    ]);
+    $pdo->prepare('INSERT INTO subscriptions (feed_uri, email, active) VALUES (?, ?, ?)')->execute([
+        'https://example.com/feed.xml',
+        'test@example.com',
+        1,
+    ]);
 });
 
 it('cancels subscription with valid token', function () {

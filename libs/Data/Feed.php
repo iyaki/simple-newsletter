@@ -17,6 +17,5 @@ final readonly class Feed
         public \DateTimeImmutable $lastUpdate,
         public ?string $lastSentPostUri = null,
         public iterable $posts = [],
-    ) {
-    }
+    ) {}
 }

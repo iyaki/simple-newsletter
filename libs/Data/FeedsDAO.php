@@ -11,7 +11,7 @@ final class FeedsDAO
     private string $FIELDS_FULL = 'uri, title, link, last_update, last_sent_post_uri';
 
     public function __construct(
-        private readonly \PDO $db
+        private readonly \PDO $db,
     ) {}
 
     public function find(string $uri): ?Feed
@@ -30,7 +30,13 @@ final class FeedsDAO
 
             /** @var array{uri: string, title: string, link: string, last_update: string, last_sent_post_uri: ?string} $result */
 
-            return $this->FeedDTOFactory($result['uri'], $result['title'], $result['link'], (int) $result['last_update'], $result['last_sent_post_uri']);
+            return $this->FeedDTOFactory(
+                $result['uri'],
+                $result['title'],
+                $result['link'],
+                (int) $result['last_update'],
+                $result['last_sent_post_uri'],
+            );
         } catch (\PDOException $pdoException) {
             throw new EndUserException('A technical error occurred. Please try again later.', 0, $pdoException);
         }
@@ -40,13 +46,13 @@ final class FeedsDAO
     {
         try {
             $stmt = $this->db->prepare(<<<SQL
-            UPDATE {$this->TABLE}
-            SET
-                title = :title,
-                last_update = :last_update,
-                last_sent_post_uri = :last_sent_post_uri
-            WHERE uri = :uri
-            SQL);
+                UPDATE {$this->TABLE}
+                SET
+                    title = :title,
+                    last_update = :last_update,
+                    last_sent_post_uri = :last_sent_post_uri
+                WHERE uri = :uri
+                SQL);
             $stmt->execute([
                 'uri' => $feed->uri,
                 'title' => $feed->title,
@@ -62,20 +68,20 @@ final class FeedsDAO
     {
         try {
             $stmt = $this->db->prepare(<<<SQL
-            INSERT INTO {$this->TABLE} (
-                uri,
-                title,
-                link,
-                last_update,
-                trigger_hour
-            ) VALUES (
-                :uri,
-                :title,
-                :link,
-                :last_update,
-                :trigger_hour
-            )
-            SQL);
+                INSERT INTO {$this->TABLE} (
+                    uri,
+                    title,
+                    link,
+                    last_update,
+                    trigger_hour
+                ) VALUES (
+                    :uri,
+                    :title,
+                    :link,
+                    :last_update,
+                    :trigger_hour
+                )
+                SQL);
             $stmt->execute([
                 'uri' => $feed->uri,
                 'title' => $feed->title,
@@ -98,14 +104,14 @@ final class FeedsDAO
     {
         try {
             $stmt = $this->db->prepare(<<<SQL
-            SELECT DISTINCT f.uri, f.title, f.link, f.last_update, f.last_sent_post_uri
-            FROM {$this->TABLE} f
-            INNER JOIN
-                subscriptions s ON s.feed_uri = f.uri
-            WHERE
-                trigger_hour = :trigger_hour
-            AND s.active = 1
-            SQL);
+                SELECT DISTINCT f.uri, f.title, f.link, f.last_update, f.last_sent_post_uri
+                FROM {$this->TABLE} f
+                INNER JOIN
+                    subscriptions s ON s.feed_uri = f.uri
+                WHERE
+                    trigger_hour = :trigger_hour
+                AND s.active = 1
+                SQL);
             $stmt->execute([
                 'trigger_hour' => (int) $datetime->format('H'),
             ]);
@@ -116,7 +122,13 @@ final class FeedsDAO
                 return [];
             }
 
-            return \array_map(fn(array $row): Feed => $this->FeedDTOFactory($row['uri'], $row['title'], $row['link'], (int) $row['last_update'], $row['last_sent_post_uri']), $results);
+            return \array_map(fn (array $row): Feed => $this->FeedDTOFactory(
+                $row['uri'],
+                $row['title'],
+                $row['link'],
+                (int) $row['last_update'],
+                $row['last_sent_post_uri'],
+            ), $results);
         } catch (\PDOException $pdoException) {
             throw new EndUserException('A technical error occurred. Please try again later.', 0, $pdoException);
         }
@@ -128,15 +140,7 @@ final class FeedsDAO
         string $link,
         int $last_update,
         ?string $last_sent_post_uri,
-    ): Feed
-    {
-        return new Feed(
-            $uri,
-            $title,
-            $link,
-            new \DateTimeImmutable('@' . $last_update),
-            $last_sent_post_uri,
-        );
+    ): Feed {
+        return new Feed($uri, $title, $link, new \DateTimeImmutable('@' . $last_update), $last_sent_post_uri);
     }
-
 }

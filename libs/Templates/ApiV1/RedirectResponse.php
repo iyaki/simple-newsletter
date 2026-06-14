@@ -8,20 +8,20 @@ use SimpleNewsletter\Components\EndUserException;
 
 final readonly class RedirectResponse implements ResponseInterface
 {
-
     private function __construct(
         private string $title,
         private string $message,
         private string $return,
-        private bool $ok
+        private bool $ok,
+    ) {}
 
-    ) { }
-
+    #[\Override]
     public function getBody(): string
     {
         return '';
     }
 
+    #[\Override]
     public function isOk(): bool
     {
         return $this->ok;
@@ -30,6 +30,7 @@ final readonly class RedirectResponse implements ResponseInterface
     /**
      * @return array<string, string>
      */
+    #[\Override]
     public function getHeaders(): array
     {
         return [
@@ -38,7 +39,7 @@ final readonly class RedirectResponse implements ResponseInterface
                 $this->return,
                 $this->title,
                 $this->message,
-                (int) $this->ok
+                (int) $this->ok,
             ),
         ];
     }

@@ -13,16 +13,15 @@ use SimpleNewsletter\Templates\Email\SubscriptionConfirmation;
 final readonly class EmailTemplateFactory
 {
     public function __construct(
-        private string $serviceHost
-    )
-    {}
+        private string $serviceHost,
+    ) {}
 
     public function createConfirmation(
         Subscription $subscription,
         Feed $feed,
-        #[\SensitiveParameter] string $token,
-    ): SubscriptionConfirmation
-    {
+        #[\SensitiveParameter]
+        string $token,
+    ): SubscriptionConfirmation {
         $recipient = $subscription->email;
 
         return new SubscriptionConfirmation(
@@ -33,8 +32,8 @@ final readonly class EmailTemplateFactory
                 $this->serviceHost,
                 \urlencode($feed->uri),
                 \urlencode($recipient),
-                \urlencode($token)
-            )
+                \urlencode($token),
+            ),
         );
     }
 
@@ -42,7 +41,8 @@ final readonly class EmailTemplateFactory
         Subscription $subscription,
         Feed $feed,
         Post $post,
-        #[\SensitiveParameter] string $token
+        #[\SensitiveParameter]
+        string $token,
     ): Newsletter {
         return new Newsletter(
             $subscription,
@@ -53,8 +53,8 @@ final readonly class EmailTemplateFactory
                 $this->serviceHost,
                 \urlencode($feed->uri),
                 \urlencode($subscription->email),
-                \urlencode($token)
-            )
+                \urlencode($token),
+            ),
         );
     }
 }

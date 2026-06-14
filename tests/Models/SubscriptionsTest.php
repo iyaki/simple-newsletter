@@ -20,12 +20,7 @@ beforeEach(function () {
 });
 
 it('throws on invalid URI in add', function () {
-    $subs = new Subscriptions(
-        $this->subscriptionsDAO,
-        $this->feeds,
-        $this->newsletter,
-        $this->auth,
-    );
+    $subs = new Subscriptions($this->subscriptionsDAO, $this->feeds, $this->newsletter, $this->auth);
 
     $subs->add('not-a-uri', 'user@example.com');
 })->throws(EndUserException::class, 'Invalid Feed URI');
@@ -34,17 +29,9 @@ it('throws on invalid email in add', function () {
     $now = new DateTimeImmutable();
     $feed = new Feed('https://example.com/feed', 'Test Feed', 'https://example.com', $now);
 
-    $this->feeds->expects($this->once())
-        ->method('retrieve')
-        ->with('https://example.com/feed')
-        ->willReturn($feed);
+    $this->feeds->expects($this->once())->method('retrieve')->with('https://example.com/feed')->willReturn($feed);
 
-    $subs = new Subscriptions(
-        $this->subscriptionsDAO,
-        $this->feeds,
-        $this->newsletter,
-        $this->auth,
-    );
+    $subs = new Subscriptions($this->subscriptionsDAO, $this->feeds, $this->newsletter, $this->auth);
 
     $subs->add('https://example.com/feed', 'not-an-email');
 })->throws(EndUserException::class, 'Invalid email address');
@@ -55,37 +42,25 @@ it('calls feeds->retrieve and newsletter->sendConfirmation on valid input', func
     $email = 'user@example.com';
     $feed = new Feed($feedUri, 'Test Feed', 'https://example.com', $now);
 
-    $this->feeds->expects($this->once())
-        ->method('retrieve')
-        ->with($feedUri)
-        ->willReturn($feed);
+    $this->feeds->expects($this->once())->method('retrieve')->with($feedUri)->willReturn($feed);
 
-    $this->subscriptionsDAO->expects($this->once())
-        ->method('find')
-        ->with($feedUri, $email)
-        ->willReturn(null);
+    $this->subscriptionsDAO->expects($this->once())->method('find')->with($feedUri, $email)->willReturn(null);
 
-    $this->subscriptionsDAO->expects($this->once())
+    $this->subscriptionsDAO
+        ->expects($this->once())
         ->method('new')
         ->with($this->callback(function (Subscription $sub) use ($feedUri, $email): bool {
-            return $sub->feedUri === $feedUri && $sub->email === $email && $sub->active === false;
+            return $sub->feedUri === $feedUri && $sub->email === $email && !$sub->active ;
         }));
 
-    $this->newsletter->expects($this->once())
+    $this->newsletter
+        ->expects($this->once())
         ->method('sendConfirmation')
-        ->with(
-            $feed,
-            $this->callback(function (Subscription $sub) use ($feedUri, $email): bool {
-                return $sub->feedUri === $feedUri && $sub->email === $email;
-            })
-        );
+        ->with($feed, $this->callback(function (Subscription $sub) use ($feedUri, $email): bool {
+            return $sub->feedUri === $feedUri && $sub->email === $email;
+        }));
 
-    $subs = new Subscriptions(
-        $this->subscriptionsDAO,
-        $this->feeds,
-        $this->newsletter,
-        $this->auth,
-    );
+    $subs = new Subscriptions($this->subscriptionsDAO, $this->feeds, $this->newsletter, $this->auth);
 
     $subs->add($feedUri, $email);
 });
@@ -97,25 +72,14 @@ it('throws when subscription already active in add', function () {
     $feed = new Feed($feedUri, 'Test Feed', 'https://example.com', $now);
     $existingSub = new Subscription($feedUri, $email, true);
 
-    $this->feeds->expects($this->once())
-        ->method('retrieve')
-        ->with($feedUri)
-        ->willReturn($feed);
+    $this->feeds->expects($this->once())->method('retrieve')->with($feedUri)->willReturn($feed);
 
-    $this->subscriptionsDAO->expects($this->once())
-        ->method('find')
-        ->with($feedUri, $email)
-        ->willReturn($existingSub);
+    $this->subscriptionsDAO->expects($this->once())->method('find')->with($feedUri, $email)->willReturn($existingSub);
 
     $this->subscriptionsDAO->expects($this->never())->method('new');
     $this->newsletter->expects($this->never())->method('sendConfirmation');
 
-    $subs = new Subscriptions(
-        $this->subscriptionsDAO,
-        $this->feeds,
-        $this->newsletter,
-        $this->auth,
-    );
+    $subs = new Subscriptions($this->subscriptionsDAO, $this->feeds, $this->newsletter, $this->auth);
 
     $subs->add($feedUri, $email);
 })->throws(EndUserException::class, 'You are already subscribed to this feed.');
@@ -126,26 +90,13 @@ it('activates subscription on valid confirm token', function () {
     $token = 'valid-token';
     $subscription = new Subscription($feedUri, $email, false);
 
-    $this->auth->expects($this->once())
-        ->method('verify')
-        ->with($email, $token)
-        ->willReturn(true);
+    $this->auth->expects($this->once())->method('verify')->with($email, $token)->willReturn(true);
 
-    $this->subscriptionsDAO->expects($this->once())
-        ->method('find')
-        ->with($feedUri, $email)
-        ->willReturn($subscription);
+    $this->subscriptionsDAO->expects($this->once())->method('find')->with($feedUri, $email)->willReturn($subscription);
 
-    $this->subscriptionsDAO->expects($this->once())
-        ->method('activate')
-        ->with($subscription);
+    $this->subscriptionsDAO->expects($this->once())->method('activate')->with($subscription);
 
-    $subs = new Subscriptions(
-        $this->subscriptionsDAO,
-        $this->feeds,
-        $this->newsletter,
-        $this->auth,
-    );
+    $subs = new Subscriptions($this->subscriptionsDAO, $this->feeds, $this->newsletter, $this->auth);
 
     $subs->confirm($feedUri, $email, $token);
 });
@@ -154,20 +105,12 @@ it('throws on invalid confirm token', function () {
     $feedUri = 'https://example.com/feed';
     $email = 'user@example.com';
 
-    $this->auth->expects($this->once())
-        ->method('verify')
-        ->with($email, 'bad-token')
-        ->willReturn(false);
+    $this->auth->expects($this->once())->method('verify')->with($email, 'bad-token')->willReturn(false);
 
     $this->subscriptionsDAO->expects($this->never())->method('find');
     $this->subscriptionsDAO->expects($this->never())->method('activate');
 
-    $subs = new Subscriptions(
-        $this->subscriptionsDAO,
-        $this->feeds,
-        $this->newsletter,
-        $this->auth,
-    );
+    $subs = new Subscriptions($this->subscriptionsDAO, $this->feeds, $this->newsletter, $this->auth);
 
     $subs->confirm($feedUri, $email, 'bad-token');
 })->throws(EndUserException::class, 'Invalid token');
@@ -176,24 +119,13 @@ it('throws when subscription not found in confirm', function () {
     $feedUri = 'https://example.com/feed';
     $email = 'user@example.com';
 
-    $this->auth->expects($this->once())
-        ->method('verify')
-        ->with($email, 'valid-token')
-        ->willReturn(true);
+    $this->auth->expects($this->once())->method('verify')->with($email, 'valid-token')->willReturn(true);
 
-    $this->subscriptionsDAO->expects($this->once())
-        ->method('find')
-        ->with($feedUri, $email)
-        ->willReturn(null);
+    $this->subscriptionsDAO->expects($this->once())->method('find')->with($feedUri, $email)->willReturn(null);
 
     $this->subscriptionsDAO->expects($this->never())->method('activate');
 
-    $subs = new Subscriptions(
-        $this->subscriptionsDAO,
-        $this->feeds,
-        $this->newsletter,
-        $this->auth,
-    );
+    $subs = new Subscriptions($this->subscriptionsDAO, $this->feeds, $this->newsletter, $this->auth);
 
     $subs->confirm($feedUri, $email, 'valid-token');
 })->throws(EndUserException::class, 'Subscription not found');
@@ -204,26 +136,13 @@ it('deactivates subscription on valid cancel token', function () {
     $token = 'valid-token';
     $subscription = new Subscription($feedUri, $email, true);
 
-    $this->auth->expects($this->once())
-        ->method('verify')
-        ->with($email, $token)
-        ->willReturn(true);
+    $this->auth->expects($this->once())->method('verify')->with($email, $token)->willReturn(true);
 
-    $this->subscriptionsDAO->expects($this->once())
-        ->method('find')
-        ->with($feedUri, $email)
-        ->willReturn($subscription);
+    $this->subscriptionsDAO->expects($this->once())->method('find')->with($feedUri, $email)->willReturn($subscription);
 
-    $this->subscriptionsDAO->expects($this->once())
-        ->method('deactivate')
-        ->with($subscription);
+    $this->subscriptionsDAO->expects($this->once())->method('deactivate')->with($subscription);
 
-    $subs = new Subscriptions(
-        $this->subscriptionsDAO,
-        $this->feeds,
-        $this->newsletter,
-        $this->auth,
-    );
+    $subs = new Subscriptions($this->subscriptionsDAO, $this->feeds, $this->newsletter, $this->auth);
 
     $subs->cancel($feedUri, $email, $token);
 });
@@ -232,20 +151,12 @@ it('throws on invalid cancel token', function () {
     $feedUri = 'https://example.com/feed';
     $email = 'user@example.com';
 
-    $this->auth->expects($this->once())
-        ->method('verify')
-        ->with($email, 'bad-token')
-        ->willReturn(false);
+    $this->auth->expects($this->once())->method('verify')->with($email, 'bad-token')->willReturn(false);
 
     $this->subscriptionsDAO->expects($this->never())->method('find');
     $this->subscriptionsDAO->expects($this->never())->method('deactivate');
 
-    $subs = new Subscriptions(
-        $this->subscriptionsDAO,
-        $this->feeds,
-        $this->newsletter,
-        $this->auth,
-    );
+    $subs = new Subscriptions($this->subscriptionsDAO, $this->feeds, $this->newsletter, $this->auth);
 
     $subs->cancel($feedUri, $email, 'bad-token');
 })->throws(EndUserException::class, 'Invalid token');
@@ -254,24 +165,13 @@ it('throws when subscription not found in cancel', function () {
     $feedUri = 'https://example.com/feed';
     $email = 'user@example.com';
 
-    $this->auth->expects($this->once())
-        ->method('verify')
-        ->with($email, 'valid-token')
-        ->willReturn(true);
+    $this->auth->expects($this->once())->method('verify')->with($email, 'valid-token')->willReturn(true);
 
-    $this->subscriptionsDAO->expects($this->once())
-        ->method('find')
-        ->with($feedUri, $email)
-        ->willReturn(null);
+    $this->subscriptionsDAO->expects($this->once())->method('find')->with($feedUri, $email)->willReturn(null);
 
     $this->subscriptionsDAO->expects($this->never())->method('deactivate');
 
-    $subs = new Subscriptions(
-        $this->subscriptionsDAO,
-        $this->feeds,
-        $this->newsletter,
-        $this->auth,
-    );
+    $subs = new Subscriptions($this->subscriptionsDAO, $this->feeds, $this->newsletter, $this->auth);
 
     $subs->cancel($feedUri, $email, 'valid-token');
 })->throws(EndUserException::class, 'Subscription not found');
@@ -288,35 +188,24 @@ it('sendScheduled gets scheduled feeds, fetches posts, and sends to subscribers'
     $activeSub1 = new Subscription($feedUri, 'user1@example.com', true);
     $activeSub2 = new Subscription($feedUri, 'user2@example.com', true);
 
-    $this->feeds->expects($this->once())
-        ->method('getScheduled')
-        ->with($datetime)
-        ->willReturn([$scheduledFeed]);
+    $this->feeds->expects($this->once())->method('getScheduled')->with($datetime)->willReturn([$scheduledFeed]);
 
-    $this->feeds->expects($this->once())
-        ->method('retrieveWithPosts')
-        ->with($scheduledFeed)
-        ->willReturn($feedWithPosts);
+    $this->feeds->expects($this->once())->method('retrieveWithPosts')->with($scheduledFeed)->willReturn($feedWithPosts);
 
-    $this->subscriptionsDAO->expects($this->once())
+    $this->subscriptionsDAO
+        ->expects($this->once())
         ->method('findActiveSubscriptionsFor')
         ->with($feedWithPosts)
         ->willReturn([$activeSub1, $activeSub2]);
 
-    $this->newsletter->expects($this->once())
+    $this->newsletter
+        ->expects($this->once())
         ->method('sendPostToSubscribers')
         ->with($feedWithPosts, $post1, $activeSub1, $activeSub2);
 
-    $this->feeds->expects($this->once())
-        ->method('updateLastSentPost')
-        ->with($feedWithPosts, $post1);
+    $this->feeds->expects($this->once())->method('updateLastSentPost')->with($feedWithPosts, $post1);
 
-    $subs = new Subscriptions(
-        $this->subscriptionsDAO,
-        $this->feeds,
-        $this->newsletter,
-        $this->auth,
-    );
+    $subs = new Subscriptions($this->subscriptionsDAO, $this->feeds, $this->newsletter, $this->auth);
 
     $subs->sendScheduled($datetime);
 });
@@ -338,26 +227,15 @@ it('sendScheduled skips already-sent posts', function () {
         [$post1],
     );
 
-    $this->feeds->expects($this->once())
-        ->method('getScheduled')
-        ->with($datetime)
-        ->willReturn([$scheduledFeed]);
+    $this->feeds->expects($this->once())->method('getScheduled')->with($datetime)->willReturn([$scheduledFeed]);
 
-    $this->feeds->expects($this->once())
-        ->method('retrieveWithPosts')
-        ->with($scheduledFeed)
-        ->willReturn($feedWithPosts);
+    $this->feeds->expects($this->once())->method('retrieveWithPosts')->with($scheduledFeed)->willReturn($feedWithPosts);
 
     $this->subscriptionsDAO->expects($this->never())->method('findActiveSubscriptionsFor');
     $this->newsletter->expects($this->never())->method('sendPostToSubscribers');
     $this->feeds->expects($this->never())->method('updateLastSentPost');
 
-    $subs = new Subscriptions(
-        $this->subscriptionsDAO,
-        $this->feeds,
-        $this->newsletter,
-        $this->auth,
-    );
+    $subs = new Subscriptions($this->subscriptionsDAO, $this->feeds, $this->newsletter, $this->auth);
 
     $subs->sendScheduled($datetime);
 });
@@ -377,45 +255,41 @@ it('sendScheduled handles multiple scheduled feeds', function () {
     $sub1 = new Subscription('https://example.com/feed1', 'user1@example.com', true);
     $sub2 = new Subscription('https://example.com/feed2', 'user2@example.com', true);
 
-    $this->feeds->expects($this->once())
-        ->method('getScheduled')
-        ->with($datetime)
-        ->willReturn([$feed1, $feed2]);
+    $this->feeds->expects($this->once())->method('getScheduled')->with($datetime)->willReturn([$feed1, $feed2]);
 
-    $this->feeds->expects($this->exactly(2))
+    $this->feeds
+        ->expects($this->exactly(2))
         ->method('retrieveWithPosts')
         ->willReturnMap([
             [$feed1, $feedWithPosts1],
             [$feed2, $feedWithPosts2],
         ]);
 
-    $this->subscriptionsDAO->expects($this->exactly(2))
+    $this->subscriptionsDAO
+        ->expects($this->exactly(2))
         ->method('findActiveSubscriptionsFor')
         ->willReturnMap([
             [$feedWithPosts1, [$sub1]],
             [$feedWithPosts2, [$sub2]],
         ]);
 
-    $this->newsletter->expects($this->exactly(2))
+    $this->newsletter
+        ->expects($this->exactly(2))
         ->method('sendPostToSubscribers')
         ->willReturnMap([
             [$feedWithPosts1, $post1, $sub1, null],
             [$feedWithPosts2, $post2, $sub2, null],
         ]);
 
-    $this->feeds->expects($this->exactly(2))
+    $this->feeds
+        ->expects($this->exactly(2))
         ->method('updateLastSentPost')
         ->willReturnMap([
             [$feedWithPosts1, $post1, null],
             [$feedWithPosts2, $post2, null],
         ]);
 
-    $subs = new Subscriptions(
-        $this->subscriptionsDAO,
-        $this->feeds,
-        $this->newsletter,
-        $this->auth,
-    );
+    $subs = new Subscriptions($this->subscriptionsDAO, $this->feeds, $this->newsletter, $this->auth);
 
     $subs->sendScheduled($datetime);
 });

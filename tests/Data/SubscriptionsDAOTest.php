@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use SimpleNewsletter\Data\SubscriptionsDAO;
-use SimpleNewsletter\Data\Subscription;
 use SimpleNewsletter\Data\Feed;
 use SimpleNewsletter\Data\FeedsDAO;
+use SimpleNewsletter\Data\Subscription;
+use SimpleNewsletter\Data\SubscriptionsDAO;
 
 beforeEach(function () {
     $this->db = new \PDO('sqlite::memory:');

@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 // Set test database path
@@ -12,16 +13,16 @@ require __DIR__ . '/../../vendor/autoload.php';
 /**
  * Initialize test database with fresh schema
  */
-if (!function_exists('initTestDatabase')) {
+if (! function_exists('initTestDatabase')) {
     function initTestDatabase(string $dbPath): void
     {
         if (\file_exists($dbPath)) {
             \unlink($dbPath);
         }
-        
+
         $pdo = new \PDO("sqlite:{$dbPath}");
         $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
-        
+
         // Apply migrations in order
         $migrationsDir = __DIR__ . '/../../migrations';
         $migrationFiles = [
@@ -31,7 +32,7 @@ if (!function_exists('initTestDatabase')) {
             '03-rate-limiting.sql',
             '99-optimizations.sql',
         ];
-        
+
         foreach ($migrationFiles as $file) {
             $sql = \file_get_contents($migrationsDir . '/' . $file);
             $pdo->exec($sql);

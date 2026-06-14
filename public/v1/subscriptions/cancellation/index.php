@@ -9,9 +9,7 @@ use SimpleNewsletter\Components\EndUserException;
 (static function (): never {
     $c = new Container();
     $responder = $c->responder();
-    $responseBuilder = $responder->responseBuilderFromContentNegotiation(
-        (string) ($_SERVER['HTTP_ACCEPT'] ?? '')
-    );
+    $responseBuilder = $responder->responseBuilderFromContentNegotiation( ($_SERVER['HTTP_ACCEPT'] ?? ''));
 
     header('X-Robots-Tag: noindex, nofollow');
 
@@ -24,16 +22,12 @@ use SimpleNewsletter\Components\EndUserException;
             throw new EndUserException('Fields "email", "uri" and "token" are required');
         }
 
-
         $c->subscriptions()->cancel($feedUri, $email, $token);
 
-        $responder->sendResponse($responseBuilder->fromString(
-            'Subscription successfully cancelled.',
-            ''
-        ));
+        $responder->sendResponse($responseBuilder->fromString('Subscription successfully cancelled.', ''));
     } catch (EndUserException $endUserException) {
         $responder->sendResponse($responseBuilder->fromEndUserException($endUserException));
     }
 
-    exit;
+    exit();
 })();

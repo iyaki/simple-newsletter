@@ -34,30 +34,32 @@ final class ResponderHttp
     {
         $acceptHeaderValues = \array_map(
             static fn (string $accept): string => \strtolower(\trim($accept)),
-            \explode(',', $acceptHeaderValueAsString)
+            \explode(',', $acceptHeaderValueAsString),
         );
 
-        $compatibleTypes = \array_filter(
-            $acceptHeaderValues,
-            static fn (string $accept): bool => \in_array(
-                \trim($accept),
-                [
-                    self::TYPE_HTML,
-                    self::TYPE_JSON,
-                ],
-                true
-            ),
-        );
+        $compatibleTypes = \array_filter($acceptHeaderValues, static fn (string $accept): bool => \in_array(
+            \trim($accept),
+            [
+                self::TYPE_HTML,
+                self::TYPE_JSON,
+            ],
+            true,
+        ));
 
         $contentType = \reset($compatibleTypes);
         $contentType = $contentType ?: self::TYPE_JSON;
 
-        return new readonly class ($contentType) {
+        return new readonly class($contentType) {
+            public function __construct(
+                private string $contentType,
+            ) {}
 
-            public function __construct(private string $contentType) {}
-
-            public function fromString(string $title, string $message, ?string $return = null, bool $ok = true): ResponseInterface
-            {
+            public function fromString(
+                string $title,
+                string $message,
+                ?string $return = null,
+                bool $ok = true,
+            ): ResponseInterface {
                 return match ($this->contentType) {
                     'text/html' => HtmlResponse::fromString($title, $message, $return, $ok),
                     default => JsonResponse::fromString($title, $message, $ok),
@@ -77,16 +79,19 @@ final class ResponderHttp
     public function responseBuilderFromRedirect(): object
     {
         return new class {
-            public function fromString(string $title, string $message, ?string $return = null, bool $ok = true): ResponseInterface
-            {
-            return RedirectResponse::fromString($title, $message, $return ?? '', $ok);
+            public function fromString(
+                string $title,
+                string $message,
+                ?string $return = null,
+                bool $ok = true,
+            ): ResponseInterface {
+                return RedirectResponse::fromString($title, $message, $return ?? '', $ok);
             }
 
             public function fromEndUserException(EndUserException $exception, ?string $return): ResponseInterface
             {
-            return RedirectResponse::fromEndUserException($exception, $return ?? '');
+                return RedirectResponse::fromEndUserException($exception, $return ?? '');
             }
         };
     }
-
 }

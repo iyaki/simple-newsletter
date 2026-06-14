@@ -15,10 +15,7 @@ test('retrieve returns cached feed when less than 1 day old', function () {
     $now = new DateTimeImmutable();
     $feed = new Feed('https://example.com/feed', 'Test Feed', 'https://example.com', $now);
 
-    $feedsDAO->expects($this->once())
-        ->method('find')
-        ->with('https://example.com/feed')
-        ->willReturn($feed);
+    $feedsDAO->expects($this->once())->method('find')->with('https://example.com/feed')->willReturn($feed);
 
     $feedImporter->expects($this->never())->method('fetch');
     $feedImporter->expects($this->never())->method('fetchNew');
@@ -35,25 +32,17 @@ test('retrieve fetches and updates feed when more than 1 day old', function () {
     $feedsDAO = $this->createMock(FeedsDAO::class);
     $feedImporter = $this->createMock(FeedImporter::class);
 
-    $oldDate = (new DateTimeImmutable())->sub(new DateInterval('P2D'));
+    $oldDate = new DateTimeImmutable()->sub(new DateInterval('P2D'));
     $oldFeed = new Feed('https://example.com/feed', 'Old Title', 'https://example.com', $oldDate);
 
     $now = new DateTimeImmutable();
     $updatedFeed = new Feed('https://example.com/feed', 'New Title', 'https://example.com', $now);
 
-    $feedsDAO->expects($this->once())
-        ->method('find')
-        ->with('https://example.com/feed')
-        ->willReturn($oldFeed);
+    $feedsDAO->expects($this->once())->method('find')->with('https://example.com/feed')->willReturn($oldFeed);
 
-    $feedImporter->expects($this->once())
-        ->method('fetch')
-        ->with($oldFeed)
-        ->willReturn($updatedFeed);
+    $feedImporter->expects($this->once())->method('fetch')->with($oldFeed)->willReturn($updatedFeed);
 
-    $feedsDAO->expects($this->once())
-        ->method('update')
-        ->with($updatedFeed);
+    $feedsDAO->expects($this->once())->method('update')->with($updatedFeed);
 
     $feeds = new Feeds($feedsDAO, $feedImporter);
     $result = $feeds->retrieve('https://example.com/feed');
@@ -69,19 +58,11 @@ test('retrieve creates new feed when not found in DAO', function () {
     $now = new DateTimeImmutable();
     $newFeed = new Feed($uri, 'New Feed', 'https://example.com', $now);
 
-    $feedsDAO->expects($this->once())
-        ->method('find')
-        ->with($uri)
-        ->willReturn(null);
+    $feedsDAO->expects($this->once())->method('find')->with($uri)->willReturn(null);
 
-    $feedImporter->expects($this->once())
-        ->method('fetchNew')
-        ->with($uri)
-        ->willReturn($newFeed);
+    $feedImporter->expects($this->once())->method('fetchNew')->with($uri)->willReturn($newFeed);
 
-    $feedsDAO->expects($this->once())
-        ->method('new')
-        ->with($newFeed);
+    $feedsDAO->expects($this->once())->method('new')->with($newFeed);
 
     $feeds = new Feeds($feedsDAO, $feedImporter);
     $result = $feeds->retrieve($uri);
@@ -99,10 +80,7 @@ test('getScheduled delegates to DAO', function () {
         new Feed('https://example.com/feed2', 'Feed 2', 'https://example.com', $datetime),
     ];
 
-    $feedsDAO->expects($this->once())
-        ->method('getScheduled')
-        ->with($datetime)
-        ->willReturn($expectedFeeds);
+    $feedsDAO->expects($this->once())->method('getScheduled')->with($datetime)->willReturn($expectedFeeds);
 
     $feeds = new Feeds($feedsDAO, $feedImporter);
     $result = $feeds->getScheduled($datetime);
@@ -121,10 +99,7 @@ test('retrieveWithPosts delegates to FeedImporter', function () {
         new Post('https://example.com/post1', 'Post 1', 'Content 1'),
     ]);
 
-    $feedImporter->expects($this->once())
-        ->method('fetchWithPosts')
-        ->with($feed)
-        ->willReturn($feedWithPosts);
+    $feedImporter->expects($this->once())->method('fetchWithPosts')->with($feed)->willReturn($feedWithPosts);
 
     $feeds = new Feeds($feedsDAO, $feedImporter);
     $result = $feeds->retrieveWithPosts($feed);
@@ -148,14 +123,17 @@ test('updateLastSentPost updates DAO with new lastSentPostUri', function () {
         'https://example.com/post1',
     );
 
-    $feedsDAO->expects($this->once())
+    $feedsDAO
+        ->expects($this->once())
         ->method('update')
         ->with($this->callback(function (Feed $f) use ($expectedUpdated): bool {
-            return $f->uri === $expectedUpdated->uri
+            return (
+                $f->uri === $expectedUpdated->uri
                 && $f->title === $expectedUpdated->title
                 && $f->link === $expectedUpdated->link
                 && $f->lastUpdate === $expectedUpdated->lastUpdate
-                && $f->lastSentPostUri === $expectedUpdated->lastSentPostUri;
+                && $f->lastSentPostUri === $expectedUpdated->lastSentPostUri
+            );
         }));
 
     $feeds = new Feeds($feedsDAO, $feedImporter);
