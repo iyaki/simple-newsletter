@@ -13,7 +13,10 @@ require __DIR__ . '/../../vendor/autoload.php';
 /**
  * Initialize test database with fresh schema
  *
+ * @param string $dbPath Path to the test database file
+ *
  * @throws \PDOException
+ * @throws \RuntimeException
  */
 if (! function_exists('initTestDatabase')) {
     function init_test_database(string $dbPath): void
@@ -50,6 +53,11 @@ if (! function_exists('initTestDatabase')) {
  *
  * @param array<string, string> $queryParams
  * @param array<string, string> $headers
+ *
+ * @throws \Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface
+ * @throws \Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface
+ * @throws \Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface
+ * @throws \Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface
  */
 function http_get(string $path, array $queryParams = [], array $headers = []): \Symfony\Contracts\HttpClient\ResponseInterface
 {
@@ -72,6 +80,11 @@ function http_get(string $path, array $queryParams = [], array $headers = []): \
 
 /**
  * Safely get response content without throwing on error status
+ *
+ * @throws \Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface
+ * @throws \Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface
+ * @throws \Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface
+ * @throws \Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface
  */
 function get_content_safe(\Symfony\Contracts\HttpClient\ResponseInterface $response): string
 {
@@ -96,6 +109,11 @@ function get_content_safe(\Symfony\Contracts\HttpClient\ResponseInterface $respo
  * Safely get response as array without throwing on error status
  *
  * @return array<string, mixed>
+ *
+ * @throws \Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface
+ * @throws \Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface
+ * @throws \Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface
+ * @throws \Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface
  */
 function to_array_safe(\Symfony\Contracts\HttpClient\ResponseInterface $response): array
 {

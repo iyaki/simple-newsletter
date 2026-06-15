@@ -11,6 +11,12 @@ use SimpleNewsletter\Data\SubscriptionsDAO;
 /** @var SubscriptionsDAO|null $dao */
 $dao = null;
 
+/**
+ * @throws \PDOException
+ * @throws \RuntimeException
+ * @throws \Random\RandomException
+ * @throws \SimpleNewsletter\Components\EndUserException
+ */
 beforeEach(function () use (&$dao): void {
     $db = new \PDO('sqlite::memory:');
     $db->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
@@ -32,6 +38,7 @@ beforeEach(function () use (&$dao): void {
     $feedsDao->new(new Feed($metadata));
 });
 
+/** @throws \SimpleNewsletter\Components\EndUserException */
 test('new inserts and find retrieves a subscription', function () use (&$dao): void {
     $dao->new(new Subscription('https://example.com/feed', 'user@example.com'));
     $found = $dao->find('https://example.com/feed', 'user@example.com');
@@ -39,11 +46,13 @@ test('new inserts and find retrieves a subscription', function () use (&$dao): v
     expect($found->email)->toEqual('user@example.com');
 });
 
+/** @throws \SimpleNewsletter\Components\EndUserException */
 test('find returns null for non-existent subscription', function () use (&$dao): void {
     $result = $dao->find('https://example.com/feed', 'nonexistent@example.com');
     expect($result)->toBeNull();
 });
 
+/** @throws \SimpleNewsletter\Components\EndUserException */
 test('activate sets active flag', function () use (&$dao): void {
     $sub = new Subscription('https://example.com/feed', 'user@example.com');
     $dao->new($sub);
@@ -53,6 +62,7 @@ test('activate sets active flag', function () use (&$dao): void {
     expect($found->active)->toBeTrue();
 });
 
+/** @throws \SimpleNewsletter\Components\EndUserException */
 test('deactivate clears active flag', function () use (&$dao): void {
     $sub = new Subscription('https://example.com/feed', 'user@example.com');
     $dao->new($sub);
@@ -63,6 +73,10 @@ test('deactivate clears active flag', function () use (&$dao): void {
     expect($found->active)->toBeFalse();
 });
 
+/**
+ * @throws \SimpleNewsletter\Components\EndUserException
+ * @throws \Random\RandomException
+ */
 test('findActiveSubscriptionsFor returns only active subs', function () use (&$dao): void {
     $metadata = new FeedMetadata('https://example.com/feed', 'Test', 'https://example.com', new \DateTimeImmutable());
     $feed = new Feed($metadata);
@@ -77,6 +91,10 @@ test('findActiveSubscriptionsFor returns only active subs', function () use (&$d
     expect($results[0]->email)->toEqual('active@example.com');
 });
 
+/**
+ * @throws \SimpleNewsletter\Components\EndUserException
+ * @throws \Random\RandomException
+ */
 test('findActiveSubscriptionsFor returns empty array for feed with no active subscriptions', function () use (&$dao): void {
     $metadata = new FeedMetadata('https://example.com/feed', 'Test', 'https://example.com', new \DateTimeImmutable());
     $feed = new Feed($metadata);
