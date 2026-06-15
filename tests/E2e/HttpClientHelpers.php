@@ -8,20 +8,25 @@ use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
 
-trait HttpClientHelpers
+/**
+ * HTTP client helpers for e2e tests
+ */
+final readonly class HttpClientHelpers
 {
-    private static HttpClientInterface $httpClient;
-    private static string $baseUrl = 'http://localhost:8080';
+    private static ?HttpClientInterface $client = null;
 
     /**
-     * Get or create the HTTP client instance with base_uri configured
+     * @return HttpClientInterface
      */
-    public static function httpClient(): HttpClientInterface
+    private static function client(): HttpClientInterface
     {
-        if (self::$httpClient === null) {
-            self::$httpClient = HttpClient::create(['base_uri' => self::$baseUrl]);
+        if (self::$client === null) {
+            self::$client = HttpClient::create([
+                'base_uri' => 'http://localhost:8080',
+            ]);
         }
-        return self::$httpClient;
+
+        return self::$client;
     }
 
     /**
@@ -29,17 +34,12 @@ trait HttpClientHelpers
      *
      * @param array<string, string> $queryParams
      * @param array<string, string> $headers
+     *
+     * @throws \Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface
      */
     public static function get(string $path, array $queryParams = [], array $headers = []): ResponseInterface
     {
-        $url = $path;
-        if (\count($queryParams) > 0) {
-            $url .= '?' . http_build_query($queryParams);
-        }
-
-        return self::httpClient()->request('GET', $url, [
-            'headers' => $headers,
-        ]);
+        return self::client()->request('GET', $path . self::buildQuery($queryParams), $headers);
     }
 
     /**
@@ -47,33 +47,36 @@ trait HttpClientHelpers
      *
      * @param array<string, mixed> $data
      * @param array<string, string> $headers
+     *
+     * @throws \Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface
      */
     public static function post(string $path, array $data = [], array $headers = []): ResponseInterface
     {
-        return self::httpClient()->request('POST', $path, [
-            'json' => $data,
-            'headers' => $headers,
-        ]);
+        return self::client()->request('POST', $path, ['json' => $data] + $headers);
     }
 
     /**
      * Safely get response content without throwing on error status
+     *
+     * @throws \Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface
+     * @throws \Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface
+     * @throws \Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface
+     * @throws \Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface
      */
     public static function getContentSafe(ResponseInterface $response): string
     {
         try {
             return $response->getContent();
-        } catch (\Symfony\Component\HttpClient\Exception\ClientException $e) {
-            // For 4xx errors, try to get the body anyway
+        } catch (\Symfony\Component\HttpClient\Exception\ClientException) {
             try {
                 $reflection = new \ReflectionClass($response);
                 $property = $reflection->getProperty('body');
-                $property->setAccessible(true);
+                // PHP 8.1+: setAccessible is no-op
                 return (string) $property->getValue($response);
-            } catch (\Exception $e2) {
+            } catch (\Exception) {
                 return '';
             }
-        } catch (\Exception $e) {
+        } catch (\Exception) {
             return '';
         }
     }
@@ -82,15 +85,33 @@ trait HttpClientHelpers
      * Safely get response as array without throwing on error status
      *
      * @return array<string, mixed>
+     *
+     * @throws \Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface
+     * @throws \Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface
+     * @throws \Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface
+     * @throws \Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface
      */
     public static function toArraySafe(ResponseInterface $response): array
     {
         $content = self::getContentSafe($response);
-        if (\count($content) === 0) {
-            return [];
+        /** @var array<string, mixed>|null $decoded */
+        $decoded = \json_decode($content, true);
+        $result = \is_array($decoded) ? $decoded : [];
+
+        return $result;
+    }
+
+    /**
+     * Build query string from parameters
+     *
+     * @param array<string, string> $params
+     */
+    private static function buildQuery(array $params): string
+    {
+        if ($params === []) {
+            return '';
         }
 
-        $decoded = \json_decode($content, associative: true);
-        return is_array($decoded) ? $decoded : [];
+        return '?' . \http_build_query($params);
     }
 }

@@ -10,7 +10,7 @@ $logContent = \date('H:i:s') . ' stamp=' . ($stampContent === false ? 'false' : 
 if (\file_exists($stampPath) && $stampContent !== false) {
     $dbPath = \trim($stampContent);
     $_ENV['NEWSLETTER_DB_PATH'] = $dbPath;
-    $check = $_ENV['NEWSLETTER_DB_PATH'] ?? null;
+    $check = $_ENV['NEWSLETTER_DB_PATH'] ;
 }
 
 $_ENV['SECRET_KEY'] = 'test-secret-for-integration';

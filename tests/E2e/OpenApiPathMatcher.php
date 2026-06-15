@@ -6,6 +6,9 @@ namespace Tests\E2e;
 
 use cebe\openapi\spec\OpenApi;
 
+/**
+ * @internal
+ */
 trait OpenApiPathMatcher
 {
     /**

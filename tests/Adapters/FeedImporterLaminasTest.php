@@ -25,7 +25,7 @@ afterAll(function (): void {
 
 // ─── Production import tests (real HTTP server) ───────────────────────────
 
-test('fetchNew uses real import for valid feed', function () {
+test('fetchNew uses real import for valid feed', function (): void {
     $importer = new FeedImporterLaminas();
     $feed = $importer->fetchNew(FEED_TEST_BASE . '/valid.xml');
 
@@ -33,7 +33,7 @@ test('fetchNew uses real import for valid feed', function () {
     expect($feed->link)->toEqual('https://example.com');
 });
 
-test('fetchWithPosts uses real import for valid feed', function () {
+test('fetchWithPosts uses real import for valid feed', function (): void {
     $importer = new FeedImporterLaminas();
     $feed = new Feed(FEED_TEST_BASE . '/valid.xml', '', '', new \DateTimeImmutable());
     $result = $importer->fetchWithPosts($feed);
@@ -43,7 +43,7 @@ test('fetchWithPosts uses real import for valid feed', function () {
     expect($posts[0]?->title)->toEqual('First Post');
 });
 
-test('fetchNew wraps invalid feed content in EndUserException', function () {
+test('fetchNew wraps invalid feed content in EndUserException', function (): void {
     $importer = new FeedImporterLaminas();
     expect(fn () => $importer->fetchNew(FEED_TEST_BASE . '/invalid.txt'))->toThrow(EndUserException::class);
 });
@@ -55,24 +55,24 @@ test('fetchNew wraps invalid feed content in EndUserException', function () {
  */
 function configure_feed_iterator(FeedInterface $mock, array &$entries): void
 {
-    $mock->method('rewind')->willReturnCallback(function () use (&$entries): void {
+    $mock->shouldReceive('rewind')->andReturnUsing(function () use (&$entries): void {
         \reset($entries);
     });
-    $mock->method('valid')->willReturnCallback(function () use (&$entries): bool {
+    $mock->shouldReceive('valid')->andReturnUsing(function () use (&$entries): bool {
         return \current($entries) !== false;
     });
-    $mock->method('current')->willReturnCallback(function () use (&$entries): EntryInterface|false {
+    $mock->shouldReceive('current')->andReturnUsing(function () use (&$entries): EntryInterface|false {
         return \current($entries);
     });
-    $mock->method('next')->willReturnCallback(function () use (&$entries): void {
+    $mock->shouldReceive('next')->andReturnUsing(function () use (&$entries): void {
         \next($entries);
     });
 }
 
-test('fetchNew creates Feed with correct URI, title and link (mock)', function () {
-    $sourceFeed = $this->createMock(FeedInterface::class);
-    $sourceFeed->method('getTitle')->willReturn('Test Feed Title');
-    $sourceFeed->method('getLink')->willReturn('https://example.com');
+test('fetchNew creates Feed with correct URI, title and link (mock)', function (): void {
+    $sourceFeed = \Mockery::mock(FeedInterface::class);
+    $sourceFeed->shouldReceive('getTitle')->andReturn('Test Feed Title');
+    $sourceFeed->shouldReceive('getLink')->andReturn('https://example.com');
 
     $importer = new TestFeedImporter();
     $importer->setMockFeed($sourceFeed);
@@ -84,10 +84,10 @@ test('fetchNew creates Feed with correct URI, title and link (mock)', function (
     expect($feed->link)->toEqual('https://example.com');
 });
 
-test('fetch preserves lastSentPostUri from input Feed (mock)', function () {
-    $sourceFeed = $this->createMock(FeedInterface::class);
-    $sourceFeed->method('getTitle')->willReturn('Updated Title');
-    $sourceFeed->method('getLink')->willReturn('https://example.com');
+test('fetch preserves lastSentPostUri from input Feed (mock)', function (): void {
+    $sourceFeed = \Mockery::mock(FeedInterface::class);
+    $sourceFeed->shouldReceive('getTitle')->andReturn('Updated Title');
+    $sourceFeed->shouldReceive('getLink')->andReturn('https://example.com');
 
     $inputFeed = new Feed(
         'https://example.com/feed',
@@ -107,17 +107,17 @@ test('fetch preserves lastSentPostUri from input Feed (mock)', function () {
     expect($feed->title)->toEqual('Updated Title');
 });
 
-test('fetchWithPosts yields Post objects with sanitized content (mock)', function () {
-    $entry = $this->createMock(EntryInterface::class);
-    $entry->method('getPermalink')->willReturn('https://example.com/post1');
-    $entry->method('getLink')->willReturn('https://example.com/post1');
-    $entry->method('getTitle')->willReturn('Post One');
-    $entry->method('getContent')->willReturn('<p>Hello</p><script>alert("xss")</script>');
+test('fetchWithPosts yields Post objects with sanitized content (mock)', function (): void {
+    $entry = \Mockery::mock(EntryInterface::class);
+    $entry->shouldReceive('getPermalink')->andReturn('https://example.com/post1');
+    $entry->shouldReceive('getLink')->andReturn('https://example.com/post1');
+    $entry->shouldReceive('getTitle')->andReturn('Post One');
+    $entry->shouldReceive('getContent')->andReturn('<p>Hello</p><script>alert("xss")</script>');
 
     $entries = [$entry];
-    $sourceFeed = $this->createMock(FeedInterface::class);
-    $sourceFeed->method('getTitle')->willReturn('Test Feed');
-    $sourceFeed->method('getLink')->willReturn('https://example.com');
+    $sourceFeed = \Mockery::mock(FeedInterface::class);
+    $sourceFeed->shouldReceive('getTitle')->andReturn('Test Feed');
+    $sourceFeed->shouldReceive('getLink')->andReturn('https://example.com');
     configure_feed_iterator($sourceFeed, $entries);
 
     $inputFeed = new Feed('https://example.com/feed', 'Test Feed', 'https://example.com', new \DateTimeImmutable());
@@ -136,17 +136,17 @@ test('fetchWithPosts yields Post objects with sanitized content (mock)', functio
     expect($posts[0]?->content)->toContain('<p>Hello</p>');
 });
 
-test('fetchWithPosts falls back to getLink when getPermalink returns null (mock)', function () {
-    $entry = $this->createMock(EntryInterface::class);
-    $entry->method('getPermalink')->willReturn(null);
-    $entry->method('getLink')->willReturn('https://example.com/fallback-link');
-    $entry->method('getTitle')->willReturn('Fallback Post');
-    $entry->method('getContent')->willReturn('<p>content</p>');
+test('fetchWithPosts falls back to getLink when getPermalink returns null (mock)', function (): void {
+    $entry = \Mockery::mock(EntryInterface::class);
+    $entry->shouldReceive('getPermalink')->andReturn(null);
+    $entry->shouldReceive('getLink')->andReturn('https://example.com/fallback-link');
+    $entry->shouldReceive('getTitle')->andReturn('Fallback Post');
+    $entry->shouldReceive('getContent')->andReturn('<p>content</p>');
 
     $entries = [$entry];
-    $sourceFeed = $this->createMock(FeedInterface::class);
-    $sourceFeed->method('getTitle')->willReturn('Test Feed');
-    $sourceFeed->method('getLink')->willReturn('https://example.com');
+    $sourceFeed = \Mockery::mock(FeedInterface::class);
+    $sourceFeed->shouldReceive('getTitle')->andReturn('Test Feed');
+    $sourceFeed->shouldReceive('getLink')->andReturn('https://example.com');
     configure_feed_iterator($sourceFeed, $entries);
 
     $inputFeed = new Feed('https://example.com/feed', 'Test Feed', 'https://example.com', new \DateTimeImmutable());

@@ -8,7 +8,7 @@ use SimpleNewsletter\Data\Post;
 use SimpleNewsletter\Data\Subscription;
 use SimpleNewsletter\Templates\Email\Newsletter;
 
-test('Newsletter recipient returns subscription email', function () {
+test('Newsletter recipient returns subscription email', function (): void {
     $subscription = new Subscription('https://example.com/feed', 'user@example.com');
     $feed = new Feed(
         new FeedMetadata('https://example.com/feed', 'Blog Title', 'https://example.com', new \DateTimeImmutable()),
@@ -19,7 +19,7 @@ test('Newsletter recipient returns subscription email', function () {
     expect($newsletter->recipient())->toBe('user@example.com');
 });
 
-test('Newsletter subject combines post title and feed title', function () {
+test('Newsletter subject combines post title and feed title', function (): void {
     $subscription = new Subscription('https://example.com/feed', 'user@example.com');
     $feed = new Feed(
         new FeedMetadata('https://example.com/feed', 'Blog Title', 'https://example.com', new \DateTimeImmutable()),
@@ -30,7 +30,7 @@ test('Newsletter subject combines post title and feed title', function () {
     expect($newsletter->subject())->toBe('Post Title - Blog Title');
 });
 
-test('Newsletter body contains post uri and cancellation uri', function () {
+test('Newsletter body contains post uri and cancellation uri', function (): void {
     $subscription = new Subscription('https://example.com/feed', 'user@example.com');
     $feed = new Feed(
         new FeedMetadata('https://example.com/feed', 'Blog Title', 'https://example.com', new \DateTimeImmutable()),
