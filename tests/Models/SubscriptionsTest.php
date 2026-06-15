@@ -18,9 +18,13 @@ use SimpleNewsletter\Models\Subscriptions;
  * @throws \Random\RandomException
  */
 it('throws on invalid URI in add', function (): void {
+    /** @var SubscriptionsDAO $subscriptionsDAO */
     $subscriptionsDAO = \Mockery::mock(SubscriptionsDAO::class);
+    /** @var Feeds $feeds */
     $feeds = \Mockery::mock(Feeds::class);
+    /** @var Newsletter $newsletter */
     $newsletter = \Mockery::mock(Newsletter::class);
+    /** @var Auth $auth */
     $auth = \Mockery::mock(Auth::class);
 
     $subs = new Subscriptions($subscriptionsDAO, $feeds, $newsletter, $auth);

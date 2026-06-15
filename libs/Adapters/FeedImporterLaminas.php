@@ -76,26 +76,28 @@ final readonly class FeedImporterLaminas implements FeedImporter
     {
         try {
             return Reader::import($uri);
-        } catch (FeedException $e) {
-            $message = $e->getMessage();
+        } catch (FeedException $feedException) {
+            $message = $feedException->getMessage();
             if (str_contains($message, '404')) {
-                throw new EndUserException('The feed could not be loaded. Please check the URL and try again.', 0, $e);
+                throw new EndUserException(
+                    'The feed could not be loaded. Please check the URL and try again.',
+                    0,
+                    $feedException,
+                );
             }
 
             if (str_contains($message, 'DOMDocument') || str_contains($message, 'XML')) {
                 throw new EndUserException(
                     "This doesn't appear to be a valid RSS or Atom feed. Please verify the URL points to a valid feed.",
                     0,
-                    $e,
+                    $feedException,
                 );
             }
 
-            throw new EndUserException('The feed could not be loaded. Please check the URL and try again.', 0, $e);
-        } catch (\Exception $networkException) {
             throw new EndUserException(
-                'Could not connect to the feed server. Please verify the URL is correct.',
+                'The feed could not be loaded. Please check the URL and try again.',
                 0,
-                $networkException,
+                $feedException,
             );
         }
     }

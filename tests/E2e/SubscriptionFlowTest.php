@@ -25,7 +25,7 @@ function e2e_sub_get(string $path, array $queryParams = []): ResponseInterface
 }
 
 beforeEach(function (): void {
-    \call_user_func('init_test_database', \getenv('NEWSLETTER_DB_PATH'));
+    init_test_database((string) \getenv('NEWSLETTER_DB_PATH'));
 });
 
 /** @throws \Exception */

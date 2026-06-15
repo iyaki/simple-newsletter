@@ -11,7 +11,7 @@ use Symfony\Contracts\HttpClient\ResponseInterface;
 /**
  * HTTP client helpers for e2e tests
  */
-final readonly class HttpClientHelpers
+class HttpClientHelpers
 {
     private static ?HttpClientInterface $client = null;
 
@@ -72,7 +72,8 @@ final readonly class HttpClientHelpers
                 $reflection = new \ReflectionClass($response);
                 $property = $reflection->getProperty('body');
                 // PHP 8.1+: setAccessible is no-op
-                return (string) $property->getValue($response);
+                /** @var string $body */
+                return $property->getValue($response);
             } catch (\Exception) {
                 return '';
             }

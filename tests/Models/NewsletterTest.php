@@ -18,11 +18,9 @@ use SimpleNewsletter\Templates\Email\SubscriptionConfirmation;
  * @throws \InvalidArgumentException
  */
 test('sendConfirmation calls sender with template from EmailTemplateFactory', function (): void {
-    /** @var \Mockery\MockInterface&Sender $sender */
+    /** @var Sender&\Mockery\MockInterface $sender */
     $sender = \Mockery::mock(Sender::class);
-    /** @var \Mockery\MockInterface&EmailTemplateFactory $emailTemplateFactory */
     $emailTemplateFactory = \Mockery::mock(EmailTemplateFactory::class);
-    /** @var \Mockery\MockInterface&Auth $auth */
     $auth = \Mockery::mock(Auth::class);
 
     $now = new DateTimeImmutable();
