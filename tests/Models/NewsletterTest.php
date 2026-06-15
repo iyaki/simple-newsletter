@@ -6,6 +6,7 @@ use SimpleNewsletter\Components\Auth;
 use SimpleNewsletter\Components\EmailTemplateFactory;
 use SimpleNewsletter\Components\Sender;
 use SimpleNewsletter\Data\Feed;
+use SimpleNewsletter\Data\FeedMetadata;
 use SimpleNewsletter\Data\Post;
 use SimpleNewsletter\Data\Subscription;
 use SimpleNewsletter\Models\Newsletter;
@@ -17,7 +18,7 @@ test('sendConfirmation calls sender with template from EmailTemplateFactory', fu
     $auth = $this->createMock(Auth::class);
 
     $now = new DateTimeImmutable();
-    $feed = new Feed('https://example.com/feed', 'Test Feed', 'https://example.com', $now);
+    $feed = new Feed(new FeedMetadata('https://example.com/feed', 'Test Feed', 'https://example.com', $now));
     $subscription = new Subscription('https://example.com/feed', 'user@example.com');
 
     $token = 'generated-token';
@@ -47,7 +48,7 @@ test('sendConfirmation uses auth hash of subscription email as token', function 
     $auth = $this->createMock(Auth::class);
 
     $now = new DateTimeImmutable();
-    $feed = new Feed('https://example.com/feed', 'Test Feed', 'https://example.com', $now);
+    $feed = new Feed(new FeedMetadata('https://example.com/feed', 'Test Feed', 'https://example.com', $now));
     $subscription = new Subscription('https://example.com/feed', 'user@example.com');
 
     $expectedToken = 'hash-of-email';
@@ -70,7 +71,7 @@ test('sendPostToSubscribers calls sender for each subscription', function () {
     $auth = $this->createMock(Auth::class);
 
     $now = new DateTimeImmutable();
-    $feed = new Feed('https://example.com/feed', 'Test Feed', 'https://example.com', $now);
+    $feed = new Feed(new FeedMetadata('https://example.com/feed', 'Test Feed', 'https://example.com', $now));
     $post = new Post('https://example.com/post1', 'Post 1', 'Content 1');
 
     $sub1 = new Subscription('https://example.com/feed', 'user1@example.com');
@@ -126,7 +127,7 @@ test('sendPostToSubscribers creates correct template per subscription', function
     $auth = $this->createMock(Auth::class);
 
     $now = new DateTimeImmutable();
-    $feed = new Feed('https://example.com/feed', 'Test Feed', 'https://example.com', $now);
+    $feed = new Feed(new FeedMetadata('https://example.com/feed', 'Test Feed', 'https://example.com', $now));
     $post = new Post('https://example.com/post1', 'Post 1', 'Content 1');
 
     $sub = new Subscription('https://example.com/feed', 'alice@example.com');

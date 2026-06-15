@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SimpleNewsletter\Models;
 
+use Random\RandomException;
 use SimpleNewsletter\Components\Auth;
 use SimpleNewsletter\Components\EndUserException;
 use SimpleNewsletter\Data\Subscription;
@@ -18,6 +19,7 @@ final readonly class Subscriptions
         private Auth $auth,
     ) {}
 
+    /** @throws EndUserException|RandomException */
     public function add(string $feedUri, string $email): void
     {
         if (! \filter_var($feedUri, \FILTER_VALIDATE_URL)) {
@@ -44,6 +46,7 @@ final readonly class Subscriptions
         $this->newsletter->sendConfirmation($feed, $subscription);
     }
 
+    /** @throws EndUserException */
     public function confirm(string $feedUri, string $email, #[\SensitiveParameter] string $token): void
     {
         if (! $this->auth->verify($email, $token)) {
@@ -59,6 +62,7 @@ final readonly class Subscriptions
         $this->subscriptionsDAO->activate($subscription);
     }
 
+    /** @throws EndUserException */
     public function cancel(string $feedUri, string $email, #[\SensitiveParameter] string $token): void
     {
         if (! $this->auth->verify($email, $token)) {
@@ -73,6 +77,7 @@ final readonly class Subscriptions
         $this->subscriptionsDAO->deactivate($subscription);
     }
 
+    /** @throws EndUserException */
     public function sendScheduled(\DateTimeImmutable $datetime): void
     {
         $scheduledFeeds = $this->feeds->getScheduled($datetime);
@@ -86,11 +91,9 @@ final readonly class Subscriptions
                     continue;
                 }
 
-                $this->newsletter->sendPostToSubscribers(
-                    $feed,
-                    $post,
-                    ...$this->subscriptionsDAO->findActiveSubscriptionsFor($feed),
-                );
+                /** @var list<Subscription> $activeSubscriptions */
+                $activeSubscriptions = $this->subscriptionsDAO->findActiveSubscriptionsFor($feed);
+                $this->newsletter->sendPostToSubscribers($feed, $post, ...$activeSubscriptions);
 
                 $this->feeds->updateLastSentPost($feed, $post);
 

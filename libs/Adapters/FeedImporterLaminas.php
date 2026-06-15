@@ -11,62 +11,66 @@ use Laminas\Feed\Reader\Reader;
 use SimpleNewsletter\Components\EndUserException;
 use SimpleNewsletter\Components\FeedImporter;
 use SimpleNewsletter\Data\Feed;
+use SimpleNewsletter\Data\FeedMetadata;
 use SimpleNewsletter\Data\Post;
 use Symfony\Component\HtmlSanitizer\HtmlSanitizer;
 use Symfony\Component\HtmlSanitizer\HtmlSanitizerConfig;
 
 readonly class FeedImporterLaminas implements FeedImporter
 {
+    /** @throws EndUserException */
     #[\Override]
     public function fetchNew(string $uri): Feed
     {
         $sourceFeed = $this->import($uri);
-        return new Feed($uri, $sourceFeed->getTitle() ?? '', $sourceFeed->getLink() ?? '', new \DateTimeImmutable());
+        $metadata = new FeedMetadata(
+            uri: $uri,
+            title: $sourceFeed->getTitle() ?? '',
+            link: $sourceFeed->getLink() ?? '',
+            lastUpdate: new \DateTimeImmutable(),
+        );
+        return new Feed($metadata);
     }
 
+    /** @throws EndUserException */
     #[\Override]
     public function fetch(Feed $feed): Feed
     {
-        $sourceFeed = $this->import($feed->uri);
-        return new Feed(
-            $feed->uri,
-            $sourceFeed->getTitle() ?? '',
-            $sourceFeed->getLink() ?? '',
-            new \DateTimeImmutable(),
-            $feed->lastSentPostUri,
+        $sourceFeed = $this->import($feed->getUri());
+        $metadata = new FeedMetadata(
+            uri: $feed->getUri(),
+            title: $sourceFeed->getTitle() ?? '',
+            link: $sourceFeed->getLink() ?? '',
+            lastUpdate: new \DateTimeImmutable(),
         );
+        return new Feed(metadata: $metadata, lastSentPostUri: $feed->lastSentPostUri);
     }
 
+    /** @throws EndUserException */
     #[\Override]
     public function fetchWithPosts(Feed $feed): Feed
     {
-        $sourceFeed = $this->import($feed->uri);
+        $sourceFeed = $this->import($feed->getUri());
 
-        /** @var \Generator<int, Post> */
-        $posts = (static function () use ($sourceFeed): \Generator {
-            $sanitizer = new HtmlSanitizer(new HtmlSanitizerConfig()->allowSafeElements());
-            foreach ($sourceFeed as $sourcePost) {
-                $cleanContent = $sanitizer->sanitize($sourcePost->getContent());
-                yield new Post(
-                    $sourcePost->getPermalink() ?? $sourcePost->getLink(),
-                    $sourcePost->getTitle(),
-                    $cleanContent,
-                );
-            }
-        })();
+        $posts = [];
+        $sanitizer = new HtmlSanitizer(new HtmlSanitizerConfig()->allowSafeElements());
+        foreach ($sourceFeed as $sourcePost) {
+            $cleanContent = $sanitizer->sanitize($sourcePost->getContent());
+            $posts[] = new Post($sourcePost->getPermalink(), $sourcePost->getTitle(), $cleanContent);
+        }
 
-        return new Feed(
-            $feed->uri,
-            $sourceFeed->getTitle() ?? '',
-            $sourceFeed->getLink() ?? '',
-            new \DateTimeImmutable(),
-            $feed->lastSentPostUri,
-            $posts,
+        $metadata = new FeedMetadata(
+            uri: $feed->getUri(),
+            title: $sourceFeed->getTitle() ?? '',
+            link: $sourceFeed->getLink() ?? '',
+            lastUpdate: new \DateTimeImmutable(),
         );
+        return new Feed(metadata: $metadata, lastSentPostUri: $feed->lastSentPostUri, posts: $posts);
     }
 
     /**
      * @return FeedInterface<EntryInterface>
+     * @throws EndUserException
      */
     private function import(string $uri): FeedInterface
     {

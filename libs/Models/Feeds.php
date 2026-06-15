@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace SimpleNewsletter\Models;
 
+use Random\RandomException;
+use SimpleNewsletter\Components\EndUserException;
 use SimpleNewsletter\Components\FeedImporter;
 use SimpleNewsletter\Data\Feed;
+use SimpleNewsletter\Data\FeedMetadata;
 use SimpleNewsletter\Data\FeedsDAO;
 use SimpleNewsletter\Data\Post;
 
@@ -16,13 +19,18 @@ final readonly class Feeds
         private FeedImporter $feedImporter,
     ) {}
 
+    /**
+     * @throws EndUserException
+     * @throws RandomException
+     */
     public function retrieve(string $uri): Feed
     {
         $uri = trim($uri);
         $feed = $this->feedsDAO->find($uri);
 
         if ($feed instanceof Feed) {
-            if ($feed->lastUpdate->diff(new \DateTimeImmutable())->days < 1) {
+            $days = $feed->getLastUpdate()->diff(new \DateTimeImmutable())->days;
+            if ($days !== false && $days < 1) {
                 return $feed;
             }
 
@@ -38,20 +46,31 @@ final readonly class Feeds
 
     /**
      * @return Feed[]
+     * @throws EndUserException
      */
     public function getScheduled(\DateTimeImmutable $datetime): array
     {
         return $this->feedsDAO->getScheduled($datetime);
     }
 
+    /** @throws EndUserException */
     public function retrieveWithPosts(Feed $feed): Feed
     {
         return $this->feedImporter->fetchWithPosts($feed);
     }
 
+    /** @throws EndUserException */
     public function updateLastSentPost(Feed $feed, Post $post): void
     {
-        $updatedFeed = new Feed($feed->uri, $feed->title, $feed->link, $feed->lastUpdate, $post->uri);
+        $updatedFeed = new Feed(
+            metadata: new FeedMetadata(
+                uri: $feed->getUri(),
+                title: $feed->getTitle(),
+                link: $feed->getLink(),
+                lastUpdate: $feed->getLastUpdate(),
+            ),
+            lastSentPostUri: $post->uri,
+        );
         $this->feedsDAO->update($updatedFeed);
     }
 }

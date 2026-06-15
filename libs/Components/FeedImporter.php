@@ -6,6 +6,7 @@ namespace SimpleNewsletter\Components;
 
 use SimpleNewsletter\Data\Feed;
 
+/** @api */
 interface FeedImporter
 {
     public function fetchNew(string $uri): Feed;

@@ -133,7 +133,7 @@ test('fetchWithPosts yields Post objects with sanitized content (mock)', functio
     expect($posts[0]?->uri)->toEqual('https://example.com/post1');
     expect($posts[0]?->title)->toEqual('Post One');
     expect($posts[0]?->content)->not->toContain('<script');
-    expect($posts[0]->content)->toContain('<p>Hello</p>');
+    expect($posts[0]?->content)->toContain('<p>Hello</p>');
 });
 
 test('fetchWithPosts falls back to getLink when getPermalink returns null (mock)', function () {

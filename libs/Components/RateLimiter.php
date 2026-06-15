@@ -14,6 +14,9 @@ final readonly class RateLimiter
         private \PDO $db,
     ) {}
 
+    /**
+     * @throws EndUserException
+     */
     public function check(string $ip, string $endpoint): void
     {
         try {
@@ -21,12 +24,14 @@ final readonly class RateLimiter
             $windowStart = $now - self::WINDOW_SECONDS;
 
             // Purge old entries for this IP+endpoint
+            /** @var \PDOStatement $stmt */
             $stmt = $this->db->prepare(
                 'DELETE FROM rate_limits WHERE ip = :ip AND endpoint = :endpoint AND window_start < :window',
             );
             $stmt->execute(['ip' => $ip, 'endpoint' => $endpoint, 'window' => $windowStart]);
 
             // Count requests in current window
+            /** @var \PDOStatement $stmt */
             $stmt = $this->db->prepare(
                 'SELECT COUNT(*) FROM rate_limits WHERE ip = :ip AND endpoint = :endpoint AND window_start >= :window',
             );
@@ -38,6 +43,7 @@ final readonly class RateLimiter
             }
 
             // Record this request
+            /** @var \PDOStatement $stmt */
             $stmt = $this->db->prepare(
                 'INSERT INTO rate_limits (ip, endpoint, window_start) VALUES (:ip, :endpoint, :window)',
             );

@@ -30,7 +30,7 @@ final readonly class JsonResponse implements ResponseInterface
         return \json_encode([
             'title' => $this->title,
             'detail' => $this->message,
-        ], JSON_THROW_ON_ERROR) ?? '{}';
+        ], JSON_THROW_ON_ERROR);
     }
 
     #[\Override]

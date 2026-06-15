@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SimpleNewsletter;
 
+use PHPMailer\PHPMailer\Exception;
 use PHPMailer\PHPMailer\PHPMailer;
 use SimpleNewsletter\Adapters\FeedImporterLaminas;
 use SimpleNewsletter\Adapters\ResponderHttp;
@@ -36,11 +37,13 @@ final class Container
     /** @var \WeakReference<SenderPHPMailer> */
     private static ?\WeakReference $sender = null;
 
+    /** @throws \PDOException */
     private function feeds(): Feeds
     {
         return new Feeds(new FeedsDAO($this->database()), new FeedImporterLaminas());
     }
 
+    /** @throws \PDOException|Exception */
     public function subscriptions(): Subscriptions
     {
         return new Subscriptions(
@@ -56,11 +59,13 @@ final class Container
         return new ResponderHttp();
     }
 
+    /** @throws Exception */
     private function newsletter(): Newsletter
     {
         return new Newsletter($this->sender(), $this->emailTemplateFactory(), $this->auth());
     }
 
+    /** @throws \PDOException */
     public function rateLimiter(): RateLimiter
     {
         return new RateLimiter($this->database());
@@ -68,7 +73,7 @@ final class Container
 
     private function emailTemplateFactory(): EmailTemplateFactory
     {
-        return new EmailTemplateFactory(\getenv('URI_SELF') ?? '');
+        return new EmailTemplateFactory(\getenv('URI_SELF') ?: '');
     }
 
     private function auth(): Auth
@@ -78,12 +83,13 @@ final class Container
             return $auth;
         }
 
-        $auth = new Auth(\getenv('SECRET_KEY') ?? '');
+        $auth = new Auth(\getenv('SECRET_KEY') ?: '');
         self::$auth = \WeakReference::create($auth);
 
         return $auth;
     }
 
+    /** @throws Exception */
     private function sender(): SenderPHPMailer
     {
         $sender = self::$sender?->get();
@@ -92,15 +98,15 @@ final class Container
         }
 
         $connection = new SmtpConnection(
-            host: \getenv('SMTP_HOST') ?? 'localhost',
-            port: (int) (\getenv('SMTP_PORT') ?? 587),
-            encryption: \getenv('SMTP_ENCRYPTION') ?? PHPMailer::ENCRYPTION_STARTTLS,
-            allowSelfSigned: (bool) (\getenv('SMTP_ALLOW_SELF_SIGNED') ?? false),
+            host: \getenv('SMTP_HOST') ?: 'localhost',
+            port: (int) (\getenv('SMTP_PORT') ?: 587),
+            encryption: \getenv('SMTP_ENCRYPTION') ?: PHPMailer::ENCRYPTION_STARTTLS,
+            allowSelfSigned: (bool) (\getenv('SMTP_ALLOW_SELF_SIGNED') ?: false),
         );
-        $credentials = new SmtpCredentials(user: \getenv('SMTP_USER') ?? '', password: \getenv('SMTP_PASSWORD') ?? '');
+        $credentials = new SmtpCredentials(user: \getenv('SMTP_USER') ?: '', password: \getenv('SMTP_PASSWORD') ?: '');
         $senderConfig = new SmtpSender(
-            from: \getenv('EMAIL_FROM') ?? 'noreply@example.com',
-            replyTo: \getenv('EMAIL_REPLY_TO') ?? 'noreply@example.com',
+            from: \getenv('EMAIL_FROM') ?: 'noreply@example.com',
+            replyTo: \getenv('EMAIL_REPLY_TO') ?: 'noreply@example.com',
         );
         $config = new SmtpConfig($connection, $credentials, $senderConfig);
         $sender = new SenderPHPMailer($config);
@@ -109,10 +115,13 @@ final class Container
         return $sender;
     }
 
+    /** @throws \PDOException */
     private function database(): \PDO
     {
         if (! self::$database instanceof \PDO) {
-            self::$database = new \PDO((require self::DATABASE_COFIG_PATH)['dsn']);
+            /** @var array{dsn: string} $config */
+            $config = require __DIR__ . '/../config/database.php';
+            self::$database = new \PDO($config['dsn']);
         }
 
         return self::$database;

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use SimpleNewsletter\Data\Feed;
+use SimpleNewsletter\Data\FeedMetadata;
 use SimpleNewsletter\Data\FeedsDAO;
 
 beforeEach(function () {
@@ -20,26 +21,38 @@ test('find returns null for missing URI', function () {
 });
 
 test('new inserts and find retrieves a feed', function () {
-    $feed = new Feed('https://example.com/feed', 'Test Feed', 'https://example.com', new \DateTimeImmutable());
+    $metadata = new FeedMetadata(
+        'https://example.com/feed',
+        'Test Feed',
+        'https://example.com',
+        new \DateTimeImmutable(),
+    );
+    $feed = new Feed($metadata);
     $this->dao->new($feed);
     $found = $this->dao->find('https://example.com/feed');
     expect($found)->not->toBeNull();
-    expect($found->title)->toEqual('Test Feed');
+    expect($found->getTitle())->toEqual('Test Feed');
 });
 
 test('update modifies feed fields', function () {
-    $feed = new Feed('https://example.com/feed', 'Original', 'https://example.com', new \DateTimeImmutable());
+    $metadata = new FeedMetadata(
+        'https://example.com/feed',
+        'Original',
+        'https://example.com',
+        new \DateTimeImmutable(),
+    );
+    $feed = new Feed($metadata);
     $this->dao->new($feed);
-    $updated = new Feed(
+    $updatedMetadata = new FeedMetadata(
         'https://example.com/feed',
         'Updated Title',
         'https://example.com',
         new \DateTimeImmutable(),
-        'https://example.com/last-post',
     );
+    $updated = new Feed(metadata: $updatedMetadata, lastSentPostUri: 'https://example.com/last-post');
     $this->dao->update($updated);
     $found = $this->dao->find('https://example.com/feed');
-    expect($found->title)->toEqual('Updated Title');
+    expect($found->getTitle())->toEqual('Updated Title');
     expect($found->lastSentPostUri)->toEqual('https://example.com/last-post');
 });
 
@@ -61,7 +74,7 @@ test('getScheduled returns feeds for matching trigger hour with active subscript
     $results = $this->dao->getScheduled(new \DateTimeImmutable('2024-01-01 10:00:00'));
 
     expect($results)->toHaveCount(1);
-    expect($results[0]->uri)->toEqual('https://example.com/morning');
+    expect($results[0]->getUri())->toEqual('https://example.com/morning');
 });
 
 test('getScheduled returns empty array when no feeds match', function () {
