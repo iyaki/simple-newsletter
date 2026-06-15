@@ -15,11 +15,14 @@ use SimpleNewsletter\Templates\Email\Newsletter as NewsletterTemplate;
 use SimpleNewsletter\Templates\Email\SubscriptionConfirmation;
 
 /**
- * @throws AssertionFailedError
+ * @throws \InvalidArgumentException
  */
 test('sendConfirmation calls sender with template from EmailTemplateFactory', function (): void {
+    /** @var \Mockery\MockInterface&Sender $sender */
     $sender = \Mockery::mock(Sender::class);
+    /** @var \Mockery\MockInterface&EmailTemplateFactory $emailTemplateFactory */
     $emailTemplateFactory = \Mockery::mock(EmailTemplateFactory::class);
+    /** @var \Mockery\MockInterface&Auth $auth */
     $auth = \Mockery::mock(Auth::class);
 
     $now = new DateTimeImmutable();
@@ -133,6 +136,8 @@ test('sendPostToSubscribers calls sender for each subscription', function (): vo
     $newsletter->sendPostToSubscribers($feed, $post, $sub1, $sub2);
 
     expect($invocations)->toHaveCount(2);
+    \assert(isset($invocations[0]));
+    \assert(isset($invocations[1]));
     expect($invocations[0])->toBe($template1);
     expect($invocations[1])->toBe($template2);
 });

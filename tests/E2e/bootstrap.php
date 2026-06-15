@@ -59,8 +59,11 @@ if (! function_exists('init_test_database')) {
 /**
  * Perform a GET request via shared HTTP client
  *
- * @param array<string, string> $queryParams
- * @param array<string, string> $headers
+ * @param string $path URL path (without base URI)
+ * @param array<string, mixed> $queryParams Query parameters
+ * @param array<string, string> $headers HTTP headers
+ *
+ * @return \Symfony\Contracts\HttpClient\ResponseInterface
  *
  * @throws \Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface
  * @throws \Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface

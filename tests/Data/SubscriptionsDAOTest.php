@@ -11,6 +11,12 @@ use SimpleNewsletter\Data\SubscriptionsDAO;
 /** @var SubscriptionsDAO|null $dao */
 $dao = null;
 
+/**
+ * @throws \SimpleNewsletter\Components\EndUserException
+ * @throws \Random\RandomException
+ * @throws \PDOException
+ * @throws \RuntimeException
+ */
 beforeEach(function () use (&$dao): void {
     try {
         $db = new \PDO('sqlite::memory:');
@@ -35,15 +41,26 @@ beforeEach(function () use (&$dao): void {
             'https://example.com',
             new \DateTimeImmutable(),
         );
-        $feedsDao->new(new Feed($metadata));
+        try {
+            $feedsDao->new(new Feed($metadata));
+        } catch (\SimpleNewsletter\Components\EndUserException $e) {
+            throw $e;
+        }
     } catch (\PDOException $e) {
         throw $e;
     } catch (\RuntimeException $e) {
         throw $e;
+    } catch (\Random\RandomException $e) {
+        throw $e;
     }
 });
 
+/**
+ * @throws \SimpleNewsletter\Components\EndUserException
+ * @throws \Random\RandomException
+ */
 test('new inserts and find retrieves a subscription', function () use (&$dao): void {
+    \assert($dao instanceof SubscriptionsDAO);
     $dao->new(new Subscription('https://example.com/feed', 'user@example.com'));
     $found = $dao->find('https://example.com/feed', 'user@example.com');
     \assert($found instanceof Subscription);
@@ -55,6 +72,7 @@ test('new inserts and find retrieves a subscription', function () use (&$dao): v
  * @throws \Random\RandomException
  */
 test('find returns null for non-existent subscription', function () use (&$dao): void {
+    \assert($dao instanceof SubscriptionsDAO);
     $result = $dao->find('https://example.com/feed', 'nonexistent@example.com');
     expect($result)->toBeNull();
 });
@@ -64,6 +82,7 @@ test('find returns null for non-existent subscription', function () use (&$dao):
  * @throws \Random\RandomException
  */
 test('activate sets active flag', function () use (&$dao): void {
+    \assert($dao instanceof SubscriptionsDAO);
     $sub = new Subscription('https://example.com/feed', 'user@example.com');
     $dao->new($sub);
     $dao->activate($sub);
@@ -77,6 +96,7 @@ test('activate sets active flag', function () use (&$dao): void {
  * @throws \Random\RandomException
  */
 test('deactivate clears active flag', function () use (&$dao): void {
+    \assert($dao instanceof SubscriptionsDAO);
     $sub = new Subscription('https://example.com/feed', 'user@example.com');
     $dao->new($sub);
     $dao->activate($sub);
@@ -91,6 +111,7 @@ test('deactivate clears active flag', function () use (&$dao): void {
  * @throws \Random\RandomException
  */
 test('findActiveSubscriptionsFor returns only active subs', function () use (&$dao): void {
+    \assert($dao instanceof SubscriptionsDAO);
     $metadata = new FeedMetadata('https://example.com/feed', 'Test', 'https://example.com', new \DateTimeImmutable());
     $feed = new Feed($metadata);
     $active = new Subscription('https://example.com/feed', 'active@example.com');
@@ -103,9 +124,15 @@ test('findActiveSubscriptionsFor returns only active subs', function () use (&$d
     \assert(isset($results[0]));
     expect($results[0]->email)->toEqual('active@example.com');
 });
+
+/**
+ * @throws \SimpleNewsletter\Components\EndUserException
+ * @throws \Random\RandomException
+ */
 test('findActiveSubscriptionsFor returns empty array for feed with no active subscriptions', function () use (
     &$dao,
 ): void {
+    \assert($dao instanceof SubscriptionsDAO);
     $metadata = new FeedMetadata('https://example.com/feed', 'Test', 'https://example.com', new \DateTimeImmutable());
     $feed = new Feed($metadata);
     // No subscriptions added for this feed

@@ -20,7 +20,6 @@ use SimpleNewsletter\Templates\Email\EmailInterface;
 test(
     'constructor sets up PHPMailer correctly',
     /** @throws PHPMailerException */ function (): void {
-        /** @var PHPMailer&\Mockery\MockInterface $mailer */
         $mailer = \Mockery::mock(PHPMailer::class);
 
         $mailer->shouldReceive('isSMTP')->once();
@@ -47,7 +46,6 @@ test(
 test(
     'constructor sets up PHPMailer SMTP configuration',
     /** @throws PHPMailerException */ function (): void {
-        /** @var PHPMailer&\Mockery\MockInterface $mailer */
         $mailer = \Mockery::mock(PHPMailer::class);
 
         // Constructor expectations — these fire when SenderPHPMailer is instantiated
@@ -73,7 +71,6 @@ test(
 test(
     'send calls the expected sequence on PHPMailer',
     /** @throws PHPMailerException|EndUserException */ function (): void {
-        /** @var PHPMailer&\Mockery\MockInterface $mailer */
         $mailer = \Mockery::mock(PHPMailer::class);
 
         // Constructor expectations — these fire when SenderPHPMailer is instantiated
@@ -89,7 +86,6 @@ test(
 
         $sender = new SenderPHPMailer($config, $mailer);
 
-        /** @var EmailInterface&\Mockery\MockInterface $email */
         $email = \Mockery::mock(EmailInterface::class);
         $email->shouldReceive('recipient')->andReturn('test@example.com');
         $email->shouldReceive('subject')->andReturn('Test Subject');

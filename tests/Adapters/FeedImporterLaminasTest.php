@@ -57,7 +57,8 @@ test('fetchWithPosts uses real import for valid feed', function (): void {
 
     $posts = \iterator_to_array($result->posts);
     expect($posts)->toHaveCount(1);
-    expect($posts[0]?->title)->toEqual('First Post');
+    \assert(isset($posts[0]));
+    expect($posts[0]->title)->toEqual('First Post');
 });
 
 test('fetchNew wraps invalid feed content in EndUserException', function (): void {
@@ -92,7 +93,6 @@ function configure_feed_iterator(FeedInterface $mock, array $entries): void
 }
 
 test('fetchNew creates Feed with correct URI, title and link (mock)', function (): void {
-    /** @var FeedInterface<EntryInterface>&\Mockery\MockInterface $sourceFeed */
     $sourceFeed = \Mockery::mock(FeedInterface::class);
     $sourceFeed->shouldReceive('getTitle')->andReturn('Test Feed Title');
     $sourceFeed->shouldReceive('getLink')->andReturn('https://example.com');
@@ -116,7 +116,6 @@ test('fetchNew creates Feed with correct URI, title and link (mock)', function (
 });
 
 test('fetch preserves lastSentPostUri from input Feed (mock)', function (): void {
-    /** @var FeedInterface<EntryInterface>&\Mockery\MockInterface $sourceFeed */
     $sourceFeed = \Mockery::mock(FeedInterface::class);
     $sourceFeed->shouldReceive('getTitle')->andReturn('Updated Title');
     $sourceFeed->shouldReceive('getLink')->andReturn('https://example.com');
@@ -142,7 +141,6 @@ test('fetch preserves lastSentPostUri from input Feed (mock)', function (): void
 });
 
 test('fetchWithPosts yields Post objects with sanitized content (mock)', function (): void {
-    /** @var EntryInterface&\Mockery\MockInterface $entry */
     $entry = \Mockery::mock(EntryInterface::class);
     $entry->shouldReceive('getPermalink')->andReturn('https://example.com/post1');
     $entry->shouldReceive('getLink')->andReturn('https://example.com/post1');
@@ -150,7 +148,6 @@ test('fetchWithPosts yields Post objects with sanitized content (mock)', functio
     $entry->shouldReceive('getContent')->andReturn('<p>Hello</p><script>alert("xss")</script>');
 
     $entries = [$entry];
-    /** @var FeedInterface<EntryInterface>&\Mockery\MockInterface $sourceFeed */
     $sourceFeed = \Mockery::mock(FeedInterface::class);
     $sourceFeed->shouldReceive('getTitle')->andReturn('Test Feed');
     $sourceFeed->shouldReceive('getLink')->andReturn('https://example.com');
@@ -175,23 +172,21 @@ test('fetchWithPosts yields Post objects with sanitized content (mock)', functio
     $posts = \iterator_to_array($resultFeed->posts);
 
     expect($posts)->toHaveCount(1);
+    \assert(isset($posts[0]));
     expect($posts[0])->toBeInstanceOf(Post::class);
-    expect($posts[0]?->uri)->toEqual('https://example.com/post1');
-    expect($posts[0]?->title)->toEqual('Post One');
-    expect($posts[0]?->content)->not->toContain('<script');
-    expect($posts[0]?->content)->toContain('<p>Hello</p>');
+    expect($posts[0]->uri)->toEqual('https://example.com/post1');
+    expect($posts[0]->title)->toEqual('Post One');
+    expect($posts[0]->content)->not->toContain('<script');
+    expect($posts[0]->content)->toContain('<p>Hello</p>');
 });
 
 test('fetchWithPosts falls back to getLink when getPermalink returns null (mock)', function (): void {
-    /** @var EntryInterface&\Mockery\MockInterface $entry */
     $entry = \Mockery::mock(EntryInterface::class);
-    $entry->shouldReceive('getPermalink')->andReturn(null);
     $entry->shouldReceive('getLink')->andReturn('https://example.com/fallback-link');
     $entry->shouldReceive('getTitle')->andReturn('Fallback Post');
     $entry->shouldReceive('getContent')->andReturn('<p>content</p>');
 
     $entries = [$entry];
-    /** @var FeedInterface<EntryInterface>&\Mockery\MockInterface $sourceFeed */
     $sourceFeed = \Mockery::mock(FeedInterface::class);
     $sourceFeed->shouldReceive('getTitle')->andReturn('Test Feed');
     $sourceFeed->shouldReceive('getLink')->andReturn('https://example.com');
@@ -216,5 +211,6 @@ test('fetchWithPosts falls back to getLink when getPermalink returns null (mock)
     $posts = \iterator_to_array($resultFeed->posts);
 
     expect($posts)->toHaveCount(1);
-    expect($posts[0]?->uri)->toEqual('https://example.com/fallback-link');
+    \assert(isset($posts[0]));
+    expect($posts[0]->uri)->toEqual('https://example.com/fallback-link');
 });

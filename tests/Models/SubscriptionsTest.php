@@ -391,6 +391,7 @@ it('sendScheduled handles multiple scheduled feeds', function (): void {
     $subscriptionsDAO
         ->shouldReceive('findActiveSubscriptionsFor')
         ->times(2)
+        /** @return array<int, \SimpleNewsletter\Data\Subscription> */
         ->andReturnUsing(function (Feed $feedWithPosts) use ($feedWithPosts1, $feedWithPosts2, $sub1, $sub2): array {
             if ($feedWithPosts === $feedWithPosts1) {
                 return [$sub1];

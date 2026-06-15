@@ -7,6 +7,7 @@ require_once __DIR__ . '/bootstrap.php';
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Contracts\HttpClient\ResponseInterface;
 
+/** @param array<string, mixed> $queryParams */
 function e2e_sub_get(string $path, array $queryParams = []): ResponseInterface
 {
     static $client = null;
@@ -27,6 +28,7 @@ beforeEach(function (): void {
     \call_user_func('init_test_database', \getenv('NEWSLETTER_DB_PATH'));
 });
 
+/** @throws \Exception */
 it('completes subscription flow end-to-end', function (): void {
     // 1. Initial subscription request
     $response = e2e_sub_get('/v1/subscriptions/', [
@@ -74,6 +76,7 @@ it('completes subscription flow end-to-end', function (): void {
     expect($confirmedSub['active'])->toBe(1);
 });
 
+/** @throws \Exception */
 it('rejects invalid feed URI', function (): void {
     $response = e2e_sub_get('/v1/subscriptions/', [
         'uri' => 'not-a-valid-url',
@@ -85,6 +88,7 @@ it('rejects invalid feed URI', function (): void {
     expect($content)->toContain('Invalid');
 });
 
+/** @throws \Exception */
 it('rejects missing required fields', function (): void {
     $response = e2e_sub_get('/v1/subscriptions/', [
         'uri' => 'https://example.com/feed.xml',
