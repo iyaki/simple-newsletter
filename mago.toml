@@ -70,9 +70,9 @@ no-literal-password = { exclude = ["tests/*"]}
 plugins = ["stdlib"]
 
 ignore = [
-	{ code = "non-existent-method", in = "tests/*" },
-	{ code = "non-documented-method", in = "tests/*" },
-	{ code = "mixed-method-access", in = "tests/*" }
+	{ code = "non-existent-method", pattern = "Mockery", in = "tests/*" },
+	{ code = "non-documented-method", pattern = "Mockery", in = "tests/*" },
+	{ code = "mixed-method-access", pattern = "Mockery", in = "tests/*" }
 ]
 
 find-unused-expressions = true

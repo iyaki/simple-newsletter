@@ -66,7 +66,7 @@ beforeEach(
             'test@example.com',
             1,
         ]);
-    }
+    },
 );
 
 it(
@@ -95,7 +95,7 @@ it(
         /** @var array<string, mixed> $sub */
         $sub = $stmt->fetch(\PDO::FETCH_ASSOC);
         expect($sub['active'] ?? 0)->toBe(0);
-    }
+    },
 );
 
 it(
@@ -109,5 +109,5 @@ it(
         ]);
 
         expect($response->getStatusCode())->toBe(400);
-    }
+    },
 );

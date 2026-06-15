@@ -18,7 +18,15 @@ require __DIR__ . '/../../vendor/autoload.php';
  * @throws \PDOException
  * @throws \RuntimeException
  */
-if (! function_exists('initTestDatabase')) {
+if (! function_exists('init_test_database')) {
+    /**
+     * Initialize test database with fresh schema
+     *
+     * @param string $dbPath Path to the test database file
+     *
+     * @throws \PDOException
+     * @throws \RuntimeException
+     */
     function init_test_database(string $dbPath): void
     {
         if (\file_exists($dbPath)) {
@@ -59,8 +67,11 @@ if (! function_exists('initTestDatabase')) {
  * @throws \Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface
  * @throws \Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface
  */
-function http_get(string $path, array $queryParams = [], array $headers = []): \Symfony\Contracts\HttpClient\ResponseInterface
-{
+function http_get(
+    string $path,
+    array $queryParams = [],
+    array $headers = [],
+): \Symfony\Contracts\HttpClient\ResponseInterface {
     static $httpClient = null;
     static $baseUrl = 'http://localhost:8080';
 

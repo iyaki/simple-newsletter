@@ -296,10 +296,7 @@ it('sendScheduled gets scheduled feeds, fetches posts, and sends to subscribers'
         ->with($feedWithPosts)
         ->andReturn([$activeSub1, $activeSub2]);
 
-    $newsletter
-        ->shouldReceive('sendPostToSubscribers')
-        ->once()
-        ->with($feedWithPosts, $post1, $activeSub1, $activeSub2);
+    $newsletter->shouldReceive('sendPostToSubscribers')->once()->with($feedWithPosts, $post1, $activeSub1, $activeSub2);
 
     $feeds->shouldReceive('updateLastSentPost')->once()->with($feedWithPosts, $post1);
 
@@ -408,7 +405,14 @@ it('sendScheduled handles multiple scheduled feeds', function (): void {
     $newsletter
         ->shouldReceive('sendPostToSubscribers')
         ->times(2)
-        ->andReturnUsing(function (Feed $feed, Post $post, Subscription ...$subs) use ($feedWithPosts1, $feedWithPosts2, $post1, $post2, $sub1, $sub2): void {
+        ->andReturnUsing(function (Feed $feed, Post $post, Subscription ...$subs) use (
+            $feedWithPosts1,
+            $feedWithPosts2,
+            $post1,
+            $post2,
+            $sub1,
+            $sub2,
+        ): void {
             if ($feed === $feedWithPosts1 && $post === $post1 && $subs === [$sub1]) {
                 return;
             }
@@ -420,7 +424,12 @@ it('sendScheduled handles multiple scheduled feeds', function (): void {
     $feeds
         ->shouldReceive('updateLastSentPost')
         ->times(2)
-        ->andReturnUsing(function (Feed $feed, Post $post) use ($feedWithPosts1, $feedWithPosts2, $post1, $post2): void {
+        ->andReturnUsing(function (Feed $feed, Post $post) use (
+            $feedWithPosts1,
+            $feedWithPosts2,
+            $post1,
+            $post2,
+        ): void {
             if ($feed === $feedWithPosts1 && $post === $post1) {
                 return;
             }

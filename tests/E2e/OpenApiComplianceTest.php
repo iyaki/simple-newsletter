@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/bootstrap.php';
 
-
 it('returns valid JSON error response structure', function (): void {
+    /** @phpstan-ignore-next-line */
     init_test_database(getenv('NEWSLETTER_DB_PATH'));
 
     // Test with invalid URI - should return 400 with valid error structure
@@ -29,6 +29,7 @@ it('returns valid JSON error response structure', function (): void {
 });
 
 it('returns valid structure for missing required parameters', function (): void {
+    /** @phpstan-ignore-next-line */
     init_test_database(getenv('NEWSLETTER_DB_PATH'));
 
     $response = http_get('/v1/subscriptions/', [
@@ -77,16 +78,22 @@ it('returns 404 for unknown routes with valid error structure', function (): voi
 it('returns valid confirmation response structure', function (): void {
     init_test_database(getenv('NEWSLETTER_DB_PATH'));
 
-    $pdo = new \PDO('sqlite:' . getenv('NEWSLETTER_DB_PATH'));
+    $dbPath = getenv('NEWSLETTER_DB_PATH');
+    assert($dbPath !== false, 'NEWSLETTER_DB_PATH not set');
+    $pdo = new \PDO('sqlite:' . $dbPath);
     $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
-    $pdo->prepare('INSERT INTO feeds (uri, title, link, last_update, trigger_hour) VALUES (?, ?, ?, ?, ?)')->execute([
+    $stmt = $pdo->prepare('INSERT INTO feeds (uri, title, link, last_update, trigger_hour) VALUES (?, ?, ?, ?, ?)');
+    assert($stmt !== false);
+    $stmt->execute([
         'https://example.com/feed.xml',
         'Test Feed',
         'https://example.com',
         time(),
         12,
     ]);
-    $pdo->prepare('INSERT INTO subscriptions (feed_uri, email, active) VALUES (?, ?, ?)')->execute([
+    $stmt = $pdo->prepare('INSERT INTO subscriptions (feed_uri, email, active) VALUES (?, ?, ?)');
+    assert($stmt !== false);
+    $stmt->execute([
         'https://example.com/feed.xml',
         'test@example.com',
         0,
@@ -105,10 +112,11 @@ it('returns valid confirmation response structure', function (): void {
     $contentType = $response->getHeaders()['content-type'][0] ?? '';
 
     // Check for X-Robots-Tag header per OpenAPI spec
+    // Check for X-Robots-Tag header per OpenAPI spec
     $headers = $response->getHeaders();
     expect($headers)->toHaveKey('x-robots-tag');
-    expect($headers['x-robots-tag'][0])->toContain('noindex');
-
+    $xRobotsTag = $headers['x-robots-tag'][0] ?? '';
+    expect($xRobotsTag)->toContain('noindex');
     // Response body should be HTML or JSON
     if (str_contains($contentType, 'application/json')) {
         $body = to_array_safe($response);
@@ -143,16 +151,22 @@ it('returns valid error structure for invalid confirmation token', function (): 
 it('returns valid cancellation response structure', function (): void {
     init_test_database(getenv('NEWSLETTER_DB_PATH'));
 
-    $pdo = new \PDO('sqlite:' . getenv('NEWSLETTER_DB_PATH'));
+    $dbPath = getenv('NEWSLETTER_DB_PATH');
+    assert($dbPath !== false, 'NEWSLETTER_DB_PATH not set');
+    $pdo = new \PDO('sqlite:' . $dbPath);
     $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
-    $pdo->prepare('INSERT INTO feeds (uri, title, link, last_update, trigger_hour) VALUES (?, ?, ?, ?, ?)')->execute([
+    $stmt = $pdo->prepare('INSERT INTO feeds (uri, title, link, last_update, trigger_hour) VALUES (?, ?, ?, ?, ?)');
+    assert($stmt !== false);
+    $stmt->execute([
         'https://example.com/feed.xml',
         'Test Feed',
         'https://example.com',
         time(),
         12,
     ]);
-    $pdo->prepare('INSERT INTO subscriptions (feed_uri, email, active) VALUES (?, ?, ?)')->execute([
+    $stmt = $pdo->prepare('INSERT INTO subscriptions (feed_uri, email, active) VALUES (?, ?, ?)');
+    assert($stmt !== false);
+    $stmt->execute([
         'https://example.com/feed.xml',
         'test@example.com',
         1,
@@ -172,8 +186,8 @@ it('returns valid cancellation response structure', function (): void {
 
     // Check for X-Robots-Tag header per OpenAPI spec
     expect($headers)->toHaveKey('x-robots-tag');
-    expect($headers['x-robots-tag'][0])->toContain('noindex');
-
+    $xRobotsTag = $headers['x-robots-tag'][0] ?? '';
+    expect($xRobotsTag)->toContain('noindex');
     $contentType = $response->getHeaders()['content-type'][0] ?? '';
     if (str_contains($contentType, 'application/json')) {
         $body = to_array_safe($response);

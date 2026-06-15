@@ -80,7 +80,10 @@ test('update modifies feed fields', function () use (&$dao): void {
     expect($found->lastSentPostUri)->toEqual('https://example.com/last-post');
 });
 
-test('getScheduled returns feeds for matching trigger hour with active subscriptions', function () use (&$db, &$dao): void {
+test('getScheduled returns feeds for matching trigger hour with active subscriptions', function () use (
+    &$db,
+    &$dao,
+): void {
     /**
      * @throws \SimpleNewsletter\Components\EndUserException
      */

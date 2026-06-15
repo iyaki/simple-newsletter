@@ -59,6 +59,7 @@ function seed_feed(\PDO $db): FeedsDAO
     $dao->new(new Feed($metadata));
     return $dao;
 }
+
 /**
  * @throws \SimpleNewsletter\Components\EndUserException
  */
@@ -67,6 +68,7 @@ function seed_subscription(\PDO $db): void
     $dao = new SubscriptionsDAO($db);
     $dao->new(new Subscription(TEST_FEED_URI, TEST_EMAIL));
 }
+
 /**
  * @throws \SimpleNewsletter\Components\EndUserException
  */
@@ -149,7 +151,6 @@ describe('Cancellation flow', function (): void {
         seed_feed($db);
         seed_subscription($db);
         activate_subscription($db);
-
 
         // Verify by deactivating
         $subsDao = new SubscriptionsDAO($db);

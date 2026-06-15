@@ -46,6 +46,21 @@ trait OpenApiValidator
      * @throws \Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface
      * @throws \Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface
      */
+    /**
+     * Validate response against OpenAPI spec
+     *
+     * @param array<string, mixed> $_requestParams Request parameters used
+     * @return array{valid: bool, errors: list<string>}
+     *
+     * @throws \Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface
+     * @throws \Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface
+     * @throws \Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface
+     * @throws \Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface
+     * @throws \Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface
+     * @throws \cebe\openapi\exceptions\TypeErrorException
+     * @throws \cebe\openapi\exceptions\IOException
+     * @throws \cebe\openapi\exceptions\UnresolvableReferenceException
+     */
     public static function validateResponse(
         string $method,
         string $path,
@@ -55,11 +70,6 @@ trait OpenApiValidator
         $spec = self::loadOpenApiSpec();
         $errors = [];
         $statusCode = (string) $response->getStatusCode();
-
-        if ($spec === null) {
-            return ['valid' => false, 'errors' => ['OpenAPI spec could not be loaded']];
-        }
-
         $operation = self::findOperation($spec, $method, $path);
         if ($operation === null) {
             $errors[] = "No matching operation found for {$method} {$path}";
@@ -85,11 +95,10 @@ trait OpenApiValidator
             /** @var array<string, mixed> $body */
             $body = $response->toArray();
             /** @var \cebe\openapi\spec\Schema $schema */
-            $schema = $contentSpec[$matchedMediaType]->schema;
-            if ($schema !== null) {
-                $bodyErrors = self::validateBodySchema($body, $schema);
-                $errors = array_merge($errors, $bodyErrors);
-            }
+            $schemaObj = $contentSpec[$matchedMediaType]->schema;
+            assert($schemaObj instanceof \cebe\openapi\spec\Schema);
+            $bodyErrors = self::validateBodySchema($body, $schemaObj);
+            $errors = array_merge($errors, $bodyErrors);
         }
 
         return ['valid' => $errors === [], 'errors' => $errors];

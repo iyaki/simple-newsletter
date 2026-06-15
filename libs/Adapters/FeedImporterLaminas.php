@@ -16,7 +16,7 @@ use SimpleNewsletter\Data\Post;
 use Symfony\Component\HtmlSanitizer\HtmlSanitizer;
 use Symfony\Component\HtmlSanitizer\HtmlSanitizerConfig;
 
-readonly class FeedImporterLaminas implements FeedImporter
+final readonly class FeedImporterLaminas implements FeedImporter
 {
     /** @throws EndUserException */
     #[\Override]

@@ -14,15 +14,25 @@ trait OpenApiPathMatcher
     /**
      * Find matching operation for method and path
      */
+    /**
+     * Find matching operation for method and path
+     *
+     * @param \cebe\openapi\spec\OpenApi $spec
+     * @return object|null
+     */
     private static function findOperation(OpenApi $spec, string $method, string $path): ?object
     {
         $methodLower = \strtolower($method);
+        $methodLower = \strtolower($method);
+        /** @var \cebe\openapi\spec\PathItem $pathItem */
         foreach ($spec->paths as $specPath => $pathItem) {
-            if (! self::pathMatches($path, $specPath)) {
+            if (! self::pathMatches($path, (string) $specPath)) {
                 continue;
             }
-            if ($pathItem->$methodLower !== null) {
-                return $pathItem->$methodLower;
+            /** @var object|null $methodSpec */
+            $methodSpec = $pathItem->$methodLower;
+            if ($methodSpec !== null) {
+                return $methodSpec;
             }
         }
         return null;
@@ -31,13 +41,25 @@ trait OpenApiPathMatcher
     /**
      * Find response spec for status code
      */
+    /**
+     * Find response spec for status code
+     *
+     * @param object $operation
+     * @return object|null
+     */
     private static function findResponseSpec(object $operation, string $statusCode): ?object
     {
-        if ($operation->responses->$statusCode !== null) {
-            return $operation->responses->$statusCode;
+        /** @var \cebe\openapi\spec\Responses $responses */
+        $responses = $operation->responses;
+        /** @var object|null $responseSpec */
+        $responseSpec = $responses->$statusCode;
+        if ($responseSpec !== null) {
+            return $responseSpec;
         }
-        if ($operation->responses->default !== null) {
-            return $operation->responses->default;
+        // Check for default response using array access
+        $responsesArray = $responses->getResponse('default');
+        if ($responsesArray !== null) {
+            return $responsesArray;
         }
         return null;
     }

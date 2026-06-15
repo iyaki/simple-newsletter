@@ -1,11 +1,12 @@
+<?php
+
+declare(strict_types=1);
+
 /**
  * @throws \Symfony\Component\Process\Exception\LogicException
  * @throws \Symfony\Component\Process\Exception\RuntimeException
  * @throws \Symfony\Component\Process\Exception\ProcessStartFailedException
  */
-<?php
-
-declare(strict_types=1);
 
 use Laminas\Feed\Reader\Entry\EntryInterface;
 use Laminas\Feed\Reader\Feed\FeedInterface;
@@ -45,7 +46,12 @@ test('fetchNew uses real import for valid feed', function (): void {
 
 test('fetchWithPosts uses real import for valid feed', function (): void {
     $importer = new FeedImporterLaminas();
-    $metadata = new \SimpleNewsletter\Data\FeedMetadata(FEED_TEST_BASE . '/valid.xml', '', 'https://example.com', new \DateTimeImmutable());
+    $metadata = new \SimpleNewsletter\Data\FeedMetadata(
+        FEED_TEST_BASE . '/valid.xml',
+        '',
+        'https://example.com',
+        new \DateTimeImmutable(),
+    );
     $feed = new Feed($metadata, null, []);
     $result = $importer->fetchWithPosts($feed);
 
@@ -56,7 +62,9 @@ test('fetchWithPosts uses real import for valid feed', function (): void {
 
 test('fetchNew wraps invalid feed content in EndUserException', function (): void {
     $importer = new FeedImporterLaminas();
-    expect(fn () => $importer->fetchNew(FEED_TEST_BASE . '/invalid.txt'))->toThrow(EndUserException::class);
+    expect(static function () use ($importer): void {
+        $importer->fetchNew(FEED_TEST_BASE . '/invalid.txt');
+    })->toThrow(EndUserException::class);
 });
 
 // ─── Test double tests (mock import) ──────────────────────────────────────
@@ -84,15 +92,22 @@ function configure_feed_iterator(FeedInterface $mock, array $entries): void
 }
 
 test('fetchNew creates Feed with correct URI, title and link (mock)', function (): void {
-    /** @var FeedInterface<EntryInterface>|\Mockery\MockInterface $sourceFeed */
+    /** @var FeedInterface<EntryInterface>&\Mockery\MockInterface $sourceFeed */
     $sourceFeed = \Mockery::mock(FeedInterface::class);
     $sourceFeed->shouldReceive('getTitle')->andReturn('Test Feed Title');
     $sourceFeed->shouldReceive('getLink')->andReturn('https://example.com');
 
     $importer = new TestFeedImporter();
-    $importer->setMockFeed($sourceFeed);
+    /** @phpstan-var FeedInterface<EntryInterface> $mockFeed */
+    $mockFeed = $sourceFeed;
+    $importer->setMockFeed($mockFeed);
 
-    $metadata = new \SimpleNewsletter\Data\FeedMetadata('https://example.com/feed', 'Test Feed Title', 'https://example.com', new \DateTimeImmutable());
+    $metadata = new \SimpleNewsletter\Data\FeedMetadata(
+        'https://example.com/feed',
+        'Test Feed Title',
+        'https://example.com',
+        new \DateTimeImmutable(),
+    );
     $feed = $importer->fetchNew('https://example.com/feed');
 
     expect($feed->getUri())->toEqual('https://example.com/feed');
@@ -101,16 +116,23 @@ test('fetchNew creates Feed with correct URI, title and link (mock)', function (
 });
 
 test('fetch preserves lastSentPostUri from input Feed (mock)', function (): void {
-    /** @var FeedInterface<EntryInterface>|\Mockery\MockInterface $sourceFeed */
+    /** @var FeedInterface<EntryInterface>&\Mockery\MockInterface $sourceFeed */
     $sourceFeed = \Mockery::mock(FeedInterface::class);
     $sourceFeed->shouldReceive('getTitle')->andReturn('Updated Title');
     $sourceFeed->shouldReceive('getLink')->andReturn('https://example.com');
 
-    $metadata = new \SimpleNewsletter\Data\FeedMetadata('https://example.com/feed', 'Old Title', 'https://example.com', new \DateTimeImmutable());
+    $metadata = new \SimpleNewsletter\Data\FeedMetadata(
+        'https://example.com/feed',
+        'Old Title',
+        'https://example.com',
+        new \DateTimeImmutable(),
+    );
     $inputFeed = new Feed($metadata, 'https://example.com/last-post', []);
 
     $importer = new TestFeedImporter();
-    $importer->setMockFeed($sourceFeed);
+    /** @phpstan-var FeedInterface<EntryInterface> $mockFeed */
+    $mockFeed = $sourceFeed;
+    $importer->setMockFeed($mockFeed);
 
     $feed = $importer->fetch($inputFeed);
 
@@ -120,7 +142,7 @@ test('fetch preserves lastSentPostUri from input Feed (mock)', function (): void
 });
 
 test('fetchWithPosts yields Post objects with sanitized content (mock)', function (): void {
-    /** @var EntryInterface|\Mockery\MockInterface $entry */
+    /** @var EntryInterface&\Mockery\MockInterface $entry */
     $entry = \Mockery::mock(EntryInterface::class);
     $entry->shouldReceive('getPermalink')->andReturn('https://example.com/post1');
     $entry->shouldReceive('getLink')->andReturn('https://example.com/post1');
@@ -128,17 +150,26 @@ test('fetchWithPosts yields Post objects with sanitized content (mock)', functio
     $entry->shouldReceive('getContent')->andReturn('<p>Hello</p><script>alert("xss")</script>');
 
     $entries = [$entry];
-    /** @var FeedInterface<EntryInterface>|\Mockery\MockInterface $sourceFeed */
+    /** @var FeedInterface<EntryInterface>&\Mockery\MockInterface $sourceFeed */
     $sourceFeed = \Mockery::mock(FeedInterface::class);
     $sourceFeed->shouldReceive('getTitle')->andReturn('Test Feed');
     $sourceFeed->shouldReceive('getLink')->andReturn('https://example.com');
-    configure_feed_iterator($sourceFeed, $entries);
+    /** @phpstan-var FeedInterface<EntryInterface> $mockFeedForIterator */
+    $mockFeedForIterator = $sourceFeed;
+    configure_feed_iterator($mockFeedForIterator, $entries);
 
-    $metadata = new \SimpleNewsletter\Data\FeedMetadata('https://example.com/feed', 'Test Feed', 'https://example.com', new \DateTimeImmutable());
+    $metadata = new \SimpleNewsletter\Data\FeedMetadata(
+        'https://example.com/feed',
+        'Test Feed',
+        'https://example.com',
+        new \DateTimeImmutable(),
+    );
     $inputFeed = new Feed($metadata, null, []);
 
     $importer = new TestFeedImporter();
-    $importer->setMockFeed($sourceFeed);
+    /** @phpstan-var FeedInterface<EntryInterface> $mockFeed */
+    $mockFeed = $sourceFeed;
+    $importer->setMockFeed($mockFeed);
 
     $resultFeed = $importer->fetchWithPosts($inputFeed);
     $posts = \iterator_to_array($resultFeed->posts);
@@ -148,11 +179,11 @@ test('fetchWithPosts yields Post objects with sanitized content (mock)', functio
     expect($posts[0]?->uri)->toEqual('https://example.com/post1');
     expect($posts[0]?->title)->toEqual('Post One');
     expect($posts[0]?->content)->not->toContain('<script');
-    expect($posts[0]->content)->toContain('<p>Hello</p>');
+    expect($posts[0]?->content)->toContain('<p>Hello</p>');
 });
 
 test('fetchWithPosts falls back to getLink when getPermalink returns null (mock)', function (): void {
-    /** @var EntryInterface|\Mockery\MockInterface $entry */
+    /** @var EntryInterface&\Mockery\MockInterface $entry */
     $entry = \Mockery::mock(EntryInterface::class);
     $entry->shouldReceive('getPermalink')->andReturn(null);
     $entry->shouldReceive('getLink')->andReturn('https://example.com/fallback-link');
@@ -160,17 +191,26 @@ test('fetchWithPosts falls back to getLink when getPermalink returns null (mock)
     $entry->shouldReceive('getContent')->andReturn('<p>content</p>');
 
     $entries = [$entry];
-    /** @var FeedInterface<EntryInterface>|\Mockery\MockInterface $sourceFeed */
+    /** @var FeedInterface<EntryInterface>&\Mockery\MockInterface $sourceFeed */
     $sourceFeed = \Mockery::mock(FeedInterface::class);
     $sourceFeed->shouldReceive('getTitle')->andReturn('Test Feed');
     $sourceFeed->shouldReceive('getLink')->andReturn('https://example.com');
-    configure_feed_iterator($sourceFeed, $entries);
+    /** @phpstan-var FeedInterface<EntryInterface> $mockFeedForIterator */
+    $mockFeedForIterator = $sourceFeed;
+    configure_feed_iterator($mockFeedForIterator, $entries);
 
-    $metadata = new \SimpleNewsletter\Data\FeedMetadata('https://example.com/feed', 'Test Feed', 'https://example.com', new \DateTimeImmutable());
+    $metadata = new \SimpleNewsletter\Data\FeedMetadata(
+        'https://example.com/feed',
+        'Test Feed',
+        'https://example.com',
+        new \DateTimeImmutable(),
+    );
     $inputFeed = new Feed($metadata, null, []);
 
     $importer = new TestFeedImporter();
-    $importer->setMockFeed($sourceFeed);
+    /** @phpstan-var FeedInterface<EntryInterface> $mockFeed */
+    $mockFeed = $sourceFeed;
+    $importer->setMockFeed($mockFeed);
 
     $resultFeed = $importer->fetchWithPosts($inputFeed);
     $posts = \iterator_to_array($resultFeed->posts);
