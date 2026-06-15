@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/bootstrap.php';
 
+/** @throws \Exception */
 it('returns HTML content type by default', function (): void {
     /**
      * @throws \Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface
@@ -22,6 +23,7 @@ it('returns HTML content type by default', function (): void {
     expect($headers['content-type'][0] ?? '')->toContain('text/html');
 });
 
+/** @throws \Exception */
 it('handles missing required parameters', function (): void {
     /**
      * @throws \Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface
@@ -33,6 +35,7 @@ it('handles missing required parameters', function (): void {
     expect($response->getStatusCode())->toBe(400);
 });
 
+/** @throws \Exception */
 it('returns 404 for unknown routes', function (): void {
     /**
      * @throws \Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface

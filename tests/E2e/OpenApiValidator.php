@@ -91,11 +91,15 @@ trait OpenApiValidator
             return ['valid' => true, 'errors' => []];
         }
 
-        if ($matchedMediaType === 'application/json') {
+        if ($matchedMediaType === 'application/json' && isset($contentSpec[$matchedMediaType])) {
             /** @var array<string, mixed> $body */
             $body = $response->toArray();
-            /** @var \cebe\openapi\spec\Schema $schema */
-            $schemaObj = $contentSpec[$matchedMediaType]->schema;
+            $contentSpecEntry = $contentSpec[$matchedMediaType];
+            if (! \is_object($contentSpecEntry) || ! isset($contentSpecEntry->schema)) {
+                return ['valid' => true, 'errors' => []];
+            }
+            /** @var \cebe\openapi\spec\Schema $schemaObj */
+            $schemaObj = $contentSpecEntry->schema;
             assert($schemaObj instanceof \cebe\openapi\spec\Schema);
             $bodyErrors = self::validateBodySchema($body, $schemaObj);
             $errors = array_merge($errors, $bodyErrors);

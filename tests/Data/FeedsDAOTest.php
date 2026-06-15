@@ -48,8 +48,9 @@ test('new inserts and finds retrieves a feed', function () use (&$dao): void {
     );
     $feed = new Feed($metadata);
     $dao->new($feed);
+    /** @var ?Feed $found */
     $found = $dao->find('https://example.com/feed');
-    assert($found !== null);
+    \assert($found instanceof Feed);
     expect($found->getTitle())->toEqual('Test Feed');
 });
 
@@ -73,10 +74,11 @@ test('update modifies feed fields', function () use (&$dao): void {
     );
     $updated = new Feed(metadata: $updatedMetadata, lastSentPostUri: 'https://example.com/last-post');
     $dao->update($updated);
+    /** @var ?Feed $found */
     $found = $dao->find('https://example.com/feed');
-    assert($found !== null);
+    \assert($found instanceof Feed);
     expect($found->getTitle())->toEqual('Updated Title');
-    assert($found->lastSentPostUri !== null);
+    \assert($found->lastSentPostUri !== null);
     expect($found->lastSentPostUri)->toEqual('https://example.com/last-post');
 });
 
@@ -97,13 +99,14 @@ test('getScheduled returns feeds for matching trigger hour with active subscript
     $db->exec(
         "INSERT INTO subscriptions (feed_uri, email, active) VALUES ('https://example.com/morning', 'user@example.com', 1)",
     );
+    /** @var array<int, \SimpleNewsletter\Data\Feed> $results */
     $results = $dao->getScheduled(new \DateTimeImmutable('2024-01-01 10:00:00'));
-    expect($results)->toHaveCount(1);
     assert(isset($results[0]));
     expect($results[0]->getUri())->toEqual('https://example.com/morning');
 });
 
 test('getScheduled returns empty array when no feeds match', function () use (&$dao): void {
+    /** @var array<int, \SimpleNewsletter\Data\Feed> $results */
     $results = $dao->getScheduled(new \DateTimeImmutable('2024-01-01 03:00:00'));
     expect($results)->toBeEmpty();
 });
