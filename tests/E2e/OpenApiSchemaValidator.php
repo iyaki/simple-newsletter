@@ -70,7 +70,7 @@ trait OpenApiSchemaValidator
                 continue;
             }
 
-            $typeValue = ($propSchema instanceof \cebe\openapi\spec\Schema) ? $propSchema->type : null;
+            $typeValue = $propSchema instanceof \cebe\openapi\spec\Schema ? $propSchema->type : null;
             $error = self::validatePropertyType($propName, $body[$propName] ?? null, $typeValue);
             if ($error !== null) {
                 $errors[] = $error;

@@ -41,12 +41,16 @@ it('completes subscription flow end-to-end', function (): void {
     expect($content)->toContain('email confirmation');
 
     // 2. Verify subscription created in DB (unconfirmed)
-    $pdo = new \PDO('sqlite:' . \getenv('NEWSLETTER_DB_PATH'));
+    $dbPath = \getenv('NEWSLETTER_DB_PATH');
+    assert(\is_string($dbPath) && $dbPath !== '');
+    $pdo = new \PDO('sqlite:' . $dbPath);
     $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
     $stmt = $pdo->prepare('SELECT * FROM subscriptions WHERE feed_uri = ? AND email = ?');
+    assert($stmt instanceof \PDOStatement);
     $stmt->execute(['https://example.com/feed.xml', 'test@example.com']);
+    /** @var array{active: int, ...}|false $sub */
     $sub = $stmt->fetch(\PDO::FETCH_ASSOC);
-    expect($sub)->not->toBeNull();
+    assert(\is_array($sub));
     expect($sub['active'])->toBe(0); // Unconfirmed
 
     // 3. Generate confirmation token
@@ -64,8 +68,9 @@ it('completes subscription flow end-to-end', function (): void {
     expect($confirmResponse->getStatusCode())->toBe(200);
 
     // 5. Verify subscription active in DB
-    $stmt->execute(['https://example.com/feed.xml', 'test@example.com']);
+    /** @var array{active: int, ...}|false $confirmedSub */
     $confirmedSub = $stmt->fetch(\PDO::FETCH_ASSOC);
+    assert(\is_array($confirmedSub));
     expect($confirmedSub['active'])->toBe(1);
 });
 

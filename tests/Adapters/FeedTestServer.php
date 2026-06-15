@@ -45,7 +45,7 @@ final class FeedTestServer
 
         for ($i = 0; $i < 15; $i++) {
             $errorCode = 0;
-            $errorString = "";
+            $errorString = '';
             $sock = @\fsockopen('127.0.0.1', FEED_TEST_SERVER_PORT, $errorCode, $errorString, 1);
             if (\is_resource($sock)) {
                 \fclose($sock);

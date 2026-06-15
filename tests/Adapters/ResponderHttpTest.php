@@ -2,11 +2,6 @@
 
 declare(strict_types=1);
 
-
-
-
-
-
 test('sendResponse with JsonResponse echoes body', function (): void {});
 
 test('responseBuilderFromContentNegotiation with application/json returns builder that creates JsonResponse', function (): void {});

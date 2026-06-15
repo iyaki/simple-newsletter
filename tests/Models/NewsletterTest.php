@@ -90,18 +90,8 @@ test('sendPostToSubscribers calls sender for each subscription', function (): vo
     $sub1 = new Subscription('https://example.com/feed', 'user1@example.com');
     $sub2 = new Subscription('https://example.com/feed', 'user2@example.com');
 
-    $template1 = new NewsletterTemplate(
-        $sub1,
-        $feed,
-        $post,
-        'https://example.com/cancel/user1',
-    );
-    $template2 = new NewsletterTemplate(
-        $sub2,
-        $feed,
-        $post,
-        'https://example.com/cancel/user2',
-    );
+    $template1 = new NewsletterTemplate($sub1, $feed, $post, 'https://example.com/cancel/user1');
+    $template2 = new NewsletterTemplate($sub2, $feed, $post, 'https://example.com/cancel/user2');
 
     $auth
         ->shouldReceive('hash')
@@ -117,7 +107,13 @@ test('sendPostToSubscribers calls sender for each subscription', function (): vo
     $emailTemplateFactory
         ->shouldReceive('createNewsletter')
         ->times(2)
-        ->andReturnUsing(function (Subscription $sub, Feed $_feed, Post $_post, string $_token) use ($template1, $template2): NewsletterTemplate {
+        ->andReturnUsing(function (
+            Subscription $sub,
+            Feed $_feed,
+            Post $_post,
+            #[\SensitiveParameter]
+            string $_token,
+        ) use ($template1, $template2): NewsletterTemplate {
             return match ($sub->email) {
                 'user1@example.com' => $template1,
                 'user2@example.com' => $template2,

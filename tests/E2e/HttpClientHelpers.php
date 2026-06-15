@@ -96,9 +96,7 @@ final readonly class HttpClientHelpers
         $content = self::getContentSafe($response);
         /** @var array<string, mixed>|null $decoded */
         $decoded = \json_decode($content, true);
-        $result = \is_array($decoded) ? $decoded : [];
-
-        return $result;
+        return \is_array($decoded) ? $decoded : [];
     }
 
     /**
