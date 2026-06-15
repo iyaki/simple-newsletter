@@ -12,7 +12,13 @@ use SimpleNewsletter\Adapters\SmtpSender;
 use SimpleNewsletter\Components\EndUserException;
 use SimpleNewsletter\Templates\Email\EmailInterface;
 
+/**
+ * @method \Mockery\ExpectationInterface once()
+ * @method \Mockery\ExpectationInterface with(mixed ...$args)
+ * @method \Mockery\ExpectationInterface andReturn(mixed $value)
+ */
 test('constructor sets up PHPMailer correctly', /** @throws PHPMailerException */ function (): void {
+    /** @var PHPMailer&\Mockery\MockInterface $mailer */
     $mailer = \Mockery::mock(PHPMailer::class);
 
     $mailer->shouldReceive('isSMTP')->once();
@@ -30,7 +36,13 @@ test('constructor sets up PHPMailer correctly', /** @throws PHPMailerException *
     expect($sender)->toBeInstanceOf(SenderPHPMailer::class);
 });
 
+/**
+ * @method \Mockery\ExpectationInterface once()
+ * @method \Mockery\ExpectationInterface with(mixed ...$args)
+ * @method \Mockery\ExpectationInterface andReturn(mixed $value)
+ */
 test('constructor sets up PHPMailer SMTP configuration', /** @throws PHPMailerException */ function (): void {
+    /** @var PHPMailer&\Mockery\MockInterface $mailer */
     $mailer = \Mockery::mock(PHPMailer::class);
 
     // Constructor expectations — these fire when SenderPHPMailer is instantiated
@@ -47,7 +59,14 @@ test('constructor sets up PHPMailer SMTP configuration', /** @throws PHPMailerEx
     $sender = new SenderPHPMailer($config, $mailer);
 });
 
+/**
+ * @method \Mockery\ExpectationInterface once()
+ * @method \Mockery\ExpectationInterface with(mixed ...$args)
+ * @method \Mockery\ExpectationInterface andReturn(mixed $value)
+ */
+#[\AllowDynamicProperties]
 test('send calls the expected sequence on PHPMailer', /** @throws PHPMailerException|EndUserException */ function (): void {
+    /** @var PHPMailer&\Mockery\MockInterface $mailer */
     $mailer = \Mockery::mock(PHPMailer::class);
 
     // Constructor expectations — these fire when SenderPHPMailer is instantiated
@@ -63,6 +82,7 @@ test('send calls the expected sequence on PHPMailer', /** @throws PHPMailerExcep
 
     $sender = new SenderPHPMailer($config, $mailer);
 
+    /** @var EmailInterface&\Mockery\MockInterface $email */
     $email = \Mockery::mock(EmailInterface::class);
     $email->shouldReceive('recipient')->andReturn('test@example.com');
     $email->shouldReceive('subject')->andReturn('Test Subject');

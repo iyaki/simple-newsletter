@@ -69,7 +69,11 @@ no-literal-password = { exclude = ["tests/*"]}
 [analyzer]
 plugins = ["stdlib"]
 
-# baseline = ".mago/analysis-baseline.toml"
+ignore = [
+	{ code = "non-existent-method", in = "tests/*" },
+	{ code = "non-documented-method", in = "tests/*" },
+	{ code = "mixed-method-access", in = "tests/*" }
+]
 
 find-unused-expressions = true
 find-unused-definitions = true
