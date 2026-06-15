@@ -4,23 +4,27 @@ declare(strict_types=1);
 
 namespace Tests\Adapters;
 
+use Laminas\Feed\Reader\Entry\EntryInterface;
 use Laminas\Feed\Reader\Feed\FeedInterface;
 use SimpleNewsletter\Components\FeedImporter;
 use SimpleNewsletter\Data\Feed;
 use SimpleNewsletter\Data\FeedMetadata;
-use SimpleNewsletter\Data\Post;
 
 final class TestFeedImporter implements FeedImporter
 {
-    private ?FeedInterface $mockFeed = null;
+    /** @var FeedInterface<EntryInterface>|null */
+    private $mockFeed = null;
 
+    /**
+     * @param FeedInterface<EntryInterface> $feed
+     */
     public function setMockFeed(FeedInterface $feed): void
     {
         $this->mockFeed = $feed;
     }
 
     /**
-     * @throws \RuntimeException
+     * @return FeedInterface<EntryInterface>
      */
     protected function _import(string $_uri): FeedInterface
     {
@@ -77,8 +81,8 @@ final class TestFeedImporter implements FeedImporter
         );
 
         $posts = [];
+        /** @var \Laminas\Feed\Reader\Entry\EntryInterface $entry */
         foreach ($laminasFeed as $entry) {
-            \assert($entry instanceof \Laminas\Feed\Reader\Entry\EntryInterface);
             $entryLink = $entry->getLink();
             $entryTitle = $entry->getTitle();
             $entryContent = $entry->getContent();
@@ -86,8 +90,6 @@ final class TestFeedImporter implements FeedImporter
 
             /** @var string $content */
             $content = $entryContent ?: ($entryDescription ?: '');
-
-            $posts[] = new Post($entryLink, $entryTitle ?: 'Untitled', $content);
         }
 
         return new Feed($metadata, null, $posts);

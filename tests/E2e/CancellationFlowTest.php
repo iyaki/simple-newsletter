@@ -45,7 +45,7 @@ beforeEach(
     /** @throws \PDOException */
     function (): void {
         e2e_cleanTestDatabase();
-        \call_user_func('initTestDatabase', \getenv('NEWSLETTER_DB_PATH'));
+        init_test_database((string) \getenv('NEWSLETTER_DB_PATH'));
 
         // Create active subscription with feed
         $pdo = new \PDO('sqlite:' . (string) \getenv('NEWSLETTER_DB_PATH'));

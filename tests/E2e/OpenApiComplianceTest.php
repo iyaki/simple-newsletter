@@ -6,12 +6,9 @@ require_once __DIR__ . '/bootstrap.php';
 
 /** @throws \Exception */
 it('returns valid JSON error response structure', function (): void {
-    /** @phpstan-ignore-next-line */
     $dbPath = getenv('NEWSLETTER_DB_PATH');
 
     assert(is_string($dbPath) && $dbPath !== '');
-
-    /** @phpstan-ignore-next-line */
 
     init_test_database($dbPath);
 
@@ -37,12 +34,9 @@ it('returns valid JSON error response structure', function (): void {
 
 /** @throws \Exception */
 it('returns valid structure for missing required parameters', function (): void {
-    /** @phpstan-ignore-next-line */
     $dbPath = getenv('NEWSLETTER_DB_PATH');
 
     assert(is_string($dbPath) && $dbPath !== '');
-
-    /** @phpstan-ignore-next-line */
 
     init_test_database($dbPath);
 
@@ -64,8 +58,6 @@ it('returns HTML by default (content negotiation)', function (): void {
 
     assert(is_string($dbPath) && $dbPath !== '');
 
-    /** @phpstan-ignore-next-line */
-
     init_test_database($dbPath);
 
     $response = http_get('/v1/subscriptions/', [
@@ -86,8 +78,6 @@ it('returns 404 for unknown routes with valid error structure', function (): voi
 
     assert(is_string($dbPath) && $dbPath !== '');
 
-    /** @phpstan-ignore-next-line */
-
     init_test_database($dbPath);
 
     $response = http_get('/nonexistent-endpoint');
@@ -107,8 +97,6 @@ it('returns valid confirmation response structure', function (): void {
     $dbPath = getenv('NEWSLETTER_DB_PATH');
 
     assert(is_string($dbPath) && $dbPath !== '');
-
-    /** @phpstan-ignore-next-line */
 
     init_test_database($dbPath);
 
@@ -167,8 +155,6 @@ it('returns valid error structure for invalid confirmation token', function (): 
 
     assert(is_string($dbPath) && $dbPath !== '');
 
-    /** @phpstan-ignore-next-line */
-
     init_test_database($dbPath);
 
     $response = http_get('/v1/subscriptions/confirmation/', [
@@ -185,7 +171,8 @@ it('returns valid error structure for invalid confirmation token', function (): 
     if (str_contains($contentType, 'application/json')) {
         $body = to_array_safe($response);
         expect($body)->toHaveKey('title');
-        expect(isset($body['title']) ? $body['title'] : null)->toContain('Invalid')->or(isset($body['title']) ? $body['title'] : null)->toContain('Error');
+        $title = $body['title'] ?? '';
+        expect(in_array($title, ['Invalid', 'Error'], true))->toBeTrue();
     }
 });
 
@@ -194,8 +181,6 @@ it('returns valid cancellation response structure', function (): void {
     $dbPath = getenv('NEWSLETTER_DB_PATH');
 
     assert(is_string($dbPath) && $dbPath !== '');
-
-    /** @phpstan-ignore-next-line */
 
     init_test_database($dbPath);
 
@@ -249,8 +234,6 @@ it('returns valid error structure for invalid cancellation token', function (): 
 
     assert(is_string($dbPath) && $dbPath !== '');
 
-    /** @phpstan-ignore-next-line */
-
     init_test_database($dbPath);
 
     $response = http_get('/v1/subscriptions/cancellation/', [
@@ -265,7 +248,8 @@ it('returns valid error structure for invalid cancellation token', function (): 
     if (str_contains($contentType, 'application/json')) {
         $body = to_array_safe($response);
         expect($body)->toHaveKey('title');
-        expect(isset($body['title']) ? $body['title'] : null)->toContain('Invalid')->or(isset($body['title']) ? $body['title'] : null)->toContain('Error');
+        $title = $body['title'] ?? '';
+        expect(in_array($title, ['Invalid', 'Error'], true))->toBeTrue();
     }
 });
 
@@ -274,8 +258,6 @@ it('validates JSON response when Accept header is set', function (): void {
     $dbPath = getenv('NEWSLETTER_DB_PATH');
 
     assert(is_string($dbPath) && $dbPath !== '');
-
-    /** @phpstan-ignore-next-line */
 
     init_test_database($dbPath);
 

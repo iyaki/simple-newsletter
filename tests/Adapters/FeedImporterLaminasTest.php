@@ -73,6 +73,7 @@ test('fetchNew wraps invalid feed content in EndUserException', function (): voi
 /**
  * Helper: configure a mock FeedInterface to yield the given entries on iteration.
  *
+ * @param FeedInterface<EntryInterface>&\Mockery\MockInterface $mock
  * @param list<EntryInterface> $entries
  * @throws \Random\RandomException
  */
@@ -151,7 +152,7 @@ test('fetchWithPosts yields Post objects with sanitized content (mock)', functio
     $sourceFeed = \Mockery::mock(FeedInterface::class);
     $sourceFeed->shouldReceive('getTitle')->andReturn('Test Feed');
     $sourceFeed->shouldReceive('getLink')->andReturn('https://example.com');
-    /** @phpstan-var FeedInterface<EntryInterface> $mockFeedForIterator */
+    /** @var FeedInterface<EntryInterface>&\Mockery\MockInterface $mockFeedForIterator */
     $mockFeedForIterator = $sourceFeed;
     configure_feed_iterator($mockFeedForIterator, $entries);
 
@@ -190,7 +191,7 @@ test('fetchWithPosts falls back to getLink when getPermalink returns null (mock)
     $sourceFeed = \Mockery::mock(FeedInterface::class);
     $sourceFeed->shouldReceive('getTitle')->andReturn('Test Feed');
     $sourceFeed->shouldReceive('getLink')->andReturn('https://example.com');
-    /** @phpstan-var FeedInterface<EntryInterface> $mockFeedForIterator */
+    /** @var FeedInterface<EntryInterface>&\Mockery\MockInterface $mockFeedForIterator */
     $mockFeedForIterator = $sourceFeed;
     configure_feed_iterator($mockFeedForIterator, $entries);
 

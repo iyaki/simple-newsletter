@@ -30,7 +30,7 @@ final readonly class Feeds
 
         if ($feed instanceof Feed) {
             $days = $feed->getLastUpdate()->diff(new \DateTimeImmutable())->days;
-            if ($days !== false && $days < 1) {
+            if ($days < 1) {
                 return $feed;
             }
 

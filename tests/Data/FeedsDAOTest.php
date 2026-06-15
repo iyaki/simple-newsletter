@@ -8,9 +8,6 @@ use SimpleNewsletter\Data\FeedsDAO;
 
 /** @var FeedsDAO|null $dao */
 $dao = null;
-/** @var \PDO|null $db */
-$db = null;
-
 beforeEach(function () use (&$db, &$dao): void {
     /**
      * @throws \PDOException

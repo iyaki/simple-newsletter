@@ -113,7 +113,8 @@ function get_content_safe(\Symfony\Contracts\HttpClient\ResponseInterface $respo
     try {
         $reflection = new \ReflectionClass($response);
         $property = $reflection->getProperty('body');
-        return (string) $property->getValue($response);
+        /** @var string $body */
+        return $property->getValue($response);
     } catch (\Exception) {
         return '';
     }
