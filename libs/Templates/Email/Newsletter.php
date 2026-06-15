@@ -26,7 +26,7 @@ final readonly class Newsletter implements EmailInterface
     #[\Override]
     public function subject(): string
     {
-        return $this->post->title . ' - ' . $this->feed->title;
+        return $this->post->title . ' - ' . $this->feed->getTitle();
     }
 
     #[\Override]

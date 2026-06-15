@@ -6,6 +6,7 @@ namespace SimpleNewsletter\Components;
 
 use SimpleNewsletter\Templates\Email\EmailInterface;
 
+/** @api */
 interface Sender
 {
     public function send(EmailInterface $template): void;

@@ -8,6 +8,7 @@ use SimpleNewsletter\Components\EndUserException;
 use SimpleNewsletter\Templates\ApiV1\HtmlResponse;
 use SimpleNewsletter\Templates\ApiV1\JsonResponse;
 use SimpleNewsletter\Templates\ApiV1\RedirectResponse;
+use SimpleNewsletter\Templates\ApiV1\ResponseBuilderInterface;
 use SimpleNewsletter\Templates\ApiV1\ResponseInterface;
 
 final class ResponderHttp
@@ -24,13 +25,13 @@ final class ResponderHttp
         }
 
         if (! $response->isOk() && ! $response instanceof RedirectResponse) {
-            \header(replace: true, response_code: 400, name: 'HTTP/1.0 400 Bad Request');
+            \header(header: 'HTTP/1.0 400 Bad Request', replace: true, response_code: 400);
         }
 
         echo $response->getBody();
     }
 
-    public function responseBuilderFromContentNegotiation(string $acceptHeaderValueAsString): object
+    public function responseBuilderFromContentNegotiation(string $acceptHeaderValueAsString): ResponseBuilderInterface
     {
         $acceptHeaderValues = \array_map(
             static fn (string $accept): string => \strtolower(\trim($accept)),
@@ -47,13 +48,16 @@ final class ResponderHttp
         ));
 
         $contentType = \reset($compatibleTypes);
-        $contentType ??= self::TYPE_JSON;
+        if ($contentType === false) {
+            $contentType = self::TYPE_JSON;
+        }
 
-        return new readonly class($contentType) {
+        return new readonly class($contentType) implements ResponseBuilderInterface {
             public function __construct(
                 private string $contentType,
             ) {}
 
+            #[\Override]
             public function fromString(
                 string $title,
                 string $message,
@@ -66,6 +70,7 @@ final class ResponderHttp
                 };
             }
 
+            #[\Override]
             public function fromEndUserException(EndUserException $exception, ?string $return = null): ResponseInterface
             {
                 return match ($this->contentType) {
@@ -76,9 +81,10 @@ final class ResponderHttp
         };
     }
 
-    public function responseBuilderFromRedirect(): object
+    public function responseBuilderFromRedirect(): ResponseBuilderInterface
     {
-        return new class {
+        return new class implements ResponseBuilderInterface {
+            #[\Override]
             public function fromString(
                 string $title,
                 string $message,
@@ -88,7 +94,8 @@ final class ResponderHttp
                 return RedirectResponse::fromString($title, $message, $return ?? '', $ok);
             }
 
-            public function fromEndUserException(EndUserException $exception, ?string $return): ResponseInterface
+            #[\Override]
+            public function fromEndUserException(EndUserException $exception, ?string $return = null): ResponseInterface
             {
                 return RedirectResponse::fromEndUserException($exception, $return ?? '');
             }

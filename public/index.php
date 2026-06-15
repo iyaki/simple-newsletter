@@ -62,7 +62,9 @@
                     <div>
                         <label>
                             Feed
-                            <input type="url" name="uri" value="<?= $_GET['feed'] ?? ''; ?>" required>
+                            <input type="url" name="uri" value="<?= \is_string($_GET['feed'] ?? null)
+                                ? $_GET['feed']
+                                : ''; ?>" required>
                         </label>
                         <label>
                             Email

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SimpleNewsletter\Templates\ApiV1;
 
+/** @api */
 interface ResponseInterface
 {
     public function getBody(): string;

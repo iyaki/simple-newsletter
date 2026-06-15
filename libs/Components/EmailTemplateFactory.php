@@ -30,7 +30,7 @@ final readonly class EmailTemplateFactory
             \sprintf(
                 '%s/v1/subscriptions/confirmation/?uri=%s&email=%s&token=%s',
                 $this->serviceHost,
-                \urlencode($feed->uri),
+                \urlencode($feed->getUri()),
                 \urlencode($recipient),
                 \urlencode($token),
             ),
@@ -51,7 +51,7 @@ final readonly class EmailTemplateFactory
             \sprintf(
                 '%s/v1/subscriptions/cancellation/?uri=%s&email=%s&token=%s',
                 $this->serviceHost,
-                \urlencode($feed->uri),
+                \urlencode($feed->getUri()),
                 \urlencode($subscription->email),
                 \urlencode($token),
             ),

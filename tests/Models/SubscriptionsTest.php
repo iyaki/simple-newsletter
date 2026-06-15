@@ -5,6 +5,7 @@ declare(strict_types=1);
 use SimpleNewsletter\Components\Auth;
 use SimpleNewsletter\Components\EndUserException;
 use SimpleNewsletter\Data\Feed;
+use SimpleNewsletter\Data\FeedMetadata;
 use SimpleNewsletter\Data\Post;
 use SimpleNewsletter\Data\Subscription;
 use SimpleNewsletter\Data\SubscriptionsDAO;
@@ -27,7 +28,7 @@ it('throws on invalid URI in add', function () {
 
 it('throws on invalid email in add', function () {
     $now = new DateTimeImmutable();
-    $feed = new Feed('https://example.com/feed', 'Test Feed', 'https://example.com', $now);
+    $feed = new Feed(new FeedMetadata('https://example.com/feed', 'Test Feed', 'https://example.com', $now));
 
     $this->feeds->expects($this->once())->method('retrieve')->with('https://example.com/feed')->willReturn($feed);
 
@@ -40,7 +41,7 @@ it('calls feeds->retrieve and newsletter->sendConfirmation on valid input', func
     $now = new DateTimeImmutable();
     $feedUri = 'https://example.com/feed';
     $email = 'user@example.com';
-    $feed = new Feed($feedUri, 'Test Feed', 'https://example.com', $now);
+    $feed = new Feed(new FeedMetadata($feedUri, 'Test Feed', 'https://example.com', $now));
 
     $this->feeds->expects($this->once())->method('retrieve')->with($feedUri)->willReturn($feed);
 
@@ -70,7 +71,7 @@ it('throws when subscription already active in add', function () {
     $now = new DateTimeImmutable();
     $feedUri = 'https://example.com/feed';
     $email = 'user@example.com';
-    $feed = new Feed($feedUri, 'Test Feed', 'https://example.com', $now);
+    $feed = new Feed(new FeedMetadata($feedUri, 'Test Feed', 'https://example.com', $now));
     $existingSub = new Subscription($feedUri, $email, true);
 
     $this->feeds->expects($this->once())->method('retrieve')->with($feedUri)->willReturn($feed);
@@ -181,10 +182,14 @@ it('sendScheduled gets scheduled feeds, fetches posts, and sends to subscribers'
     $datetime = new DateTimeImmutable();
     $feedUri = 'https://example.com/feed';
 
-    $scheduledFeed = new Feed($feedUri, 'Scheduled Feed', 'https://example.com', $datetime);
+    $scheduledFeed = new Feed(new FeedMetadata($feedUri, 'Scheduled Feed', 'https://example.com', $datetime));
 
     $post1 = new Post('https://example.com/post1', 'Post 1', 'Content 1');
-    $feedWithPosts = new Feed($feedUri, 'Scheduled Feed', 'https://example.com', $datetime, null, [$post1]);
+    $feedWithPosts = new Feed(
+        new FeedMetadata($feedUri, 'Scheduled Feed', 'https://example.com', $datetime),
+        lastSentPostUri: null,
+        posts: [$post1],
+    );
 
     $activeSub1 = new Subscription($feedUri, 'user1@example.com', true);
     $activeSub2 = new Subscription($feedUri, 'user2@example.com', true);
@@ -215,17 +220,14 @@ it('sendScheduled skips already-sent posts', function () {
     $datetime = new DateTimeImmutable();
     $feedUri = 'https://example.com/feed';
 
-    $scheduledFeed = new Feed($feedUri, 'Scheduled Feed', 'https://example.com', $datetime);
+    $scheduledFeed = new Feed(new FeedMetadata($feedUri, 'Scheduled Feed', 'https://example.com', $datetime));
 
     // lastSentPostUri matches the post URI so it should be skipped
     $post1 = new Post('https://example.com/post1', 'Post 1', 'Content 1');
     $feedWithPosts = new Feed(
-        $feedUri,
-        'Scheduled Feed',
-        'https://example.com',
-        $datetime,
-        'https://example.com/post1',
-        [$post1],
+        metadata: new FeedMetadata($feedUri, 'Scheduled Feed', 'https://example.com', $datetime),
+        lastSentPostUri: 'https://example.com/post1',
+        posts: [$post1],
     );
 
     $this->feeds->expects($this->once())->method('getScheduled')->with($datetime)->willReturn([$scheduledFeed]);
@@ -244,14 +246,20 @@ it('sendScheduled skips already-sent posts', function () {
 it('sendScheduled handles multiple scheduled feeds', function () {
     $datetime = new DateTimeImmutable();
 
-    $feed1 = new Feed('https://example.com/feed1', 'Feed 1', 'https://example.com', $datetime);
-    $feed2 = new Feed('https://example.com/feed2', 'Feed 2', 'https://example.com', $datetime);
+    $feed1 = new Feed(new FeedMetadata('https://example.com/feed1', 'Feed 1', 'https://example.com', $datetime));
+    $feed2 = new Feed(new FeedMetadata('https://example.com/feed2', 'Feed 2', 'https://example.com', $datetime));
 
     $post1 = new Post('https://example.com/post1', 'Post 1', 'Content 1');
     $post2 = new Post('https://example.com/post2', 'Post 2', 'Content 2');
 
-    $feedWithPosts1 = new Feed('https://example.com/feed1', 'Feed 1', 'https://example.com', $datetime, null, [$post1]);
-    $feedWithPosts2 = new Feed('https://example.com/feed2', 'Feed 2', 'https://example.com', $datetime, null, [$post2]);
+    $feedWithPosts1 = new Feed(
+        new FeedMetadata('https://example.com/feed1', 'Feed 1', 'https://example.com', $datetime),
+        posts: [$post1],
+    );
+    $feedWithPosts2 = new Feed(
+        new FeedMetadata('https://example.com/feed2', 'Feed 2', 'https://example.com', $datetime),
+        posts: [$post2],
+    );
 
     $sub1 = new Subscription('https://example.com/feed1', 'user1@example.com', true);
     $sub2 = new Subscription('https://example.com/feed2', 'user2@example.com', true);

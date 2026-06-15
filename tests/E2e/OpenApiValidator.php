@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\E2e;
 
+use cebe\openapi\Reader;
+use cebe\openapi\spec\OpenApi;
+use Symfony\Contracts\HttpClient\ResponseInterface;
+
 trait OpenApiValidator
 {
     use OpenApiSchemaValidator;
@@ -14,7 +18,7 @@ trait OpenApiValidator
     /**
      * Load and cache the OpenAPI spec
      */
-    private static function loadOpenApiSpec(): OpenApi
+    private static function loadOpenApiSpec(): ?OpenApi
     {
         if (self::$openApiSpec === null) {
             $specPath = __DIR__ . '/../../specs/api-internal.yaml';

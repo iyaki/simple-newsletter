@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SimpleNewsletter;
 
+use PHPMailer\PHPMailer\Exception;
 use SimpleNewsletter\Components\EndUserException;
 
 (static function (): never {
@@ -14,11 +15,11 @@ use SimpleNewsletter\Components\EndUserException;
     header('X-Robots-Tag: noindex, nofollow');
 
     try {
-        $email = $_GET['email'] ?? null;
-        $feedUri = $_GET['uri'] ?? null;
-        $token = $_GET['token'] ?? null;
+        $email = \is_string($_GET['email'] ?? null) ? $_GET['email'] : null;
+        $feedUri = \is_string($_GET['uri'] ?? null) ? $_GET['uri'] : null;
+        $token = \is_string($_GET['token'] ?? null) ? $_GET['token'] : null;
 
-        if (! ($email && $feedUri && $token)) {
+        if ($email === null || $feedUri === null || $token === null) {
             throw new EndUserException('Fields "email", "uri" and "token" are required');
         }
 
@@ -27,6 +28,12 @@ use SimpleNewsletter\Components\EndUserException;
         $responder->sendResponse($responseBuilder->fromString('Subscription successfully cancelled.', ''));
     } catch (EndUserException $endUserException) {
         $responder->sendResponse($responseBuilder->fromEndUserException($endUserException));
+    } catch (\PDOException|Exception $technicalException) {
+        $responder->sendResponse($responseBuilder->fromEndUserException(new EndUserException(
+            'A technical error occurred. Please try again later.',
+            0,
+            $technicalException,
+        )));
     }
 
     exit();

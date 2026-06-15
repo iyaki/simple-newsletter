@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SimpleNewsletter\Adapters;
 
 use PHPMailer\PHPMailer\PHPMailer;
+use SimpleNewsletter\Components\EndUserException;
 use SimpleNewsletter\Components\Sender;
 use SimpleNewsletter\Templates\Email\EmailInterface;
 
@@ -12,6 +13,9 @@ final readonly class SenderPHPMailer implements Sender
 {
     private PHPMailer $mailer;
 
+    /**
+     * @throws \PHPMailer\PHPMailer\Exception
+     */
     public function __construct(
         SmtpConfig $config,
         ?PHPMailer $mailer = null,
@@ -19,15 +23,15 @@ final readonly class SenderPHPMailer implements Sender
         $mailer ??= new PHPMailer(true);
 
         $mailer->isSMTP();
-        $mailer->SMTPSecure = $config->encryption;
+        $mailer->SMTPSecure = $config->connection->encryption;
         $mailer->SMTPKeepAlive = true;
-        $mailer->Host = $config->host;
-        $mailer->Port = $config->port;
+        $mailer->Host = $config->connection->host;
+        $mailer->Port = $config->connection->port;
         $mailer->SMTPAuth = true;
-        $mailer->Username = $config->user;
-        $mailer->Password = $config->password;
+        $mailer->Username = $config->credentials->user;
+        $mailer->Password = $config->credentials->password;
 
-        if ($config->allowSelfSigned) {
+        if ($config->connection->allowSelfSigned) {
             $mailer->SMTPOptions = [
                 'ssl' => [
                     'verify_peer' => false,
@@ -37,12 +41,15 @@ final readonly class SenderPHPMailer implements Sender
             ];
         }
 
-        $mailer->setFrom($config->from, 'Simple Newsletter');
-        $mailer->addReplyTo($config->replyTo, 'The Developer');
+        $mailer->setFrom($config->sender->from, 'Simple Newsletter');
+        $mailer->addReplyTo($config->sender->replyTo, 'The Developer');
 
         $this->mailer = $mailer;
     }
 
+    /**
+     * @throws EndUserException
+     */
     #[\Override]
     public function send(EmailInterface $template): void
     {
@@ -50,7 +57,7 @@ final readonly class SenderPHPMailer implements Sender
             $this->mailer->addAddress($template->recipient());
             $this->mailer->Subject = $template->subject();
             $this->mailer->isHTML();
-            $this->mailer->Body = \mb_convert_encoding($template->body(), encoding: '8bit');
+            $this->mailer->Body = \mb_convert_encoding($template->body(), to_encoding: '8bit') ?: '';
 
             $this->mailer->send();
 
