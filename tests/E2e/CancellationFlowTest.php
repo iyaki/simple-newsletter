@@ -4,58 +4,110 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/bootstrap.php';
 
-use Tests\E2e\DatabaseCleaner;
-use Tests\E2e\HttpClientHelpers;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
+use Symfony\Contracts\HttpClient\ResponseInterface;
 
-uses(HttpClientHelpers::class, DatabaseCleaner::class);
+/**
+ * @param array<string, string> $queryParams
+ * @throws TransportExceptionInterface
+ */
+function e2e_get_cancel(string $path, array $queryParams = []): ResponseInterface
+{
+    static $client = null;
+    if ($client === null) {
+        $client = \Symfony\Component\HttpClient\HttpClient::create(['base_uri' => 'http://localhost:8080']);
+    }
+    $url = $path;
+    if (\count($queryParams) > 0) {
+        $url .= '?' . \http_build_query($queryParams);
+    }
 
-beforeEach(function () {
-    $this->cleanDatabase();
-    initTestDatabase(\getenv('NEWSLETTER_DB_PATH'));
-
-    // Create active subscription with feed
-    $pdo = new \PDO('sqlite:' . getenv('NEWSLETTER_DB_PATH'));
-    $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
-    $pdo->prepare('INSERT INTO feeds (uri, title, link, last_update, trigger_hour) VALUES (?, ?, ?, ?, ?)')->execute([
-        'https://example.com/feed.xml',
-        'Test Feed',
-        'https://example.com',
-        time(),
-        12,
+    return $client->request('GET', $url, [
+        'headers' => [],
     ]);
-    $pdo->prepare('INSERT INTO subscriptions (feed_uri, email, active) VALUES (?, ?, ?)')->execute([
-        'https://example.com/feed.xml',
-        'test@example.com',
-        1,
-    ]);
-});
+}
 
-it('cancels subscription with valid token', function () {
-    $token = hash_hmac(algo: 'sha256', data: 'test@example.com', key: (string) getenv('SECRET_KEY'));
+/**
+ * @throws \PDOException
+ */
+function e2e_cleanTestDatabase(): void
+{
+    $dbPath = \getenv('NEWSLETTER_DB_PATH');
+    if ($dbPath && \file_exists($dbPath)) {
+        $pdo = new \PDO("sqlite:{$dbPath}");
+        $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+        $pdo->exec('DELETE FROM subscriptions');
+        $pdo->exec('DELETE FROM feeds');
+    }
+}
 
-    $response = self::get('/v1/subscriptions/cancellation/', [
-        'feed_uri' => 'https://example.com/feed.xml',
-        'email' => 'test@example.com',
-        'token' => $token,
-    ]);
+beforeEach(
+    /** @throws \PDOException */
+    function (): void {
+        e2e_cleanTestDatabase();
+        \call_user_func('initTestDatabase', \getenv('NEWSLETTER_DB_PATH'));
 
-    expect($response->getStatusCode())->toBe(200);
+        // Create active subscription with feed
+        $pdo = new \PDO('sqlite:' . (string) \getenv('NEWSLETTER_DB_PATH'));
+        $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+        /** @var \PDOStatement $stmt */
+        $stmt = $pdo->prepare('INSERT INTO feeds (uri, title, link, last_update, trigger_hour) VALUES (?, ?, ?, ?, ?)');
+        $stmt->execute([
+            'https://example.com/feed.xml',
+            'Test Feed',
+            'https://example.com',
+            time(),
+            12,
+        ]);
+        /** @var \PDOStatement $stmt */
+        $stmt = $pdo->prepare('INSERT INTO subscriptions (feed_uri, email, active) VALUES (?, ?, ?)');
+        $stmt->execute([
+            'https://example.com/feed.xml',
+            'test@example.com',
+            1,
+        ]);
+    }
+);
 
-    // Verify subscription is inactive
-    $pdo = new \PDO('sqlite:' . getenv('NEWSLETTER_DB_PATH'));
-    $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
-    $stmt = $pdo->prepare('SELECT active FROM subscriptions WHERE feed_uri = ? AND email = ?');
-    $stmt->execute(['https://example.com/feed.xml', 'test@example.com']);
-    $sub = $stmt->fetch(\PDO::FETCH_ASSOC);
-    expect($sub['active'])->toBe(0);
-});
+it(
+    'cancels subscription with valid token',
+    /**
+     * @throws TransportExceptionInterface
+     * @throws \PDOException
+     */
+    function (): void {
+        $token = hash_hmac(algo: 'sha256', data: 'test@example.com', key: (string) getenv('SECRET_KEY'));
 
-it('rejects invalid cancellation token', function () {
-    $response = self::get('/v1/subscriptions/cancellation/', [
-        'feed_uri' => 'https://example.com/feed.xml',
-        'email' => 'test@example.com',
-        'token' => 'invalid-token',
-    ]);
+        $response = e2e_get_cancel('/v1/subscriptions/cancellation/', [
+            'feed_uri' => 'https://example.com/feed.xml',
+            'email' => 'test@example.com',
+            'token' => $token,
+        ]);
 
-    expect($response->getStatusCode())->toBe(400);
-});
+        expect($response->getStatusCode())->toBe(200);
+
+        // Verify subscription is inactive
+        $pdo = new \PDO('sqlite:' . (string) \getenv('NEWSLETTER_DB_PATH'));
+        $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+        /** @var \PDOStatement $stmt */
+        $stmt = $pdo->prepare('SELECT active FROM subscriptions WHERE feed_uri = ? AND email = ?');
+        $stmt->execute(['https://example.com/feed.xml', 'test@example.com']);
+        /** @var array<string, mixed> $sub */
+        $sub = $stmt->fetch(\PDO::FETCH_ASSOC);
+        expect($sub['active'] ?? 0)->toBe(0);
+    }
+);
+
+it(
+    'rejects invalid cancellation token',
+    /** @throws TransportExceptionInterface */
+    function (): void {
+        $response = e2e_get_cancel('/v1/subscriptions/cancellation/', [
+            'feed_uri' => 'https://example.com/feed.xml',
+            'email' => 'test@example.com',
+            'token' => 'invalid-token',
+        ]);
+
+        expect($response->getStatusCode())->toBe(400);
+    }
+);

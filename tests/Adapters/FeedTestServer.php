@@ -12,11 +12,16 @@ final class FeedTestServer
 {
     private static ?Process $server = null;
 
+    /**
+     * @throws \Symfony\Component\Process\Exception\LogicException
+     * @throws \Symfony\Component\Process\Exception\RuntimeException
+     * @throws \Symfony\Component\Process\Exception\ProcessStartFailedException
+     */
     public static function start(): void
     {
         $feedDir = '/tmp/feedtest';
         if (! \is_dir($feedDir)) {
-            \mkdir($feedDir, mode: 0o777, recursive: true);
+            \mkdir($feedDir, 0o777, true);
             \file_put_contents($feedDir . '/valid.xml', <<<XML
                 <?xml version="1.0" encoding="UTF-8"?>
                 <rss version="2.0">
@@ -39,13 +44,9 @@ final class FeedTestServer
         self::$server->start();
 
         for ($i = 0; $i < 15; $i++) {
-            $sock = \fsockopen(
-                hostname: '127.0.0.1',
-                port: FEED_TEST_SERVER_PORT,
-                error_number: $e,
-                error_string: $s,
-                timeout: 1,
-            );
+            $errorCode = 0;
+            $errorString = "";
+            $sock = @\fsockopen('127.0.0.1', FEED_TEST_SERVER_PORT, $errorCode, $errorString, 1);
             if (\is_resource($sock)) {
                 \fclose($sock);
                 break;

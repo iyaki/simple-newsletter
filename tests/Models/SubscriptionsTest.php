@@ -13,172 +13,264 @@ use SimpleNewsletter\Models\Feeds;
 use SimpleNewsletter\Models\Newsletter;
 use SimpleNewsletter\Models\Subscriptions;
 
-beforeEach(function () {
-    $this->subscriptionsDAO = $this->createMock(SubscriptionsDAO::class);
-    $this->feeds = $this->createMock(Feeds::class);
-    $this->newsletter = $this->createMock(Newsletter::class);
-    $this->auth = $this->createMock(Auth::class);
-});
+/**
+ * @throws EndUserException
+ * @throws \Random\RandomException
+ */
+it('throws on invalid URI in add', function (): void {
+    $subscriptionsDAO = \Mockery::mock(SubscriptionsDAO::class);
+    $feeds = \Mockery::mock(Feeds::class);
+    $newsletter = \Mockery::mock(Newsletter::class);
+    $auth = \Mockery::mock(Auth::class);
 
-it('throws on invalid URI in add', function () {
-    $subs = new Subscriptions($this->subscriptionsDAO, $this->feeds, $this->newsletter, $this->auth);
+    $subs = new Subscriptions($subscriptionsDAO, $feeds, $newsletter, $auth);
 
     $subs->add('not-a-uri', 'user@example.com');
 })->throws(EndUserException::class, 'Invalid Feed URI');
 
-it('throws on invalid email in add', function () {
+/**
+ * @throws EndUserException
+ * @throws \Random\RandomException
+ */
+it('throws on invalid email in add', function (): void {
+    $subscriptionsDAO = \Mockery::mock(SubscriptionsDAO::class);
+    $feeds = \Mockery::mock(Feeds::class);
+    $newsletter = \Mockery::mock(Newsletter::class);
+    $auth = \Mockery::mock(Auth::class);
+
     $now = new DateTimeImmutable();
     $feed = new Feed(new FeedMetadata('https://example.com/feed', 'Test Feed', 'https://example.com', $now));
 
-    $this->feeds->expects($this->once())->method('retrieve')->with('https://example.com/feed')->willReturn($feed);
+    $feeds->shouldReceive('retrieve')->once()->with('https://example.com/feed')->andReturn($feed);
 
-    $subs = new Subscriptions($this->subscriptionsDAO, $this->feeds, $this->newsletter, $this->auth);
+    $subs = new Subscriptions($subscriptionsDAO, $feeds, $newsletter, $auth);
 
     $subs->add('https://example.com/feed', 'not-an-email');
 })->throws(EndUserException::class, 'Invalid email address');
 
-it('calls feeds->retrieve and newsletter->sendConfirmation on valid input', function () {
+/**
+ * @throws EndUserException
+ * @throws \Random\RandomException
+ */
+it('calls feeds->retrieve and newsletter->sendConfirmation on valid input', function (): void {
+    $subscriptionsDAO = \Mockery::mock(SubscriptionsDAO::class);
+    $feeds = \Mockery::mock(Feeds::class);
+    $newsletter = \Mockery::mock(Newsletter::class);
+    $auth = \Mockery::mock(Auth::class);
+
     $now = new DateTimeImmutable();
     $feedUri = 'https://example.com/feed';
     $email = 'user@example.com';
     $feed = new Feed(new FeedMetadata($feedUri, 'Test Feed', 'https://example.com', $now));
 
-    $this->feeds->expects($this->once())->method('retrieve')->with($feedUri)->willReturn($feed);
+    $feeds->shouldReceive('retrieve')->once()->with($feedUri)->andReturn($feed);
 
-    $this->subscriptionsDAO->expects($this->once())->method('find')->with($feedUri, $email)->willReturn(null);
+    $subscriptionsDAO->shouldReceive('find')->once()->with($feedUri, $email)->andReturn(null);
 
-    $this->subscriptionsDAO
-        ->expects($this->once())
-        ->method('new')
-        ->with($this->callback(
+    $subscriptionsDAO
+        ->shouldReceive('new')
+        ->once()
+        ->with(\Mockery::on(
             fn (Subscription $sub): bool => $sub->feedUri === $feedUri && $sub->email === $email && ! $sub->active,
         ));
 
-    $this->newsletter
-        ->expects($this->once())
-        ->method('sendConfirmation')
+    $newsletter
+        ->shouldReceive('sendConfirmation')
+        ->once()
         ->with(
             $feed,
-            $this->callback(fn (Subscription $sub): bool => $sub->feedUri === $feedUri && $sub->email === $email),
+            \Mockery::on(fn (Subscription $sub): bool => $sub->feedUri === $feedUri && $sub->email === $email),
         );
 
-    $subs = new Subscriptions($this->subscriptionsDAO, $this->feeds, $this->newsletter, $this->auth);
+    $subs = new Subscriptions($subscriptionsDAO, $feeds, $newsletter, $auth);
 
     $subs->add($feedUri, $email);
 });
 
-it('throws when subscription already active in add', function () {
+/**
+ * @throws EndUserException
+ * @throws \Random\RandomException
+ */
+it('throws when subscription already active in add', function (): void {
+    $subscriptionsDAO = \Mockery::mock(SubscriptionsDAO::class);
+    $feeds = \Mockery::mock(Feeds::class);
+    $newsletter = \Mockery::mock(Newsletter::class);
+    $auth = \Mockery::mock(Auth::class);
+
     $now = new DateTimeImmutable();
     $feedUri = 'https://example.com/feed';
     $email = 'user@example.com';
     $feed = new Feed(new FeedMetadata($feedUri, 'Test Feed', 'https://example.com', $now));
     $existingSub = new Subscription($feedUri, $email, true);
 
-    $this->feeds->expects($this->once())->method('retrieve')->with($feedUri)->willReturn($feed);
+    $feeds->shouldReceive('retrieve')->once()->with($feedUri)->andReturn($feed);
 
-    $this->subscriptionsDAO->expects($this->once())->method('find')->with($feedUri, $email)->willReturn($existingSub);
+    $subscriptionsDAO->shouldReceive('find')->once()->with($feedUri, $email)->andReturn($existingSub);
 
-    $this->subscriptionsDAO->expects($this->never())->method('new');
-    $this->newsletter->expects($this->never())->method('sendConfirmation');
+    $subscriptionsDAO->shouldNotReceive('new');
+    $newsletter->shouldNotReceive('sendConfirmation');
 
-    $subs = new Subscriptions($this->subscriptionsDAO, $this->feeds, $this->newsletter, $this->auth);
+    $subs = new Subscriptions($subscriptionsDAO, $feeds, $newsletter, $auth);
 
     $subs->add($feedUri, $email);
 })->throws(EndUserException::class, 'You are already subscribed to this feed.');
 
-it('activates subscription on valid confirm token', function () {
+/**
+ * @throws EndUserException
+ * @throws \Random\RandomException
+ */
+it('activates subscription on valid confirm token', function (): void {
+    $subscriptionsDAO = \Mockery::mock(SubscriptionsDAO::class);
+    $feeds = \Mockery::mock(Feeds::class);
+    $newsletter = \Mockery::mock(Newsletter::class);
+    $auth = \Mockery::mock(Auth::class);
+
     $feedUri = 'https://example.com/feed';
     $email = 'user@example.com';
     $token = 'valid-token';
     $subscription = new Subscription($feedUri, $email, false);
 
-    $this->auth->expects($this->once())->method('verify')->with($email, $token)->willReturn(true);
+    $auth->shouldReceive('verify')->once()->with($email, $token)->andReturn(true);
 
-    $this->subscriptionsDAO->expects($this->once())->method('find')->with($feedUri, $email)->willReturn($subscription);
+    $subscriptionsDAO->shouldReceive('find')->once()->with($feedUri, $email)->andReturn($subscription);
 
-    $this->subscriptionsDAO->expects($this->once())->method('activate')->with($subscription);
+    $subscriptionsDAO->shouldReceive('activate')->once()->with($subscription);
 
-    $subs = new Subscriptions($this->subscriptionsDAO, $this->feeds, $this->newsletter, $this->auth);
+    $subs = new Subscriptions($subscriptionsDAO, $feeds, $newsletter, $auth);
 
     $subs->confirm($feedUri, $email, $token);
 });
 
-it('throws on invalid confirm token', function () {
+/**
+ * @throws EndUserException
+ * @throws \Random\RandomException
+ */
+it('throws on invalid confirm token', function (): void {
+    $subscriptionsDAO = \Mockery::mock(SubscriptionsDAO::class);
+    $feeds = \Mockery::mock(Feeds::class);
+    $newsletter = \Mockery::mock(Newsletter::class);
+    $auth = \Mockery::mock(Auth::class);
+
     $feedUri = 'https://example.com/feed';
     $email = 'user@example.com';
 
-    $this->auth->expects($this->once())->method('verify')->with($email, 'bad-token')->willReturn(false);
+    $auth->shouldReceive('verify')->once()->with($email, 'bad-token')->andReturn(false);
 
-    $this->subscriptionsDAO->expects($this->never())->method('find');
-    $this->subscriptionsDAO->expects($this->never())->method('activate');
+    $subscriptionsDAO->shouldNotReceive('find');
+    $subscriptionsDAO->shouldNotReceive('activate');
 
-    $subs = new Subscriptions($this->subscriptionsDAO, $this->feeds, $this->newsletter, $this->auth);
+    $subs = new Subscriptions($subscriptionsDAO, $feeds, $newsletter, $auth);
 
     $subs->confirm($feedUri, $email, 'bad-token');
 })->throws(EndUserException::class, 'Invalid token');
 
-it('throws when subscription not found in confirm', function () {
+/**
+ * @throws EndUserException
+ * @throws \Random\RandomException
+ */
+it('throws when subscription not found in confirm', function (): void {
+    $subscriptionsDAO = \Mockery::mock(SubscriptionsDAO::class);
+    $feeds = \Mockery::mock(Feeds::class);
+    $newsletter = \Mockery::mock(Newsletter::class);
+    $auth = \Mockery::mock(Auth::class);
+
     $feedUri = 'https://example.com/feed';
     $email = 'user@example.com';
 
-    $this->auth->expects($this->once())->method('verify')->with($email, 'valid-token')->willReturn(true);
+    $auth->shouldReceive('verify')->once()->with($email, 'valid-token')->andReturn(true);
 
-    $this->subscriptionsDAO->expects($this->once())->method('find')->with($feedUri, $email)->willReturn(null);
+    $subscriptionsDAO->shouldReceive('find')->once()->with($feedUri, $email)->andReturn(null);
 
-    $this->subscriptionsDAO->expects($this->never())->method('activate');
+    $subscriptionsDAO->shouldNotReceive('activate');
 
-    $subs = new Subscriptions($this->subscriptionsDAO, $this->feeds, $this->newsletter, $this->auth);
+    $subs = new Subscriptions($subscriptionsDAO, $feeds, $newsletter, $auth);
 
     $subs->confirm($feedUri, $email, 'valid-token');
 })->throws(EndUserException::class, 'Subscription not found');
 
-it('deactivates subscription on valid cancel token', function () {
+/**
+ * @throws EndUserException
+ * @throws \Random\RandomException
+ */
+it('deactivates subscription on valid cancel token', function (): void {
+    $subscriptionsDAO = \Mockery::mock(SubscriptionsDAO::class);
+    $feeds = \Mockery::mock(Feeds::class);
+    $newsletter = \Mockery::mock(Newsletter::class);
+    $auth = \Mockery::mock(Auth::class);
+
     $feedUri = 'https://example.com/feed';
     $email = 'user@example.com';
     $token = 'valid-token';
     $subscription = new Subscription($feedUri, $email, true);
 
-    $this->auth->expects($this->once())->method('verify')->with($email, $token)->willReturn(true);
+    $auth->shouldReceive('verify')->once()->with($email, $token)->andReturn(true);
 
-    $this->subscriptionsDAO->expects($this->once())->method('find')->with($feedUri, $email)->willReturn($subscription);
+    $subscriptionsDAO->shouldReceive('find')->once()->with($feedUri, $email)->andReturn($subscription);
 
-    $this->subscriptionsDAO->expects($this->once())->method('deactivate')->with($subscription);
+    $subscriptionsDAO->shouldReceive('deactivate')->once()->with($subscription);
 
-    $subs = new Subscriptions($this->subscriptionsDAO, $this->feeds, $this->newsletter, $this->auth);
+    $subs = new Subscriptions($subscriptionsDAO, $feeds, $newsletter, $auth);
 
     $subs->cancel($feedUri, $email, $token);
 });
 
-it('throws on invalid cancel token', function () {
+/**
+ * @throws EndUserException
+ * @throws \Random\RandomException
+ */
+it('throws on invalid cancel token', function (): void {
+    $subscriptionsDAO = \Mockery::mock(SubscriptionsDAO::class);
+    $feeds = \Mockery::mock(Feeds::class);
+    $newsletter = \Mockery::mock(Newsletter::class);
+    $auth = \Mockery::mock(Auth::class);
+
     $feedUri = 'https://example.com/feed';
     $email = 'user@example.com';
 
-    $this->auth->expects($this->once())->method('verify')->with($email, 'bad-token')->willReturn(false);
+    $auth->shouldReceive('verify')->once()->with($email, 'bad-token')->andReturn(false);
 
-    $this->subscriptionsDAO->expects($this->never())->method('find');
-    $this->subscriptionsDAO->expects($this->never())->method('deactivate');
+    $subscriptionsDAO->shouldNotReceive('find');
+    $subscriptionsDAO->shouldNotReceive('deactivate');
 
-    $subs = new Subscriptions($this->subscriptionsDAO, $this->feeds, $this->newsletter, $this->auth);
+    $subs = new Subscriptions($subscriptionsDAO, $feeds, $newsletter, $auth);
 
     $subs->cancel($feedUri, $email, 'bad-token');
 })->throws(EndUserException::class, 'Invalid token');
 
-it('throws when subscription not found in cancel', function () {
+/**
+ * @throws EndUserException
+ * @throws \Random\RandomException
+ */
+it('throws when subscription not found in cancel', function (): void {
+    $subscriptionsDAO = \Mockery::mock(SubscriptionsDAO::class);
+    $feeds = \Mockery::mock(Feeds::class);
+    $newsletter = \Mockery::mock(Newsletter::class);
+    $auth = \Mockery::mock(Auth::class);
+
     $feedUri = 'https://example.com/feed';
     $email = 'user@example.com';
 
-    $this->auth->expects($this->once())->method('verify')->with($email, 'valid-token')->willReturn(true);
+    $auth->shouldReceive('verify')->once()->with($email, 'valid-token')->andReturn(true);
 
-    $this->subscriptionsDAO->expects($this->once())->method('find')->with($feedUri, $email)->willReturn(null);
+    $subscriptionsDAO->shouldReceive('find')->once()->with($feedUri, $email)->andReturn(null);
 
-    $this->subscriptionsDAO->expects($this->never())->method('deactivate');
+    $subscriptionsDAO->shouldNotReceive('deactivate');
 
-    $subs = new Subscriptions($this->subscriptionsDAO, $this->feeds, $this->newsletter, $this->auth);
+    $subs = new Subscriptions($subscriptionsDAO, $feeds, $newsletter, $auth);
 
     $subs->cancel($feedUri, $email, 'valid-token');
 })->throws(EndUserException::class, 'Subscription not found');
 
-it('sendScheduled gets scheduled feeds, fetches posts, and sends to subscribers', function () {
+/**
+ * @throws EndUserException
+ * @throws \Random\RandomException
+ */
+it('sendScheduled gets scheduled feeds, fetches posts, and sends to subscribers', function (): void {
+    $subscriptionsDAO = \Mockery::mock(SubscriptionsDAO::class);
+    $feeds = \Mockery::mock(Feeds::class);
+    $newsletter = \Mockery::mock(Newsletter::class);
+    $auth = \Mockery::mock(Auth::class);
+
     $datetime = new DateTimeImmutable();
     $feedUri = 'https://example.com/feed';
 
@@ -194,29 +286,38 @@ it('sendScheduled gets scheduled feeds, fetches posts, and sends to subscribers'
     $activeSub1 = new Subscription($feedUri, 'user1@example.com', true);
     $activeSub2 = new Subscription($feedUri, 'user2@example.com', true);
 
-    $this->feeds->expects($this->once())->method('getScheduled')->with($datetime)->willReturn([$scheduledFeed]);
+    $feeds->shouldReceive('getScheduled')->once()->with($datetime)->andReturn([$scheduledFeed]);
 
-    $this->feeds->expects($this->once())->method('retrieveWithPosts')->with($scheduledFeed)->willReturn($feedWithPosts);
+    $feeds->shouldReceive('retrieveWithPosts')->once()->with($scheduledFeed)->andReturn($feedWithPosts);
 
-    $this->subscriptionsDAO
-        ->expects($this->once())
-        ->method('findActiveSubscriptionsFor')
+    $subscriptionsDAO
+        ->shouldReceive('findActiveSubscriptionsFor')
+        ->once()
         ->with($feedWithPosts)
-        ->willReturn([$activeSub1, $activeSub2]);
+        ->andReturn([$activeSub1, $activeSub2]);
 
-    $this->newsletter
-        ->expects($this->once())
-        ->method('sendPostToSubscribers')
+    $newsletter
+        ->shouldReceive('sendPostToSubscribers')
+        ->once()
         ->with($feedWithPosts, $post1, $activeSub1, $activeSub2);
 
-    $this->feeds->expects($this->once())->method('updateLastSentPost')->with($feedWithPosts, $post1);
+    $feeds->shouldReceive('updateLastSentPost')->once()->with($feedWithPosts, $post1);
 
-    $subs = new Subscriptions($this->subscriptionsDAO, $this->feeds, $this->newsletter, $this->auth);
+    $subs = new Subscriptions($subscriptionsDAO, $feeds, $newsletter, $auth);
 
     $subs->sendScheduled($datetime);
 });
 
-it('sendScheduled skips already-sent posts', function () {
+/**
+ * @throws EndUserException
+ * @throws \Random\RandomException
+ */
+it('sendScheduled skips already-sent posts', function (): void {
+    $subscriptionsDAO = \Mockery::mock(SubscriptionsDAO::class);
+    $feeds = \Mockery::mock(Feeds::class);
+    $newsletter = \Mockery::mock(Newsletter::class);
+    $auth = \Mockery::mock(Auth::class);
+
     $datetime = new DateTimeImmutable();
     $feedUri = 'https://example.com/feed';
 
@@ -230,20 +331,30 @@ it('sendScheduled skips already-sent posts', function () {
         posts: [$post1],
     );
 
-    $this->feeds->expects($this->once())->method('getScheduled')->with($datetime)->willReturn([$scheduledFeed]);
+    $feeds->shouldReceive('getScheduled')->once()->with($datetime)->andReturn([$scheduledFeed]);
 
-    $this->feeds->expects($this->once())->method('retrieveWithPosts')->with($scheduledFeed)->willReturn($feedWithPosts);
+    $feeds->shouldReceive('retrieveWithPosts')->once()->with($scheduledFeed)->andReturn($feedWithPosts);
 
-    $this->subscriptionsDAO->expects($this->never())->method('findActiveSubscriptionsFor');
-    $this->newsletter->expects($this->never())->method('sendPostToSubscribers');
-    $this->feeds->expects($this->never())->method('updateLastSentPost');
+    $subscriptionsDAO->shouldNotReceive('findActiveSubscriptionsFor');
+    $newsletter->shouldNotReceive('sendPostToSubscribers');
+    $feeds->shouldNotReceive('updateLastSentPost');
 
-    $subs = new Subscriptions($this->subscriptionsDAO, $this->feeds, $this->newsletter, $this->auth);
+    $subs = new Subscriptions($subscriptionsDAO, $feeds, $newsletter, $auth);
 
     $subs->sendScheduled($datetime);
 });
 
-it('sendScheduled handles multiple scheduled feeds', function () {
+/**
+ * @throws EndUserException
+ * @throws \InvalidArgumentException
+ * @throws \Random\RandomException
+ */
+it('sendScheduled handles multiple scheduled feeds', function (): void {
+    $subscriptionsDAO = \Mockery::mock(SubscriptionsDAO::class);
+    $feeds = \Mockery::mock(Feeds::class);
+    $newsletter = \Mockery::mock(Newsletter::class);
+    $auth = \Mockery::mock(Auth::class);
+
     $datetime = new DateTimeImmutable();
 
     $feed1 = new Feed(new FeedMetadata('https://example.com/feed1', 'Feed 1', 'https://example.com', $datetime));
@@ -264,41 +375,61 @@ it('sendScheduled handles multiple scheduled feeds', function () {
     $sub1 = new Subscription('https://example.com/feed1', 'user1@example.com', true);
     $sub2 = new Subscription('https://example.com/feed2', 'user2@example.com', true);
 
-    $this->feeds->expects($this->once())->method('getScheduled')->with($datetime)->willReturn([$feed1, $feed2]);
+    $feeds->shouldReceive('getScheduled')->once()->with($datetime)->andReturn([$feed1, $feed2]);
 
-    $this->feeds
-        ->expects($this->exactly(2))
-        ->method('retrieveWithPosts')
-        ->willReturnMap([
-            [$feed1, $feedWithPosts1],
-            [$feed2, $feedWithPosts2],
-        ]);
+    $feeds
+        ->shouldReceive('retrieveWithPosts')
+        ->times(2)
+        ->andReturnUsing(function (Feed $feed) use ($feed1, $feed2, $feedWithPosts1, $feedWithPosts2): ?Feed {
+            if ($feed === $feed1) {
+                return $feedWithPosts1;
+            }
+            if ($feed === $feed2) {
+                return $feedWithPosts2;
+            }
 
-    $this->subscriptionsDAO
-        ->expects($this->exactly(2))
-        ->method('findActiveSubscriptionsFor')
-        ->willReturnMap([
-            [$feedWithPosts1, [$sub1]],
-            [$feedWithPosts2, [$sub2]],
-        ]);
+            return null;
+        });
 
-    $this->newsletter
-        ->expects($this->exactly(2))
-        ->method('sendPostToSubscribers')
-        ->willReturnMap([
-            [$feedWithPosts1, $post1, $sub1, null],
-            [$feedWithPosts2, $post2, $sub2, null],
-        ]);
+    $subscriptionsDAO
+        ->shouldReceive('findActiveSubscriptionsFor')
+        ->times(2)
+        ->andReturnUsing(function (Feed $feedWithPosts) use ($feedWithPosts1, $feedWithPosts2, $sub1, $sub2): array {
+            if ($feedWithPosts === $feedWithPosts1) {
+                return [$sub1];
+            }
+            if ($feedWithPosts === $feedWithPosts2) {
+                return [$sub2];
+            }
 
-    $this->feeds
-        ->expects($this->exactly(2))
-        ->method('updateLastSentPost')
-        ->willReturnMap([
-            [$feedWithPosts1, $post1, null],
-            [$feedWithPosts2, $post2, null],
-        ]);
+            return [];
+        });
 
-    $subs = new Subscriptions($this->subscriptionsDAO, $this->feeds, $this->newsletter, $this->auth);
+    $newsletter
+        ->shouldReceive('sendPostToSubscribers')
+        ->times(2)
+        ->andReturnUsing(function (Feed $feed, Post $post, Subscription ...$subs) use ($feedWithPosts1, $feedWithPosts2, $post1, $post2, $sub1, $sub2): void {
+            if ($feed === $feedWithPosts1 && $post === $post1 && $subs === [$sub1]) {
+                return;
+            }
+            if ($feed === $feedWithPosts2 && $post === $post2 && $subs === [$sub2]) {
+                return;
+            }
+        });
+
+    $feeds
+        ->shouldReceive('updateLastSentPost')
+        ->times(2)
+        ->andReturnUsing(function (Feed $feed, Post $post) use ($feedWithPosts1, $feedWithPosts2, $post1, $post2): void {
+            if ($feed === $feedWithPosts1 && $post === $post1) {
+                return;
+            }
+            if ($feed === $feedWithPosts2 && $post === $post2) {
+                return;
+            }
+        });
+
+    $subs = new Subscriptions($subscriptionsDAO, $feeds, $newsletter, $auth);
 
     $subs->sendScheduled($datetime);
 });

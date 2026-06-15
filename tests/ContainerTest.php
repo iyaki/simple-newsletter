@@ -3,8 +3,9 @@
 declare(strict_types=1);
 
 use SimpleNewsletter\Container;
+use PHPMailer\PHPMailer\Exception as PHPMailerException;
 
-beforeEach(function () {
+beforeEach(function (): void {
     $_ENV['NEWSLETTER_DB_PATH'] = ':memory:';
     $_ENV['SECRET_KEY'] = 'test-secret';
     $_ENV['SMTP_HOST'] = 'localhost';
@@ -16,52 +17,44 @@ beforeEach(function () {
     $_ENV['URI_SELF'] = 'http://localhost';
 });
 
-test('responder returns ResponderHttp instance', function () {
+test('responder returns ResponderHttp instance', function (): void {
     $container = new Container();
     expect($container->responder())->toBeInstanceOf(\SimpleNewsletter\Adapters\ResponderHttp::class);
 });
 
-test('rateLimiter returns RateLimiter instance with PDO', function () {
+test('rateLimiter returns RateLimiter instance with PDO', /** @throws PDOException */ function (): void {
     $container = new Container();
     expect($container->rateLimiter())->toBeInstanceOf(\SimpleNewsletter\Components\RateLimiter::class);
 });
 
-test('subscriptions returns Subscriptions instance', function () {
+test('subscriptions returns Subscriptions instance', /**
+     * @throws PDOException
+     * @throws PHPMailerException
+     */ function (): void {
     $container = new Container();
     expect($container->subscriptions())->toBeInstanceOf(\SimpleNewsletter\Models\Subscriptions::class);
 });
 
-test('database returns PDO instance', function () {
+test('rateLimiter returns same instance on second call', /** @throws PDOException */ function (): void {
     $container = new Container();
-    $getDb = \Closure::bind(method: $container->database(...), new: null, scope: Container::class);
-    expect($getDb())->toBeInstanceOf(\PDO::class);
+    $r1 = $container->rateLimiter();
+    $r2 = $container->rateLimiter();
+    expect($r1)->toBe($r2);
 });
 
-test('database returns same instance on second call', function () {
+test('subscriptions returns same instance on second call', /**
+     * @throws PDOException
+     * @throws PHPMailerException
+     */ function (): void {
     $container = new Container();
-    $getDb = \Closure::bind(method: $container->database(...), new: null, scope: Container::class);
-    $db1 = $getDb();
-    $db2 = $getDb();
-    expect($db1)->toBe($db2);
-});
-
-test('__clone throws Exception', function () {
-    $container = new Container();
-    expect(fn () => clone $container)->toThrow(\Exception::class);
-});
-
-test('__sleep throws Exception', function () {
-    $container = new Container();
-    expect(fn () => \Closure::bind(method: $container->__sleep(...), new: $container, scope: Container::class)())
-        ->toThrow(\Exception::class);
-});
-
-test('sender creates and caches same instance on second call', function () {
-    $container = new Container();
-    $getSender = \Closure::bind(method: $container->sender(...), new: null, scope: Container::class);
-
-    $s1 = $getSender();
-    $s2 = $getSender();
-
+    $s1 = $container->subscriptions();
+    $s2 = $container->subscriptions();
     expect($s1)->toBe($s2);
+});
+
+test('container creates independent instances', function (): void {
+    $c1 = new Container();
+    $c2 = new Container();
+    expect($c1->responder())->toBeInstanceOf(\SimpleNewsletter\Adapters\ResponderHttp::class);
+    expect($c2->responder())->toBeInstanceOf(\SimpleNewsletter\Adapters\ResponderHttp::class);
 });

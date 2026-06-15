@@ -16,11 +16,15 @@ final class TestFeedImporter extends FeedImporterLaminas
         $this->mockFeed = $feed;
     }
 
-    protected function import(string $uri): FeedInterface
+    /**
+     * @throws \RuntimeException
+     */
+    protected function _import(string $_uri): FeedInterface
     {
-        $feed = $this->mockFeed;
-        \assert(condition: $feed !== null, description: 'Mock feed must be set before calling import');
+        if ($this->mockFeed === null) {
+            throw new \RuntimeException('Mock feed not set');
+        }
 
-        return $feed;
+        return $this->mockFeed;
     }
 }

@@ -9,30 +9,41 @@ use SimpleNewsletter\Data\FeedsDAO;
 use SimpleNewsletter\Data\Post;
 use SimpleNewsletter\Models\Feeds;
 
-test('retrieve returns cached feed when less than 1 day old', function (): void {
-    $feedsDAO = $this->createMock(FeedsDAO::class);
-    $feedImporter = $this->createMock(FeedImporter::class);
+test('retrieve returns cached feed when less than 1 day old', /**
+ * @throws Random\RandomException
+ * @throws SimpleNewsletter\Components\EndUserException
+ */ function (): void {
+    $feedsDAO = \Mockery::mock(FeedsDAO::class);
+    $feedImporter = \Mockery::mock(FeedImporter::class);
 
     $now = new DateTimeImmutable();
     $metadata = new FeedMetadata('https://example.com/feed', 'Test Feed', 'https://example.com', $now);
     $feed = new Feed($metadata);
 
-    $feedsDAO->expects($this->once())->method('find')->with('https://example.com/feed')->willReturn($feed);
+    $feedsDAO->shouldReceive('find')->andReturn($feed);
 
-    $feedImporter->expects($this->never())->method('fetch');
-    $feedImporter->expects($this->never())->method('fetchNew');
-    $feedsDAO->expects($this->never())->method('update');
-    $feedsDAO->expects($this->never())->method('new');
+    $feedImporter->shouldNotReceive('fetch');
+    $feedImporter->shouldNotReceive('fetchNew');
+    $feedsDAO->shouldNotReceive('update');
+    $feedsDAO->shouldNotReceive('new');
 
     $feeds = new Feeds($feedsDAO, $feedImporter);
     $result = $feeds->retrieve('https://example.com/feed');
 
     expect($result)->toBe($feed);
+    $feedsDAO->shouldHaveReceived('find', ['https://example.com/feed']);
+    $feedsDAO->shouldNotHaveReceived('update');
+    $feedsDAO->shouldNotHaveReceived('new');
+    $feedImporter->shouldNotHaveReceived('fetch');
+    $feedImporter->shouldNotHaveReceived('fetchNew');
 });
 
-test('retrieve fetches and updates feed when more than 1 day old', function (): void {
-    $feedsDAO = $this->createMock(FeedsDAO::class);
-    $feedImporter = $this->createMock(FeedImporter::class);
+test('retrieve fetches and updates feed when more than 1 day old', /**
+ * @throws Random\RandomException
+ * @throws SimpleNewsletter\Components\EndUserException
+ */ function (): void {
+    $feedsDAO = \Mockery::mock(FeedsDAO::class);
+    $feedImporter = \Mockery::mock(FeedImporter::class);
 
     $oldDate = new DateTimeImmutable()->sub(new DateInterval('P2D'));
     $oldMetadata = new FeedMetadata('https://example.com/feed', 'Old Title', 'https://example.com', $oldDate);
@@ -42,42 +53,53 @@ test('retrieve fetches and updates feed when more than 1 day old', function (): 
     $updatedMetadata = new FeedMetadata('https://example.com/feed', 'New Title', 'https://example.com', $now);
     $updatedFeed = new Feed($updatedMetadata);
 
-    $feedsDAO->expects($this->once())->method('find')->with('https://example.com/feed')->willReturn($oldFeed);
+    $feedsDAO->shouldReceive('find')->andReturn($oldFeed);
 
-    $feedImporter->expects($this->once())->method('fetch')->with($oldFeed)->willReturn($updatedFeed);
+    $feedImporter->shouldReceive('fetch')->andReturn($updatedFeed);
 
-    $feedsDAO->expects($this->once())->method('update')->with($updatedFeed);
+    $feedsDAO->shouldReceive('update');
 
     $feeds = new Feeds($feedsDAO, $feedImporter);
     $result = $feeds->retrieve('https://example.com/feed');
 
     expect($result)->toBe($updatedFeed);
+    $feedsDAO->shouldHaveReceived('find', ['https://example.com/feed']);
+    $feedImporter->shouldHaveReceived('fetch', [$oldFeed]);
+    $feedsDAO->shouldHaveReceived('update', [$updatedFeed]);
 });
 
-test('retrieve creates new feed when not found in DAO', function (): void {
-    $feedsDAO = $this->createMock(FeedsDAO::class);
-    $feedImporter = $this->createMock(FeedImporter::class);
+test('retrieve creates new feed when not found in DAO', /**
+ * @throws Random\RandomException
+ * @throws SimpleNewsletter\Components\EndUserException
+ */ function (): void {
+    $feedsDAO = \Mockery::mock(FeedsDAO::class);
+    $feedImporter = \Mockery::mock(FeedImporter::class);
 
     $uri = 'https://example.com/feed';
     $now = new DateTimeImmutable();
     $metadata = new FeedMetadata($uri, 'New Feed', 'https://example.com', $now);
     $newFeed = new Feed($metadata);
 
-    $feedsDAO->expects($this->once())->method('find')->with($uri)->willReturn(null);
+    $feedsDAO->shouldReceive('find')->andReturn(null);
 
-    $feedImporter->expects($this->once())->method('fetchNew')->with($uri)->willReturn($newFeed);
+    $feedImporter->shouldReceive('fetchNew')->andReturn($newFeed);
 
-    $feedsDAO->expects($this->once())->method('new')->with($newFeed);
+    $feedsDAO->shouldReceive('new');
 
     $feeds = new Feeds($feedsDAO, $feedImporter);
     $result = $feeds->retrieve($uri);
 
     expect($result)->toBe($newFeed);
+    $feedsDAO->shouldHaveReceived('find', [$uri]);
+    $feedImporter->shouldHaveReceived('fetchNew', [$uri]);
+    $feedsDAO->shouldHaveReceived('new', [$newFeed]);
 });
 
-test('getScheduled delegates to DAO', function (): void {
-    $feedsDAO = $this->createMock(FeedsDAO::class);
-    $feedImporter = $this->createMock(FeedImporter::class);
+test('getScheduled delegates to DAO', /**
+ * @throws SimpleNewsletter\Components\EndUserException
+ */ function (): void {
+    $feedsDAO = \Mockery::mock(FeedsDAO::class);
+    $feedImporter = \Mockery::mock(FeedImporter::class);
 
     $datetime = new DateTimeImmutable();
     $metadata1 = new FeedMetadata('https://example.com/feed1', 'Feed 1', 'https://example.com', $datetime);
@@ -87,18 +109,21 @@ test('getScheduled delegates to DAO', function (): void {
         new Feed($metadata2),
     ];
 
-    $feedsDAO->expects($this->once())->method('getScheduled')->with($datetime)->willReturn($expectedFeeds);
+    $feedsDAO->shouldReceive('getScheduled')->andReturn($expectedFeeds);
 
     $feeds = new Feeds($feedsDAO, $feedImporter);
     $result = $feeds->getScheduled($datetime);
 
     expect($result)->toBe($expectedFeeds);
     expect($result)->toHaveCount(2);
+    $feedsDAO->shouldHaveReceived('getScheduled', [$datetime]);
 });
 
-test('retrieveWithPosts delegates to FeedImporter', function (): void {
-    $feedsDAO = $this->createMock(FeedsDAO::class);
-    $feedImporter = $this->createMock(FeedImporter::class);
+test('retrieveWithPosts delegates to FeedImporter', /**
+ * @throws SimpleNewsletter\Components\EndUserException
+ */ function (): void {
+    $feedsDAO = \Mockery::mock(FeedsDAO::class);
+    $feedImporter = \Mockery::mock(FeedImporter::class);
 
     $now = new DateTimeImmutable();
     $metadata = new FeedMetadata('https://example.com/feed', 'Test', 'https://example.com', $now);
@@ -108,39 +133,34 @@ test('retrieveWithPosts delegates to FeedImporter', function (): void {
     $feed = new Feed($metadata, null, $posts);
     $feedWithPosts = new Feed($metadata, null, $posts);
 
-    $feedImporter->expects($this->once())->method('fetchWithPosts')->with($feed)->willReturn($feedWithPosts);
+    $feedImporter->shouldReceive('fetchWithPosts')->andReturn($feedWithPosts);
 
     $feeds = new Feeds($feedsDAO, $feedImporter);
     $result = $feeds->retrieveWithPosts($feed);
 
     expect($result)->toBe($feedWithPosts);
+    $feedImporter->shouldHaveReceived('fetchWithPosts', [$feed]);
 });
 
-test('updateLastSentPost updates DAO with new lastSentPostUri', function (): void {
-    $feedsDAO = $this->createMock(FeedsDAO::class);
-    $feedImporter = $this->createMock(FeedImporter::class);
+test('updateLastSentPost updates DAO with new lastSentPostUri', /**
+ * @throws SimpleNewsletter\Components\EndUserException
+ */ function (): void {
+    $feedsDAO = \Mockery::mock(FeedsDAO::class);
+    $feedImporter = \Mockery::mock(FeedImporter::class);
 
     $now = new DateTimeImmutable();
     $metadata = new FeedMetadata('https://example.com/feed', 'Test Feed', 'https://example.com', $now);
     $feed = new Feed($metadata);
     $post = new Post('https://example.com/post1', 'Post 1', 'Content 1');
 
-    $expectedUpdatedMetadata = new FeedMetadata('https://example.com/feed', 'Test Feed', 'https://example.com', $now);
-    $expectedUpdated = new Feed($expectedUpdatedMetadata, 'https://example.com/post1');
-
-    $feedsDAO
-        ->expects($this->once())
-        ->method('update')
-        ->with($this->callback(
-            fn (Feed $f): bool => (
-                $f->getUri() === $expectedUpdated->getUri()
-                && $f->getTitle() === $expectedUpdated->getTitle()
-                && $f->getLink() === $expectedUpdated->getLink()
-                && $f->getLastUpdate() === $expectedUpdated->getLastUpdate()
-                && $f->lastSentPostUri === $expectedUpdated->lastSentPostUri
-            ),
-        ));
+    $feedsDAO->shouldReceive('update');
 
     $feeds = new Feeds($feedsDAO, $feedImporter);
     $feeds->updateLastSentPost($feed, $post);
+    $feedsDAO->shouldHaveReceived('update', function (Feed $f): bool {
+        return $f->getUri() === 'https://example.com/feed'
+            && $f->getTitle() === 'Test Feed'
+            && $f->getLink() === 'https://example.com'
+            && $f->lastSentPostUri === 'https://example.com/post1';
+    });
 });

@@ -2,20 +2,22 @@
 
 declare(strict_types=1);
 
+use PHPMailer\PHPMailer\Exception as PHPMailerException;
 use PHPMailer\PHPMailer\PHPMailer;
 use SimpleNewsletter\Adapters\SenderPHPMailer;
 use SimpleNewsletter\Adapters\SmtpConfig;
 use SimpleNewsletter\Adapters\SmtpConnection;
 use SimpleNewsletter\Adapters\SmtpCredentials;
 use SimpleNewsletter\Adapters\SmtpSender;
+use SimpleNewsletter\Components\EndUserException;
 use SimpleNewsletter\Templates\Email\EmailInterface;
 
-test('constructor sets up PHPMailer correctly', function (): void {
-    $mailer = $this->createMock(PHPMailer::class);
+test('constructor sets up PHPMailer correctly', /** @throws PHPMailerException */ function (): void {
+    $mailer = \Mockery::mock(PHPMailer::class);
 
-    $mailer->expects($this->once())->method('isSMTP');
-    $mailer->expects($this->once())->method('setFrom')->with('from@example.com', 'Simple Newsletter');
-    $mailer->expects($this->once())->method('addReplyTo')->with('reply@example.com', 'The Developer');
+    $mailer->shouldReceive('isSMTP')->once();
+    $mailer->shouldReceive('setFrom')->with('from@example.com', 'Simple Newsletter')->once();
+    $mailer->shouldReceive('addReplyTo')->with('reply@example.com', 'The Developer')->once();
 
     $config = new SmtpConfig(
         new SmtpConnection('smtp.example.com', 587, PHPMailer::ENCRYPTION_STARTTLS, false),
@@ -28,13 +30,13 @@ test('constructor sets up PHPMailer correctly', function (): void {
     expect($sender)->toBeInstanceOf(SenderPHPMailer::class);
 });
 
-test('constructor sets up PHPMailer SMTP configuration', function (): void {
-    $mailer = $this->createMock(PHPMailer::class);
+test('constructor sets up PHPMailer SMTP configuration', /** @throws PHPMailerException */ function (): void {
+    $mailer = \Mockery::mock(PHPMailer::class);
 
     // Constructor expectations — these fire when SenderPHPMailer is instantiated
-    $mailer->expects($this->once())->method('isSMTP');
-    $mailer->expects($this->once())->method('setFrom');
-    $mailer->expects($this->once())->method('addReplyTo');
+    $mailer->shouldReceive('isSMTP')->once();
+    $mailer->shouldReceive('setFrom')->once();
+    $mailer->shouldReceive('addReplyTo')->once();
 
     $config = new SmtpConfig(
         new SmtpConnection('smtp.example.com', 587, PHPMailer::ENCRYPTION_STARTTLS, false),
@@ -45,13 +47,13 @@ test('constructor sets up PHPMailer SMTP configuration', function (): void {
     $sender = new SenderPHPMailer($config, $mailer);
 });
 
-test('send calls the expected sequence on PHPMailer', function (): void {
-    $mailer = $this->createMock(PHPMailer::class);
+test('send calls the expected sequence on PHPMailer', /** @throws PHPMailerException|EndUserException */ function (): void {
+    $mailer = \Mockery::mock(PHPMailer::class);
 
     // Constructor expectations — these fire when SenderPHPMailer is instantiated
-    $mailer->expects($this->once())->method('isSMTP');
-    $mailer->expects($this->once())->method('setFrom');
-    $mailer->expects($this->once())->method('addReplyTo');
+    $mailer->shouldReceive('isSMTP')->once();
+    $mailer->shouldReceive('setFrom')->once();
+    $mailer->shouldReceive('addReplyTo')->once();
 
     $config = new SmtpConfig(
         new SmtpConnection('smtp.example.com', 587, PHPMailer::ENCRYPTION_STARTTLS, false),
@@ -61,17 +63,17 @@ test('send calls the expected sequence on PHPMailer', function (): void {
 
     $sender = new SenderPHPMailer($config, $mailer);
 
-    $email = $this->createMock(EmailInterface::class);
-    $email->method('recipient')->willReturn('test@example.com');
-    $email->method('subject')->willReturn('Test Subject');
-    $email->method('body')->willReturn('<p>Body content</p>');
+    $email = \Mockery::mock(EmailInterface::class);
+    $email->shouldReceive('recipient')->andReturn('test@example.com');
+    $email->shouldReceive('subject')->andReturn('Test Subject');
+    $email->shouldReceive('body')->andReturn('<p>Body content</p>');
 
     // Send-method expectations
-    $mailer->expects($this->once())->method('addAddress')->with('test@example.com');
-    $mailer->expects($this->once())->method('isHTML');
-    $mailer->expects($this->once())->method('send');
-    $mailer->expects($this->once())->method('clearAllRecipients');
-    $mailer->expects($this->once())->method('clearAttachments');
+    $mailer->shouldReceive('addAddress')->with('test@example.com')->once();
+    $mailer->shouldReceive('isHTML')->once();
+    $mailer->shouldReceive('send')->once();
+    $mailer->shouldReceive('clearAllRecipients')->once();
+    $mailer->shouldReceive('clearAttachments')->once();
 
     $sender->send($email);
 });
