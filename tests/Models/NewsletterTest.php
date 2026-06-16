@@ -97,45 +97,39 @@ test('sendPostToSubscribers calls sender for each subscription', function (): vo
     $auth
         ->shouldReceive('hash')
         ->times(2)
-        ->andReturnUsing(function (string $email): string {
-            return match ($email) {
-                'user1@example.com' => 'token1',
-                'user2@example.com' => 'token2',
-                default => throw new \InvalidArgumentException('Unexpected email: ' . $email),
-            };
+        ->andReturnUsing(fn (string $email): string => match ($email) {
+            'user1@example.com' => 'token1',
+            'user2@example.com' => 'token2',
+            default => throw new \InvalidArgumentException('Unexpected email: ' . $email),
         });
 
     $emailTemplateFactory
         ->shouldReceive('createNewsletter')
         ->times(2)
-        ->andReturnUsing(function (
+        ->andReturnUsing(fn (
             Subscription $sub,
             Feed $_feed,
             Post $_post,
             #[\SensitiveParameter]
             string $_token,
-        ) use ($template1, $template2): NewsletterTemplate {
-            return match ($sub->email) {
-                'user1@example.com' => $template1,
-                'user2@example.com' => $template2,
-                default => throw new \InvalidArgumentException('Unexpected subscription email: ' . $sub->email),
-            };
+        ) => match ($sub->email) {
+            'user1@example.com' => $template1,
+            'user2@example.com' => $template2,
+            default => throw new \InvalidArgumentException('Unexpected subscription email: ' . $sub->email),
         });
 
     $invocations = [];
     $sender
         ->shouldReceive('send')
         ->times(2)
-        ->andReturnUsing(function (NewsletterTemplate $template) use (&$invocations): void {
-            $invocations[] = $template;
-        });
+        ->andReturnUsing(fn (NewsletterTemplate $template) => $invocations[] = $template);
 
     $newsletter = new Newsletter($sender, $emailTemplateFactory, $auth);
     $newsletter->sendPostToSubscribers($feed, $post, $sub1, $sub2);
 
     expect($invocations)->toHaveCount(2);
-    \assert(isset($invocations[0]));
-    \assert(isset($invocations[1]));
+    \assert($invocations[0] !== null, 'first invocation should exist');
+    \assert($invocations[1] !== null, 'second invocation should exist');
     expect($invocations[0])->toBe($template1);
     expect($invocations[1])->toBe($template2);
 });

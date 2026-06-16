@@ -19,7 +19,7 @@ it('returns HTML content type by default', function (): void {
 
     expect($response->getStatusCode())->toBe(200);
     $headers = $response->getHeaders();
-    assert(isset($headers['content-type']));
+    \assert(\array_key_exists('content-type', $headers), 'response should have content-type header');
     expect($headers['content-type'][0] ?? '')->toContain('text/html');
 });
 

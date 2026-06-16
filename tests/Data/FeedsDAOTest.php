@@ -45,9 +45,8 @@ test('new inserts and finds retrieves a feed', function () use (&$dao): void {
     );
     $feed = new Feed($metadata);
     $dao->new($feed);
-    /** @var ?Feed $found */
     $found = $dao->find('https://example.com/feed');
-    \assert($found instanceof Feed);
+    expect($found)->toBeInstanceOf(Feed::class);
     expect($found->getTitle())->toEqual('Test Feed');
 });
 
@@ -71,35 +70,32 @@ test('update modifies feed fields', function () use (&$dao): void {
     );
     $updated = new Feed(metadata: $updatedMetadata, lastSentPostUri: 'https://example.com/last-post');
     $dao->update($updated);
-    /** @var ?Feed $found */
     $found = $dao->find('https://example.com/feed');
-    \assert($found instanceof Feed);
+    expect($found)->toBeInstanceOf(Feed::class);
     expect($found->getTitle())->toEqual('Updated Title');
-    \assert($found->lastSentPostUri !== null);
-    expect($found->lastSentPostUri)->toEqual('https://example.com/last-post');
+    expect($found->getLastSentPostUri())->toEqual(
+        'https://example.com/last-post',
+    );
 });
 
 test('getScheduled returns feeds for matching trigger hour with active subscriptions', function () use (
     &$db,
     &$dao,
 ): void {
-    /**
-     * @throws \SimpleNewsletter\Components\EndUserException
-     */
-    assert($db !== null);
-    $db->exec(
-        "INSERT INTO feeds (uri, title, link, last_update, trigger_hour) VALUES ('https://example.com/morning', 'Morning Feed', 'https://example.com', 0, 10)",
+    $metadata = new FeedMetadata(
+        'https://scheduled.example.com/feed',
+        'Scheduled',
+        'https://scheduled.example.com',
+        new \DateTimeImmutable(),
     );
-    $db->exec(
-        "INSERT INTO feeds (uri, title, link, last_update, trigger_hour) VALUES ('https://example.com/afternoon', 'Afternoon Feed', 'https://example.com', 0, 14)",
-    );
-    $db->exec(
-        "INSERT INTO subscriptions (feed_uri, email, active) VALUES ('https://example.com/morning', 'user@example.com', 1)",
-    );
-    /** @var array<int, \SimpleNewsletter\Data\Feed> $results */
-    $results = $dao->getScheduled(new \DateTimeImmutable('2024-01-01 10:00:00'));
-    assert(isset($results[0]));
-    expect($results[0]->getUri())->toEqual('https://example.com/morning');
+    $feed = new Feed($metadata);
+    $dao->new($feed);
+    $subStmt = $db->prepare('INSERT INTO subscriptions (feed_uri, email, active) VALUES (?, ?, ?)');
+    \assert($subStmt instanceof \PDOStatement, 'subStmt should be prepared');
+    $subStmt->execute(['https://scheduled.example.com/feed', 'subscriber@example.com', 1]);
+    $results = $dao->getScheduled(12);
+    \assert($results[0] !== null, 'first result should exist');
+    expect($results[0]->metadata->uri)->toEqual('https://scheduled.example.com/feed');
 });
 
 test('getScheduled returns empty array when no feeds match', function () use (&$dao): void {

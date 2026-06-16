@@ -174,13 +174,14 @@ test(
 
         $feeds = new Feeds($feedsDAO, $feedImporter);
         $feeds->updateLastSentPost($feed, $post);
-        $feedsDAO->shouldHaveReceived('update', function (Feed $f): bool {
-            return (
+        $feedsDAO->shouldHaveReceived(
+            'update',
+            fn (Feed $f): bool => (
                 $f->getUri() === 'https://example.com/feed'
                 && $f->getTitle() === 'Test Feed'
                 && $f->getLink() === 'https://example.com'
                 && $f->lastSentPostUri === 'https://example.com/post1'
-            );
-        });
+            ),
+        );
     },
 );

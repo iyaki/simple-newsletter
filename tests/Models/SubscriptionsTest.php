@@ -381,30 +381,20 @@ it('sendScheduled handles multiple scheduled feeds', function (): void {
     $feeds
         ->shouldReceive('retrieveWithPosts')
         ->times(2)
-        ->andReturnUsing(function (Feed $feed) use ($feed1, $feed2, $feedWithPosts1, $feedWithPosts2): ?Feed {
-            if ($feed === $feed1) {
-                return $feedWithPosts1;
-            }
-            if ($feed === $feed2) {
-                return $feedWithPosts2;
-            }
-
-            return null;
+        ->andReturnUsing(fn (Feed $feed): ?Feed => match ($feed->metadata->uri) {
+            'https://example.com/feed1' => $feedWithPosts1,
+            'https://example.com/feed2' => $feedWithPosts2,
+            default => null,
         });
 
     $subscriptionsDAO
         ->shouldReceive('findActiveSubscriptionsFor')
         ->times(2)
         /** @return array<int, \SimpleNewsletter\Data\Subscription> */
-        ->andReturnUsing(function (Feed $feedWithPosts) use ($feedWithPosts1, $feedWithPosts2, $sub1, $sub2): array {
-            if ($feedWithPosts === $feedWithPosts1) {
-                return [$sub1];
-            }
-            if ($feedWithPosts === $feedWithPosts2) {
-                return [$sub2];
-            }
-
-            return [];
+        ->andReturnUsing(fn (Feed $feed): array => match ($feed->metadata->uri) {
+            'https://example.com/feed1' => [$sub1],
+            'https://example.com/feed2' => [$sub2],
+            default => [],
         });
 
     $newsletter

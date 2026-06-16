@@ -7,7 +7,7 @@ return (
     static function (): array {
         $dbPath = \getenv('NEWSLETTER_DB_PATH');
         return [
-            'dsn' => 'sqlite:' . ($dbPath ?: ':memory:'),
+            'dsn' => 'sqlite:' . (\is_string($dbPath) ? $dbPath : ':memory:'),
         ];
     }
 )();
