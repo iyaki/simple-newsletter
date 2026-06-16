@@ -73,7 +73,8 @@ final class Container
 
     private function emailTemplateFactory(): EmailTemplateFactory
     {
-        return new EmailTemplateFactory(\getenv('URI_SELF') ?: '');
+        $uriSelf = \getenv('URI_SELF');
+        return new EmailTemplateFactory(\is_string($uriSelf) ? $uriSelf : '');
     }
 
     private function auth(): Auth
@@ -83,7 +84,8 @@ final class Container
             return $auth;
         }
 
-        $auth = new Auth(\getenv('SECRET_KEY') ?: '');
+        $secretKey = \getenv('SECRET_KEY');
+        $auth = new Auth(\is_string($secretKey) ? $secretKey : '');
         self::$auth = \WeakReference::create($auth);
 
         return $auth;
@@ -98,15 +100,22 @@ final class Container
         }
 
         $connection = new SmtpConnection(
-            host: \getenv('SMTP_HOST') ?: 'localhost',
-            port: (int) (\getenv('SMTP_PORT') ?: 587),
-            encryption: \getenv('SMTP_ENCRYPTION') ?: PHPMailer::ENCRYPTION_STARTTLS,
-            allowSelfSigned: (bool) (\getenv('SMTP_ALLOW_SELF_SIGNED') ?: false),
+            host: ($smtpHost = \getenv('SMTP_HOST')) !== false ? $smtpHost : 'localhost',
+            port: (int) (($smtpPort = \getenv('SMTP_PORT')) !== false ? $smtpPort : 587),
+            encryption: ($smtpEncryption = \getenv('SMTP_ENCRYPTION')) !== false
+                ? $smtpEncryption
+                : PHPMailer::ENCRYPTION_STARTTLS,
+            allowSelfSigned: (bool) (
+                ($smtpAllowSelfSigned = \getenv('SMTP_ALLOW_SELF_SIGNED')) !== false ? $smtpAllowSelfSigned : false
+            ),
         );
-        $credentials = new SmtpCredentials(user: \getenv('SMTP_USER') ?: '', password: \getenv('SMTP_PASSWORD') ?: '');
+        $credentials = new SmtpCredentials(
+            user: ($smtpUser = \getenv('SMTP_USER')) !== false ? $smtpUser : '',
+            password: ($smtpPassword = \getenv('SMTP_PASSWORD')) !== false ? $smtpPassword : '',
+        );
         $senderConfig = new SmtpSender(
-            from: \getenv('EMAIL_FROM') ?: 'noreply@example.com',
-            replyTo: \getenv('EMAIL_REPLY_TO') ?: 'noreply@example.com',
+            from: ($emailFrom = \getenv('EMAIL_FROM')) !== false ? $emailFrom : 'noreply@example.com',
+            replyTo: ($emailReplyTo = \getenv('EMAIL_REPLY_TO')) !== false ? $emailReplyTo : 'noreply@example.com',
         );
         $config = new SmtpConfig($connection, $credentials, $senderConfig);
         $sender = new SenderPHPMailer($config);

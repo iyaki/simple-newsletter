@@ -21,7 +21,7 @@ final class FeedTestServer
     {
         $feedDir = '/tmp/feedtest';
         if (! \is_dir($feedDir)) {
-            \mkdir($feedDir, 0o777, true);
+            \mkdir($feedDir, mode: 0o777, recursive: true);
             \file_put_contents($feedDir . '/valid.xml', <<<XML
                 <?xml version="1.0" encoding="UTF-8"?>
                 <rss version="2.0">
@@ -46,7 +46,7 @@ final class FeedTestServer
         for ($i = 0; $i < 15; $i++) {
             $errorCode = 0;
             $errorString = '';
-            $sock = @\fsockopen('127.0.0.1', FEED_TEST_SERVER_PORT, $errorCode, $errorString, 1);
+            $sock = \fsockopen('127.0.0.1', FEED_TEST_SERVER_PORT, $errorCode, $errorString, timeout: 1);
             if (\is_resource($sock)) {
                 \fclose($sock);
                 break;

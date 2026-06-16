@@ -94,10 +94,11 @@ class HttpClientHelpers
      */
     public static function toArraySafe(ResponseInterface $response): array
     {
-        $content = self::getContentSafe($response);
-        /** @var array<string, mixed>|null $decoded */
-        $decoded = \json_decode($content, true);
-        return \is_array($decoded) ? $decoded : [];
+        try {
+            return $response->toArray(false);
+        } catch (\Exception) {
+            return [];
+        }
     }
 
     /**

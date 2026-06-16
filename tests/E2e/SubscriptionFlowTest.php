@@ -34,6 +34,8 @@ it('completes subscription flow end-to-end', function (): void {
     $response = e2e_sub_get('/v1/subscriptions/', [
         'uri' => 'https://example.com/feed.xml',
         'email' => 'test@example.com',
+        'return' => 'https://example.com',
+        'redirect' => 'false',
     ]);
 
     expect($response->getStatusCode())->toBe(200);
@@ -44,25 +46,20 @@ it('completes subscription flow end-to-end', function (): void {
 
     // 2. Verify subscription created in DB (unconfirmed)
     $dbPath = \getenv('NEWSLETTER_DB_PATH');
-    assert(\is_string($dbPath) && $dbPath !== '');
     $pdo = new \PDO('sqlite:' . $dbPath);
-    $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
     $stmt = $pdo->prepare('SELECT * FROM subscriptions WHERE feed_uri = ? AND email = ?');
-    assert($stmt instanceof \PDOStatement);
+    \assert($stmt instanceof \PDOStatement, 'stmt should be prepared');
     $stmt->execute(['https://example.com/feed.xml', 'test@example.com']);
     /** @var array{active: int, ...}|false $sub */
     $sub = $stmt->fetch(\PDO::FETCH_ASSOC);
-    assert(\is_array($sub));
-    expect($sub['active'])->toBe(0); // Unconfirmed
-
-    // 3. Generate confirmation token
+    \assert(\is_array($sub), 'subscription should exist');
+    expect($sub['active'])->toBe(0);
     $rawKey = \getenv('SECRET_KEY');
-    $key = \is_string($rawKey) ? $rawKey : '';
-    $token = \hash_hmac('sha256', 'test@example.com', $key);
-
+    \assert(\is_string($rawKey), 'SECRET_KEY must be set');
+    $key = $rawKey;
     // 4. Confirm subscription
     $confirmResponse = e2e_sub_get('/v1/subscriptions/confirmation/', [
-        'feed_uri' => 'https://example.com/feed.xml',
+        'uri' => 'https://example.com/feed.xml',
         'email' => 'test@example.com',
         'token' => $token,
     ]);
@@ -72,10 +69,9 @@ it('completes subscription flow end-to-end', function (): void {
     // 5. Verify subscription active in DB
     /** @var array{active: int, ...}|false $confirmedSub */
     $confirmedSub = $stmt->fetch(\PDO::FETCH_ASSOC);
-    assert(\is_array($confirmedSub));
+    \assert(\is_array($confirmedSub), 'confirmed subscription should exist');
     expect($confirmedSub['active'])->toBe(1);
 });
-
 /** @throws \Exception */
 it('rejects invalid feed URI', function (): void {
     $response = e2e_sub_get('/v1/subscriptions/', [

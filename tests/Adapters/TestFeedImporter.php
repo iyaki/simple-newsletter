@@ -47,7 +47,12 @@ final class TestFeedImporter implements FeedImporter
         $title = $laminasFeed->getTitle();
         $desc = $laminasFeed->getDescription();
 
-        $metadata = new FeedMetadata($link ?? $uri, $title ?: 'Untitled', $desc ?: $uri, new \DateTimeImmutable());
+        $metadata = new FeedMetadata(
+            $link !== null ? $link : $uri,
+            $title !== '' ? $title : 'Untitled',
+            $desc !== '' ? $desc : $uri,
+            new \DateTimeImmutable(),
+        );
 
         return new Feed($metadata);
     }
@@ -74,9 +79,9 @@ final class TestFeedImporter implements FeedImporter
         $desc = $laminasFeed->getDescription();
 
         $metadata = new FeedMetadata(
-            $link ?? $feed->metadata->uri,
-            $title ?: $feed->metadata->title,
-            $desc ?: $feed->metadata->link,
+            $link !== null ? $link : $feed->metadata->uri,
+            $title !== '' ? $title : $feed->metadata->title,
+            $desc !== '' ? $desc : $feed->metadata->link,
             new \DateTimeImmutable(),
         );
 
@@ -88,8 +93,7 @@ final class TestFeedImporter implements FeedImporter
             $entryContent = $entry->getContent();
             $entryDescription = $entry->getDescription();
 
-            /** @var string $content */
-            $content = $entryContent ?: ($entryDescription ?: '');
+            $content = $entryContent !== '' ? $entryContent : $entryDescription;
         }
 
         return new Feed($metadata, null, $posts);

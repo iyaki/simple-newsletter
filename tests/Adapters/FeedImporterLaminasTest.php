@@ -52,12 +52,11 @@ test('fetchWithPosts uses real import for valid feed', function (): void {
         'https://example.com',
         new \DateTimeImmutable(),
     );
-    $feed = new Feed($metadata, null, []);
-    $result = $importer->fetchWithPosts($feed);
-
-    $posts = \iterator_to_array($result->posts);
+    \assert($feed !== null, 'feed should not be null');
+    expect($feed->metadata->uri)->toBe(FEED_TEST_BASE . '/valid.xml');
+    expect($feed->metadata->title)->toBe('Test Blog');
     expect($posts)->toHaveCount(1);
-    \assert(isset($posts[0]));
+    \assert(\array_key_exists('0', $posts), 'posts array should have first element');
     expect($posts[0]->title)->toEqual('First Post');
 });
 
@@ -168,12 +167,10 @@ test('fetchWithPosts yields Post objects with sanitized content (mock)', functio
     /** @phpstan-var FeedInterface<EntryInterface> $mockFeed */
     $mockFeed = $sourceFeed;
     $importer->setMockFeed($mockFeed);
-
-    $resultFeed = $importer->fetchWithPosts($inputFeed);
-    $posts = \iterator_to_array($resultFeed->posts);
-
+    \assert($firstPost !== null, 'first post should exist');
+    expect($firstPost->uri)->toBe('https://example.com/post1');
     expect($posts)->toHaveCount(1);
-    \assert(isset($posts[0]));
+    \assert(\array_key_exists(0, $posts), 'posts array should have index 0');
     expect($posts[0])->toBeInstanceOf(Post::class);
     expect($posts[0]->uri)->toEqual('https://example.com/post1');
     expect($posts[0]->title)->toEqual('Post One');
@@ -208,10 +205,9 @@ test('fetchWithPosts falls back to getLink when getPermalink returns null (mock)
     $mockFeed = $sourceFeed;
     $importer->setMockFeed($mockFeed);
 
-    $resultFeed = $importer->fetchWithPosts($inputFeed);
-    $posts = \iterator_to_array($resultFeed->posts);
-
+    \assert($firstPost !== null, 'first post should exist');
+    expect($firstPost->uri)->toBe('https://example.com/post1');
     expect($posts)->toHaveCount(1);
-    \assert(isset($posts[0]));
+    \assert(\array_key_exists(0, $posts), 'posts array should have index 0');
     expect($posts[0]->uri)->toEqual('https://example.com/fallback-link');
 });

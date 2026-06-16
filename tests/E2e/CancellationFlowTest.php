@@ -30,7 +30,7 @@ function e2e_get_cancel(string $path, array $queryParams = []): ResponseInterfac
 /**
  * @throws \PDOException
  */
-function e2e_cleanTestDatabase(): void
+function e2e_clean_test_database(): void
 {
     $dbPath = \getenv('NEWSLETTER_DB_PATH');
     if ($dbPath && \file_exists($dbPath)) {
