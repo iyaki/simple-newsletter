@@ -92,6 +92,8 @@ jobs:
           echo "SECRET_KEY=test-e2e-secret-key-32chars!" >> $GITHUB_ENV
           echo "SERVER_NAME=http://localhost:8080" >> $GITHUB_ENV
           echo "URI_SELF=http://localhost:8080" >> $GITHUB_ENV
+      - name: Initialize test database
+        run: php -r "require 'vendor/autoload.php'; require 'tests/E2e/bootstrap.php'; init_test_database(getenv('NEWSLETTER_DB_PATH'));"
       - name: Start dev server
         run: php -S localhost:8080 -t public &
       - name: Wait for dev server
