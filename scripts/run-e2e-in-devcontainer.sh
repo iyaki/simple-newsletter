@@ -88,12 +88,12 @@ export EMAIL_FROM='test@test.localhost'
 export EMAIL_REPLY_TO='reply@test.localhost'
 
 # Start HTTP server
-echo "4. Starting test HTTP server on port 8089..."
-php -S localhost:8089 -t public > /tmp/php-server-e2e.log 2>&1 &
+echo "4. Starting test HTTP server on port 8080..."
+php -S localhost:8080 -t public > /tmp/php-server-e2e.log 2>&1 &
 HTTP_PID=$!
 
 for i in {1..30}; do
-    if curl -sf http://localhost:8089 > /dev/null 2>&1; then
+    if curl -sf http://localhost:8080 > /dev/null 2>&1; then
         echo "   ✓ HTTP server ready"
         break
     fi
