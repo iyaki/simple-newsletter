@@ -114,6 +114,7 @@ describe('Subscription API validations', function (): void {
 // ─── Confirmation endpoint contract ────────────────────────────────────────
 
 describe('Confirmation flow', function (): void {
+    /** @throws \PDOException */
     it('confirms subscription with valid token', function (): void {
         $db = create_test_db();
         seed_feed($db);
@@ -128,6 +129,7 @@ describe('Confirmation flow', function (): void {
         expect($sub?->active)->toBeTrue();
     });
 
+    /** @throws \PDOException */
     it('rejects invalid token', function (): void {
         $db = create_test_db();
         seed_feed($db);
@@ -143,6 +145,7 @@ describe('Confirmation flow', function (): void {
 // ─── Cancellation endpoint contract ────────────────────────────────────────
 
 describe('Cancellation flow', function (): void {
+    /** @throws \PDOException */
     it('deactivates subscription with valid token', function (): void {
         $db = create_test_db();
         seed_feed($db);
@@ -205,6 +208,7 @@ describe('JSONResponse schema compliance (OpenAPI)', function (): void {
 // ─── Rate limiter contract ─────────────────────────────────────────────────
 
 describe('RateLimiter', function (): void {
+    /** @throws \PDOException */
     it('allows requests under the limit', function (): void {
         $db = create_test_db();
         $limiter = new \SimpleNewsletter\Components\RateLimiter($db);
@@ -215,6 +219,7 @@ describe('RateLimiter', function (): void {
         expect(true)->toBeTrue();
     });
 
+    /** @throws \PDOException|\SimpleNewsletter\Components\EndUserException */
     it('blocks after exceeding limit', function (): void {
         $db = create_test_db();
         $limiter = new \SimpleNewsletter\Components\RateLimiter($db);

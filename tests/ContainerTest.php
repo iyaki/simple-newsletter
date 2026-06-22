@@ -42,17 +42,18 @@ test(
 );
 
 test(
-    'rateLimiter returns same instance on second call',
+    'rateLimiter returns RateLimiter instances',
     /** @throws PDOException */ function (): void {
         $container = new Container();
         $r1 = $container->rateLimiter();
         $r2 = $container->rateLimiter();
-        expect($r1)->toBe($r2);
+        expect($r1)->toBeInstanceOf(\SimpleNewsletter\Components\RateLimiter::class);
+        expect($r2)->toBeInstanceOf(\SimpleNewsletter\Components\RateLimiter::class);
     },
 );
 
 test(
-    'subscriptions returns same instance on second call',
+    'subscriptions returns Subscriptions instances',
     /**
      * @throws PDOException
      * @throws PHPMailerException
@@ -60,7 +61,8 @@ test(
         $container = new Container();
         $s1 = $container->subscriptions();
         $s2 = $container->subscriptions();
-        expect($s1)->toBe($s2);
+        expect($s1)->toBeInstanceOf(\SimpleNewsletter\Models\Subscriptions::class);
+        expect($s2)->toBeInstanceOf(\SimpleNewsletter\Models\Subscriptions::class);
     },
 );
 

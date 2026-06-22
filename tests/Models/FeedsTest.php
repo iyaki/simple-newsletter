@@ -15,7 +15,9 @@ test(
      * @throws Random\RandomException
      * @throws SimpleNewsletter\Components\EndUserException
      */ function (): void {
+        /** @var FeedsDAO&\Mockery\MockInterface $feedsDAO */
         $feedsDAO = \Mockery::mock(FeedsDAO::class);
+        /** @var FeedImporter&\Mockery\MockInterface $feedImporter */
         $feedImporter = \Mockery::mock(FeedImporter::class);
 
         $now = new DateTimeImmutable();
@@ -47,7 +49,9 @@ test(
      * @throws Random\RandomException
      * @throws SimpleNewsletter\Components\EndUserException
      */ function (): void {
+        /** @var FeedsDAO&\Mockery\MockInterface $feedsDAO */
         $feedsDAO = \Mockery::mock(FeedsDAO::class);
+        /** @var FeedImporter&\Mockery\MockInterface $feedImporter */
         $feedImporter = \Mockery::mock(FeedImporter::class);
 
         $oldDate = new DateTimeImmutable()->sub(new DateInterval('P2D'));
@@ -80,7 +84,9 @@ test(
      * @throws Random\RandomException
      * @throws SimpleNewsletter\Components\EndUserException
      */ function (): void {
+        /** @var FeedsDAO&\Mockery\MockInterface $feedsDAO */
         $feedsDAO = \Mockery::mock(FeedsDAO::class);
+        /** @var FeedImporter&\Mockery\MockInterface $feedImporter */
         $feedImporter = \Mockery::mock(FeedImporter::class);
 
         $uri = 'https://example.com/feed';
@@ -109,7 +115,9 @@ test(
     /**
      * @throws SimpleNewsletter\Components\EndUserException
      */ function (): void {
+        /** @var FeedsDAO&\Mockery\MockInterface $feedsDAO */
         $feedsDAO = \Mockery::mock(FeedsDAO::class);
+        /** @var FeedImporter&\Mockery\MockInterface $feedImporter */
         $feedImporter = \Mockery::mock(FeedImporter::class);
 
         $datetime = new DateTimeImmutable();
@@ -136,7 +144,9 @@ test(
     /**
      * @throws SimpleNewsletter\Components\EndUserException
      */ function (): void {
+        /** @var FeedsDAO&\Mockery\MockInterface $feedsDAO */
         $feedsDAO = \Mockery::mock(FeedsDAO::class);
+        /** @var FeedImporter&\Mockery\MockInterface $feedImporter */
         $feedImporter = \Mockery::mock(FeedImporter::class);
 
         $now = new DateTimeImmutable();
@@ -162,7 +172,9 @@ test(
     /**
      * @throws SimpleNewsletter\Components\EndUserException
      */ function (): void {
+        /** @var FeedsDAO&\Mockery\MockInterface $feedsDAO */
         $feedsDAO = \Mockery::mock(FeedsDAO::class);
+        /** @var FeedImporter&\Mockery\MockInterface $feedImporter */
         $feedImporter = \Mockery::mock(FeedImporter::class);
 
         $now = new DateTimeImmutable();

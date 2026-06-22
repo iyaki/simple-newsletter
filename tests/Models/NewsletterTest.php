@@ -94,49 +94,25 @@ test('sendPostToSubscribers calls sender for each subscription', function (): vo
     $template1 = new NewsletterTemplate($sub1, $feed, $post, 'https://example.com/cancel/user1');
     $template2 = new NewsletterTemplate($sub2, $feed, $post, 'https://example.com/cancel/user2');
 
-    $auth
-        ->shouldReceive('hash')
-        ->times(2)
-        ->andReturnUsing(fn (string $email): string => match ($email) {
-            'user1@example.com' => 'token1',
-            'user2@example.com' => 'token2',
-            default => throw new \InvalidArgumentException('Unexpected email: ' . $email),
-        });
+    $auth->shouldReceive('hash')->twice()->andReturn('token1', 'token2');
 
     $emailTemplateFactory
         ->shouldReceive('createNewsletter')
-        ->times(2)
-        ->andReturnUsing(fn (
-            Subscription $sub,
-            Feed $_feed,
-            Post $_post,
-            #[\SensitiveParameter]
-            string $_token,
-        ) => match ($sub->email) {
-            'user1@example.com' => $template1,
-            'user2@example.com' => $template2,
-            default => throw new \InvalidArgumentException('Unexpected subscription email: ' . $sub->email),
-        });
+        ->with($sub1, $feed, $post, 'token1')
+        ->once()
+        ->andReturn($template1);
+    $emailTemplateFactory
+        ->shouldReceive('createNewsletter')
+        ->with($sub2, $feed, $post, 'token2')
+        ->once()
+        ->andReturn($template2);
 
-    $invocations = [];
-    $sender
-        ->shouldReceive('send')
-        ->times(2)
-        ->andReturnUsing(fn (NewsletterTemplate $template) => $invocations[] = $template);
+    $sender->shouldReceive('send')->with($template1)->once();
+    $sender->shouldReceive('send')->with($template2)->once();
 
     $newsletter = new Newsletter($sender, $emailTemplateFactory, $auth);
     $newsletter->sendPostToSubscribers($feed, $post, $sub1, $sub2);
-
-    expect($invocations)->toHaveCount(2);
-    \assert($invocations[0] !== null, 'first invocation should exist');
-    \assert($invocations[1] !== null, 'second invocation should exist');
-    expect($invocations[0])->toBe($template1);
-    expect($invocations[1])->toBe($template2);
 });
-
-/**
- * @throws AssertionFailedError
- */
 test('sendPostToSubscribers creates correct template per subscription', function (): void {
     $sender = \Mockery::mock(Sender::class);
     $emailTemplateFactory = \Mockery::mock(EmailTemplateFactory::class);

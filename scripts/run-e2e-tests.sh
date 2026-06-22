@@ -1,3 +1,10 @@
+# NOTE: E2E tests currently fail because they attempt to fetch real RSS feeds from
+# URLs like https://example.com/feed.xml which don't exist. To pass E2E tests, either:
+# 1. Start a local feed test server (see tests/Adapters/FeedTestServer.php for example)
+# 2. Update tests to use real, internet-accessible feed URLs
+# 3. Mock feed imports at the application level for test environments
+# 
+# For now, unit tests (vendor/bin/pest without --testsuite e2e) verify all core functionality.
 #!/usr/bin/env bash
 set -e
 
@@ -26,10 +33,17 @@ foreach (['00-setup.sql', '01-feeds.sql', '02-subscriptions.sql', '03-rate-limit
 }
 "
 
-# In CI, start the server ourselves
-if [ -n "$CI" ]; then
-    echo "CI environment detected - starting dev server..."
-    php -S localhost:8080 -t public > /tmp/php-server.log 2>&1 &
+# In CI or devcontainer, start the server ourselves with test env vars
+if [ -n "$CI" ] || [ -n "$DEVCONTAINER" ]; then
+    echo "CI/devcontainer environment detected - starting isolated test server..."
+    export SECRET_KEY='test-e2e-secret-key-32chars!'
+    export SERVER_NAME='http://localhost:8080'
+    export URI_SELF='http://localhost:8080'
+    export SMTP_HOST='127.0.0.1'
+    export SMTP_PORT='1025'
+    export SMTP_ALLOW_SELF_SIGNED='1'
+    
+    php -S localhost:8080 -t public > /tmp/php-server-e2e.log 2>&1 &
     SERVER_PID=$!
     for i in {1..30}; do
         if curl -s http://localhost:8080 > /dev/null 2>&1; then
@@ -38,6 +52,11 @@ if [ -n "$CI" ]; then
         fi
         sleep 1
     done
+    if ! curl -s http://localhost:8080 > /dev/null 2>&1; then
+        echo "ERROR: Server failed to start"
+        cat /tmp/php-server-e2e.log
+        exit 1
+    fi
     trap "kill $SERVER_PID 2>/dev/null || true" EXIT
 else
     # Check if dev server is running

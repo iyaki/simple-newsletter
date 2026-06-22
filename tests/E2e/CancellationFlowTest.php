@@ -44,7 +44,7 @@ function e2e_clean_test_database(): void
 beforeEach(
     /** @throws \PDOException */
     function (): void {
-        e2e_cleanTestDatabase();
+        e2e_clean_test_database();
         init_test_database((string) \getenv('NEWSLETTER_DB_PATH'));
 
         // Create active subscription with feed

@@ -73,27 +73,27 @@ test('update modifies feed fields', function () use (&$dao): void {
     $found = $dao->find('https://example.com/feed');
     expect($found)->toBeInstanceOf(Feed::class);
     expect($found->getTitle())->toEqual('Updated Title');
-    expect($found->getLastSentPostUri())->toEqual(
-        'https://example.com/last-post',
-    );
+    expect($found->getLastSentPostUri())->toEqual('https://example.com/last-post');
 });
 
 test('getScheduled returns feeds for matching trigger hour with active subscriptions', function () use (
     &$db,
     &$dao,
 ): void {
-    $metadata = new FeedMetadata(
+    // Insert feed directly with trigger_hour
+    $stmt = $db->prepare('INSERT INTO feeds (uri, title, link, last_update, trigger_hour) VALUES (?, ?, ?, ?, ?)');
+    \assert($stmt instanceof \PDOStatement, 'stmt should be prepared');
+    $stmt->execute([
         'https://scheduled.example.com/feed',
         'Scheduled',
         'https://scheduled.example.com',
-        new \DateTimeImmutable(),
-    );
-    $feed = new Feed($metadata);
-    $dao->new($feed);
+        \time(),
+        12,
+    ]);
     $subStmt = $db->prepare('INSERT INTO subscriptions (feed_uri, email, active) VALUES (?, ?, ?)');
     \assert($subStmt instanceof \PDOStatement, 'subStmt should be prepared');
     $subStmt->execute(['https://scheduled.example.com/feed', 'subscriber@example.com', 1]);
-    $results = $dao->getScheduled(12);
+    $results = $dao->getScheduled(new \DateTimeImmutable('2024-01-01 12:00:00'));
     \assert($results[0] !== null, 'first result should exist');
     expect($results[0]->metadata->uri)->toEqual('https://scheduled.example.com/feed');
 });

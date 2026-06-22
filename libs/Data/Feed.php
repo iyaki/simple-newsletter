@@ -37,4 +37,9 @@ final readonly class Feed
     {
         return $this->metadata->lastUpdate;
     }
+
+    public function getLastSentPostUri(): ?string
+    {
+        return $this->lastSentPostUri;
+    }
 }
