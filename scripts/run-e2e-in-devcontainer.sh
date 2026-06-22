@@ -61,57 +61,85 @@ for i in {1..20}; do
     sleep 0.5
 done
 
-# Create SMTP mock server
-cat > /tmp/smtp-mock-with-auth.php << 'SMTPEOF'
+# Create SMTP mock server with proper AUTH LOGIN support
+cat > /tmp/smtp-mock-with-auth.php << 'SMTPCODE'
 <?php
 declare(strict_types=1);
-$host = '127.0.0.1';
-$port = 1025;
-$socket = stream_socket_server("tcp://{$host}:{$port}", $errno, $errstr);
-if (!$socket) {
-    exit(1);
-}
-while (true) {
-    $client = stream_socket_accept($socket);
-    if (!$client) { continue; }
-    fwrite($client, "220 localhost SMTP Mock\r\n");
+file_put_contents('/tmp/smtp-mock.log', "SMTP starting
+");
+$server = stream_socket_server("tcp://127.0.0.1:1025", $errno, $errstr);
+if (!$server) { file_put_contents('/tmp/smtp-mock.log', "Failed: $errstr
+", FILE_APPEND); exit(1); }
+file_put_contents('/tmp/smtp-mock.log', "Listening
+", FILE_APPEND);
+while ($client = stream_socket_accept($server)) {
+    file_put_contents('/tmp/smtp-mock.log', "Connect
+", FILE_APPEND);
+    fwrite($client, "220 localhost
+");
+    $authState = 0;
     while (!feof($client)) {
         $line = fgets($client);
-        if ($line === false) { break; }
-        $command = strtoupper(trim($line));
-        if (str_starts_with($command, 'EHLO') || str_starts_with($command, 'HELO')) {
-            fwrite($client, "250-localhost\r\n250 AUTH LOGIN\r\n");
-        } elseif (str_starts_with($command, 'AUTH')) {
-            fwrite($client, "235 Authentication successful\r\n");
-        } elseif (str_starts_with($command, 'MAIL FROM')) {
-            fwrite($client, "250 OK\r\n");
-        } elseif (str_starts_with($command, 'RCPT TO')) {
-            fwrite($client, "250 OK\r\n");
-        } elseif (str_starts_with($command, 'DATA')) {
-            fwrite($client, "354 Start mail input\r\n");
-            while (!feof($client)) {
-                $dataLine = fgets($client);
-                if (trim($dataLine) === '.') { break; }
-            }
-            fwrite($client, "250 OK: Message accepted\r\n");
-        } elseif (str_starts_with($command, 'QUIT')) {
-            fwrite($client, "221 Bye\r\n");
+        if ($line === false) break;
+        $cmd = trim($line);
+        $cmdUpper = strtoupper($cmd);
+        file_put_contents('/tmp/smtp-mock.log', "> {$cmd}
+", FILE_APPEND);
+        if ($authState === 1) {
+            fwrite($client, "334 UGFzc3dvcmQ6
+");
+            $authState = 2;
+        } elseif ($authState === 2) {
+            fwrite($client, "235 2.7.0 Authentication successful
+");
+            $authState = 3;
+        } elseif (str_starts_with($cmdUpper, 'EHLO ') || str_starts_with($cmdUpper, 'HELO ')) {
+            fwrite($client, "250-localhost
+250 AUTH LOGIN
+");
+        } elseif (str_starts_with($cmdUpper, 'AUTH LOGIN')) {
+            fwrite($client, "334 VXNlcm5hbWU6
+");
+            $authState = 1;
+        } elseif (str_starts_with($cmdUpper, 'MAIL FROM:')) {
+            fwrite($client, "250 2.1.0 OK
+");
+        } elseif (str_starts_with($cmdUpper, 'RCPT TO:')) {
+            fwrite($client, "250 2.1.5 OK
+");
+        } elseif (str_starts_with($cmdUpper, 'DATA')) {
+            fwrite($client, "354 End data with <CR><LF>.<CR><LF>
+");
+            while (($dataLine = fgets($client)) !== false && rtrim($dataLine) !== '.') {}
+            fwrite($client, "250 2.0.0 OK
+");
+        } elseif (str_starts_with($cmdUpper, 'QUIT')) {
+            fwrite($client, "221 2.0.0 Bye
+");
             break;
-        } elseif (str_starts_with($command, 'RSET') || str_starts_with($command, 'NOOP')) {
-            fwrite($client, "250 OK\r\n");
+        } elseif (str_starts_with($cmdUpper, 'RSET')) {
+            fwrite($client, "250 2.0.0 OK
+");
+            $authState = 0;
+        } elseif (str_starts_with($cmdUpper, 'NOOP')) {
+            fwrite($client, "250 2.0.0 OK
+");
         } else {
-            fwrite($client, "502 Command not implemented\r\n");
+            fwrite($client, "502 5.5.1 Command not implemented
+");
         }
     }
     fclose($client);
+    file_put_contents('/tmp/smtp-mock.log', "Disconnect
+", FILE_APPEND);
 }
-SMTPEOF
+SMTPCODE
 
 # Start SMTP mock
 echo "3. Starting SMTP mock server..."
-php /tmp/smtp-mock-with-auth.php > /tmp/smtp-mock.log 2>&1 &
+php /tmp/smtp-mock-with-auth.php > /tmp/smtp-mock-dbg.log 2>&1 &
 SMTP_PID=$!
-sleep 1
+sleep 2
 
 # Wait for SMTP using PHP
 for i in {1..30}; do
