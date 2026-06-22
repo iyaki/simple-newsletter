@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-cd /app
+cd "$(dirname "$0")/.."
 
 echo "=== E2E Test Runner for DevContainer ==="
 echo ""
@@ -13,14 +13,14 @@ sleep 2
 
 # Initialize test database
 echo "1. Setting up test database..."
-export NEWSLETTER_DB_PATH="/app/data/test-e2e.db"
+export NEWSLETTER_DB_PATH="$PWD/data/test-e2e.db"
 rm -f "$NEWSLETTER_DB_PATH"
 php -r "
 \$dbPath = getenv('NEWSLETTER_DB_PATH');
 \$pdo = new PDO(\"sqlite:{\$dbPath}\");
 \$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 foreach (['00-setup.sql', '01-feeds.sql', '02-subscriptions.sql', '03-rate-limiting.sql', '99-optimizations.sql'] as \$file) {
-    \$pdo->exec(file_get_contents('/app/migrations/' . \$file));
+    \$pdo->exec(file_get_contents('$PWD/migrations/' . \$file));
 }
 echo '   ✓ Database initialized\n';
 "
