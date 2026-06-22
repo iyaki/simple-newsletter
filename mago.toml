@@ -72,7 +72,9 @@ plugins = ["stdlib"]
 ignore = [
 	{ code = "non-existent-method", pattern = "Mockery", in = "tests/*" },
 	{ code = "non-documented-method", pattern = "Mockery", in = "tests/*" },
-	{ code = "mixed-method-access", pattern = "Mockery", in = "tests/*" }
+	{ code = "mixed-method-access", pattern = "Mockery", in = "tests/*" },
+	{ code = "unhandled-thrown-type", in = "tests/**" },
+	{ code = "mixed-return-statement", in = "tests/**" },
 ]
 
 find-unused-expressions = true
