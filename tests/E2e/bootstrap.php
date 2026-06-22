@@ -144,9 +144,9 @@ function get_content_safe(\Symfony\Contracts\HttpClient\ResponseInterface $respo
         return $response->getContent();
 
         // @mago-expect no-empty-catch-clause
-    } catch (\Symfony\Component\HttpClient\Exception\ClientException) {
+    } catch (\Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface) {
         // Fall through to try reflection
-    } catch (\Exception $e) {
+    } catch (\Throwable) {
         // Intentionally silenced - get_content_safe should never throw
         return '';
     }
