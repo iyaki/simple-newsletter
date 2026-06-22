@@ -21,7 +21,7 @@ final class FeedTestServer
     {
         $feedDir = '/tmp/feedtest';
         if (! \is_dir($feedDir)) {
-            \mkdir($feedDir, mode: 0o777, recursive: true);
+            \mkdir($feedDir, 0777, true);
             \file_put_contents($feedDir . '/valid.xml', <<<XML
                 <?xml version="1.0" encoding="UTF-8"?>
                 <rss version="2.0">
