@@ -38,8 +38,8 @@ it('completes subscription flow end-to-end', function (): void {
         'redirect' => 'false',
     ]);
 
-    expect($response->getStatusCode())->toBe(200);
-    expect($response->getHeaders()['content-type'][0] ?? '')->toContain('text/html');
+    expect(get_status_safe($response))->toBe(200);
+    expect(get_headers_safe($response)['content-type'][0] ?? '')->toContain('text/html');
 
     $content = $response->getContent(false);
     expect($content)->toContain('email confirmation');
@@ -64,7 +64,7 @@ it('completes subscription flow end-to-end', function (): void {
         'token' => $token,
     ]);
 
-    expect($confirmResponse->getStatusCode())->toBe(200);
+    expect(get_status_safe($confirmResponse))->toBe(200);
 
     // 5. Verify subscription active in DB
     /** @var array{active: int, ...}|false $confirmedSub */
@@ -79,7 +79,7 @@ it('rejects invalid feed URI', function (): void {
         'email' => 'test@example.com',
     ]);
 
-    expect($response->getStatusCode())->toBe(400);
+    expect(get_status_safe($response))->toBe(400);
     $content = $response->getContent(false);
     expect($content)->toContain('Invalid');
 });
@@ -91,5 +91,5 @@ it('rejects missing required fields', function (): void {
         // email missing
     ]);
 
-    expect($response->getStatusCode())->toBe(400);
+    expect(get_status_safe($response))->toBe(400);
 });

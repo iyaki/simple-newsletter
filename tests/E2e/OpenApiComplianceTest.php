@@ -21,10 +21,14 @@ it('returns valid JSON error response structure', function (): void {
         $response = $e->getResponse();
     }
 
-    expect($response->getStatusCode())->toBe(400);
+    expect(get_status_safe($response))->toBe(400);
 
     // Response should be either HTML or JSON
-    $contentType = $response->getHeaders()['content-type'][0] ?? '';
+    try {
+        $contentType = get_headers_safe($response)['content-type'][0] ?? '';
+    } catch (\Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface $e) {
+        $contentType = $e->getResponse()->getHeaders()['content-type'][0] ?? '';
+    }
 
     if (str_contains($contentType, 'application/json')) {
         $body = to_array_safe($response);
@@ -51,9 +55,9 @@ it('returns valid structure for missing required parameters', function (): void 
         $response = $e->getResponse();
     }
 
-    expect($response->getStatusCode())->toBe(400);
+    expect(get_status_safe($response))->toBe(400);
 
-    $contentType = $response->getHeaders()['content-type'][0] ?? '';
+    $contentType = get_headers_safe($response)['content-type'][0] ?? '';
     if (str_contains($contentType, 'application/json')) {
         $body = to_array_safe($response);
         expect($body)->toHaveKey('title');
@@ -69,8 +73,8 @@ it('returns HTML by default (content negotiation)', function (): void {
         'email' => 'test@example.com',
     ]);
 
-    expect($response->getStatusCode())->toBe(200);
-    $contentType = $response->getHeaders()['content-type'][0] ?? '';
+    expect(get_status_safe($response))->toBe(200);
+    $contentType = get_headers_safe($response)['content-type'][0] ?? '';
     expect($contentType)->toContain('text/html');
     $content = get_content_safe($response);
     expect($content)->toContain('email confirmation');
@@ -111,13 +115,13 @@ it('returns valid confirmation response structure', function (): void {
         'token' => $token,
     ]);
 
-    expect($response->getStatusCode())->toBe(200);
+    expect(get_status_safe($response))->toBe(200);
 
-    $contentType = $response->getHeaders()['content-type'][0] ?? '';
+    $contentType = get_headers_safe($response)['content-type'][0] ?? '';
 
     // Check for X-Robots-Tag header per OpenAPI spec
     // Check for X-Robots-Tag header per OpenAPI spec
-    $headers = $response->getHeaders();
+    $headers = get_headers_safe($response);
     expect($headers)->toHaveKey('x-robots-tag');
     $xRobotsTag = $headers['x-robots-tag'][0] ?? '';
     expect($xRobotsTag)->toContain('noindex');
@@ -148,9 +152,9 @@ it('returns valid error structure for invalid confirmation token', function (): 
         $response = $e->getResponse();
     }
 
-    expect($response->getStatusCode())->toBe(400);
+    expect(get_status_safe($response))->toBe(400);
 
-    $contentType = $response->getHeaders()['content-type'][0] ?? '';
+    $contentType = get_headers_safe($response)['content-type'][0] ?? '';
 
     // Error response should have valid structure
     if (str_contains($contentType, 'application/json')) {
@@ -194,9 +198,9 @@ it('returns valid cancellation response structure', function (): void {
         'token' => $token,
     ]);
 
-    expect($response->getStatusCode())->toBe(200);
+    expect(get_status_safe($response))->toBe(200);
 
-    $headers = $response->getHeaders();
+    $headers = get_headers_safe($response);
     $contentType = $headers['content-type'][0] ?? '';
 
     // Check for X-Robots-Tag header per OpenAPI spec
@@ -228,9 +232,9 @@ it('returns valid error structure for invalid cancellation token', function (): 
         $response = $e->getResponse();
     }
 
-    expect($response->getStatusCode())->toBe(400);
+    expect(get_status_safe($response))->toBe(400);
 
-    $contentType = $response->getHeaders()['content-type'][0] ?? '';
+    $contentType = get_headers_safe($response)['content-type'][0] ?? '';
     if (str_contains($contentType, 'application/json')) {
         $body = to_array_safe($response);
         expect($body)->toHaveKey('title');
@@ -249,9 +253,9 @@ it('validates JSON response when Accept header is set', function (): void {
         'email' => 'test@example.com',
     ]);
 
-    expect($response->getStatusCode())->toBe(200);
+    expect(get_status_safe($response))->toBe(200);
 
-    $contentType = $response->getHeaders()['content-type'][0] ?? '';
+    $contentType = get_headers_safe($response)['content-type'][0] ?? '';
     if (str_contains($contentType, 'application/json')) {
         $body = to_array_safe($response);
         expect($body)->toHaveKey('title');
