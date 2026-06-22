@@ -147,7 +147,7 @@ export SMTP_PASSWORD=''
 export SMTP_ALLOW_SELF_SIGNED='1'
 export EMAIL_FROM='test@test.localhost'
 export EMAIL_REPLY_TO='reply@test.localhost'
-exec php -c .php/php.ini -S localhost:8080 -t public > /tmp/php-server-e2e.log 2>&1
+exec php -d auto_prepend_file="$(pwd)/libs/bootstrap.php" -S localhost:8080 -t public > /tmp/php-server-e2e.log 2>&1
 ) &
 HTTP_PID=$!
 
