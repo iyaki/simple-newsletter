@@ -49,7 +49,7 @@ final class ResponderHttp
 
         $contentType = \reset($compatibleTypes);
         if ($contentType === false) {
-            $contentType = self::TYPE_JSON;
+            $contentType = self::TYPE_HTML;
         }
 
         return new readonly class($contentType) implements ResponseBuilderInterface {

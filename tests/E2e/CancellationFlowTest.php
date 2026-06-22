@@ -79,7 +79,7 @@ it(
         $token = hash_hmac(algo: 'sha256', data: 'test@example.com', key: (string) getenv('SECRET_KEY'));
 
         $response = e2e_get_cancel('/v1/subscriptions/cancellation/', [
-            'feed_uri' => 'http://127.0.0.1:9995/valid.xml',
+            'uri' => 'http://127.0.0.1:9995/valid.xml',
             'email' => 'test@example.com',
             'token' => $token,
         ]);
@@ -103,7 +103,7 @@ it(
     /** @throws TransportExceptionInterface */
     function (): void {
         $response = e2e_get_cancel('/v1/subscriptions/cancellation/', [
-            'feed_uri' => 'http://127.0.0.1:9995/valid.xml',
+            'uri' => 'http://127.0.0.1:9995/valid.xml',
             'email' => 'test@example.com',
             'token' => 'invalid-token',
         ]);
