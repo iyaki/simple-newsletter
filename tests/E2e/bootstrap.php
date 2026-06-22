@@ -118,8 +118,8 @@ function get_status_safe(\Symfony\Contracts\HttpClient\ResponseInterface $respon
     try {
         return $response->getStatusCode();
     } catch (\Throwable $e) {
-        // @mago-expect no-error-control-operator: Get response from exception safely
-        return @$e->getResponse()->getStatusCode() ?? 0;
+        // Return 0 on error for safe helper
+        return 0;
     }
 }
 
@@ -134,20 +134,10 @@ function get_headers_safe(\Symfony\Contracts\HttpClient\ResponseInterface $respo
 {
     try {
         return $response->getHeaders();
-    } catch (\Throwable $e) {
-        // @mago-expect no-error-control-operator: Get response from exception safely
-        return @$e->getResponse()->getHeaders() ?? [];
+    } catch (\Throwable) {
+        return [];
     }
 }
-
-/**
- * Safely get response content without throwing on error status
- *
- * @throws \Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface
- * @throws \Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface
- * @throws \Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface
- * @throws \Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface
- */
 function get_content_safe(\Symfony\Contracts\HttpClient\ResponseInterface $response): string
 {
     try {
