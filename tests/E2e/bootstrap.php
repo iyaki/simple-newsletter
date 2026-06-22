@@ -106,6 +106,7 @@ function http_get(
 
     return $httpClient->request('GET', $url, [
         'headers' => $headers,
+        'http_errors' => false,
     ]);
 }
 /**
@@ -118,8 +119,10 @@ function get_status_safe(\Symfony\Contracts\HttpClient\ResponseInterface $respon
     try {
         return $response->getStatusCode();
     } catch (\Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface $e) {
+        // @mago-expect no-error-control-operator: Get response from exception safely
         return @$e->getResponse()->getStatusCode();
     } catch (\Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface $e) {
+        // @mago-expect no-error-control-operator: Get response from exception safely
         return @$e->getResponse()->getStatusCode();
     }
 }
@@ -136,8 +139,10 @@ function get_headers_safe(\Symfony\Contracts\HttpClient\ResponseInterface $respo
     try {
         return $response->getHeaders();
     } catch (\Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface $e) {
+        // @mago-expect no-error-control-operator: Get response from exception safely
         return @$e->getResponse()->getHeaders();
     } catch (\Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface $e) {
+        // @mago-expect no-error-control-operator: Get response from exception safely
         return @$e->getResponse()->getHeaders();
     }
 }
