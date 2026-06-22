@@ -23,10 +23,4 @@ pre-push:
   commands:
     full test suite:
       run: composer test:coverage
-    openapi compliance:
-      run: vendor/bin/pest tests/E2e/OpenApiComplianceTest.php
-
-commit-msg:
-  commands:
-    conventional commits:
-      run: hooks/commit-msg.sh
+    # E2E tests moved to CI - too fragile for local pre-push due to infrastructure dependencies

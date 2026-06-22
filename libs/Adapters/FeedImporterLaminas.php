@@ -55,6 +55,7 @@ final readonly class FeedImporterLaminas implements FeedImporter
         $posts = [];
         $config = new HtmlSanitizerConfig();
         $config = $config->allowSafeElements();
+
         $sanitizer = new HtmlSanitizer($config);
         foreach ($sourceFeed as $sourcePost) {
             $cleanContent = $sanitizer->sanitize($sourcePost->getContent());

@@ -33,10 +33,10 @@
 		"source=caddy_config,target=/config,type=volume",
 		{ "source": "${localEnv:HOME}/.config/gh/", "target": "/home/root/.config/gh/", "type": "bind" },
 		{
-      "source": "${localEnv:HOME}/.omp",
-      "target": "/root/.omp",
-      "type": "bind"
-    }
+			"source": "${localEnv:HOME}/.omp",
+			"target": "/root/.omp",
+			"type": "bind"
+		}
 	],
 	"containerEnv": {
 		"SERVER_NAME": "http://localhost:8080"

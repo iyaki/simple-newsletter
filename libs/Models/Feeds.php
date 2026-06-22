@@ -29,7 +29,7 @@ final readonly class Feeds
         $feed = $this->feedsDAO->find($uri);
 
         if ($feed instanceof Feed) {
-            $days = $feed->getLastUpdate()->diff(new \DateTimeImmutable())->days;
+            $days = (int) $feed->getLastUpdate()->diff(new \DateTimeImmutable())->days;
             if ($days < 1) {
                 return $feed;
             }

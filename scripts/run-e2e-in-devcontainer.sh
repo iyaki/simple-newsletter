@@ -65,6 +65,7 @@ done
 echo "3. Starting SMTP mock server..."
 php /tmp/smtp-mock-with-auth.php > /tmp/smtp-mock.log 2>&1 &
 SMTP_PID=$!
+sleep 1
 
 # Wait for SMTP using PHP
 for i in {1..30}; do

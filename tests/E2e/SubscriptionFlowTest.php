@@ -32,7 +32,7 @@ beforeEach(function (): void {
 it('completes subscription flow end-to-end', function (): void {
     // 1. Initial subscription request
     $response = e2e_sub_get('/v1/subscriptions/', [
-        'uri' => 'https://example.com/feed.xml',
+        'uri' => 'http://127.0.0.1:9995/valid.xml',
         'email' => 'test@example.com',
         'return' => 'https://example.com',
         'redirect' => 'false',
@@ -49,7 +49,7 @@ it('completes subscription flow end-to-end', function (): void {
     $pdo = new \PDO('sqlite:' . $dbPath);
     $stmt = $pdo->prepare('SELECT * FROM subscriptions WHERE feed_uri = ? AND email = ?');
     \assert($stmt instanceof \PDOStatement, 'stmt should be prepared');
-    $stmt->execute(['https://example.com/feed.xml', 'test@example.com']);
+    $stmt->execute(['http://127.0.0.1:9995/valid.xml', 'test@example.com']);
     /** @var array{active: int, ...}|false $sub */
     $sub = $stmt->fetch(\PDO::FETCH_ASSOC);
     \assert(\is_array($sub), 'subscription should exist');
@@ -59,7 +59,7 @@ it('completes subscription flow end-to-end', function (): void {
     $key = $rawKey;
     // 4. Confirm subscription
     $confirmResponse = e2e_sub_get('/v1/subscriptions/confirmation/', [
-        'uri' => 'https://example.com/feed.xml',
+        'uri' => 'http://127.0.0.1:9995/valid.xml',
         'email' => 'test@example.com',
         'token' => $token,
     ]);
@@ -87,7 +87,7 @@ it('rejects invalid feed URI', function (): void {
 /** @throws \Exception */
 it('rejects missing required fields', function (): void {
     $response = e2e_sub_get('/v1/subscriptions/', [
-        'uri' => 'https://example.com/feed.xml',
+        'uri' => 'http://127.0.0.1:9995/valid.xml',
         // email missing
     ]);
 

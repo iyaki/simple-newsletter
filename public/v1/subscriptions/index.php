@@ -3,10 +3,9 @@
 declare(strict_types=1);
 
 namespace SimpleNewsletter;
-
 use SimpleNewsletter\Components\EndUserException;
-
 $c = new Container();
+
 $responder = $c->responder();
 
 header('X-Robots-Tag: noindex, nofollow');

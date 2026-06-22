@@ -79,7 +79,11 @@ function http_get(
     array $headers = [],
 ): \Symfony\Contracts\HttpClient\ResponseInterface {
     static $httpClient = null;
-    static $baseUrl = 'http://localhost:8080';
+    static $baseUrl = null;
+
+    if ($baseUrl === null) {
+        $baseUrl = \getenv('E2E_BASE_URL') ?: 'http://localhost:8080';
+    }
 
     if ($httpClient === null) {
         $httpClient = \Symfony\Component\HttpClient\HttpClient::create(['base_uri' => $baseUrl]);
