@@ -53,7 +53,6 @@ disallowed-functions = { functions = [
     'array_walk',
     'eval',
     'create_function',
-    'putenv',
     'var_export',
     'phpinfo',
     'exec',
