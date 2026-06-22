@@ -61,6 +61,52 @@ for i in {1..20}; do
     sleep 0.5
 done
 
+# Create SMTP mock server
+cat > /tmp/smtp-mock-with-auth.php << 'SMTPEOF'
+<?php
+declare(strict_types=1);
+$host = '127.0.0.1';
+$port = 1025;
+$socket = stream_socket_server("tcp://{$host}:{$port}", $errno, $errstr);
+if (!$socket) {
+    exit(1);
+}
+while (true) {
+    $client = stream_socket_accept($socket);
+    if (!$client) { continue; }
+    fwrite($client, "220 localhost SMTP Mock\r\n");
+    while (!feof($client)) {
+        $line = fgets($client);
+        if ($line === false) { break; }
+        $command = strtoupper(trim($line));
+        if (str_starts_with($command, 'EHLO') || str_starts_with($command, 'HELO')) {
+            fwrite($client, "250-localhost\r\n250 AUTH LOGIN\r\n");
+        } elseif (str_starts_with($command, 'AUTH')) {
+            fwrite($client, "235 Authentication successful\r\n");
+        } elseif (str_starts_with($command, 'MAIL FROM')) {
+            fwrite($client, "250 OK\r\n");
+        } elseif (str_starts_with($command, 'RCPT TO')) {
+            fwrite($client, "250 OK\r\n");
+        } elseif (str_starts_with($command, 'DATA')) {
+            fwrite($client, "354 Start mail input\r\n");
+            while (!feof($client)) {
+                $dataLine = fgets($client);
+                if (trim($dataLine) === '.') { break; }
+            }
+            fwrite($client, "250 OK: Message accepted\r\n");
+        } elseif (str_starts_with($command, 'QUIT')) {
+            fwrite($client, "221 Bye\r\n");
+            break;
+        } elseif (str_starts_with($command, 'RSET') || str_starts_with($command, 'NOOP')) {
+            fwrite($client, "250 OK\r\n");
+        } else {
+            fwrite($client, "502 Command not implemented\r\n");
+        }
+    }
+    fclose($client);
+}
+SMTPEOF
+
 # Start SMTP mock
 echo "3. Starting SMTP mock server..."
 php /tmp/smtp-mock-with-auth.php > /tmp/smtp-mock.log 2>&1 &
