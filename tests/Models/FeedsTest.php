@@ -54,7 +54,8 @@ test(
         /** @var FeedImporter&\Mockery\MockInterface $feedImporter */
         $feedImporter = \Mockery::mock(FeedImporter::class);
 
-        $oldDate = new DateTimeImmutable()->sub(new DateInterval('P2D'));
+        $oldDate = new DateTimeImmutable();
+        $oldDate = $oldDate->sub(new DateInterval('P2D'));
         $oldMetadata = new FeedMetadata('https://example.com/feed', 'Old Title', 'https://example.com', $oldDate);
         $oldFeed = new Feed($oldMetadata);
 
