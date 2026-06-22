@@ -56,7 +56,7 @@ it('completes subscription flow end-to-end', function (): void {
     expect($sub['active'])->toBe(0);
     $rawKey = \getenv('SECRET_KEY');
     \assert(\is_string($rawKey), 'SECRET_KEY must be set');
-    $key = $rawKey;
+    $token = hash_hmac('sha256', 'test@example.com', $rawKey);
     // 4. Confirm subscription
     $confirmResponse = e2e_sub_get('/v1/subscriptions/confirmation/', [
         'uri' => 'http://127.0.0.1:9995/valid.xml',

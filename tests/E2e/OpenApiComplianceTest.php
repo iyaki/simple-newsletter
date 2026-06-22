@@ -12,10 +12,14 @@ it('returns valid JSON error response structure', function (): void {
     init_test_database($dbPath);
 
     // Test with invalid URI - should return 400 with valid error structure
-    $response = http_get('/v1/subscriptions/', [
-        'uri' => 'not-a-valid-url',
-        'email' => 'test@example.com',
-    ]);
+    try {
+        $response = http_get('/v1/subscriptions/', [
+            'uri' => 'not-a-valid-url',
+            'email' => 'test@example.com',
+        ]);
+    } catch (\Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface $e) {
+        $response = $e->getResponse();
+    }
 
     expect($response->getStatusCode())->toBe(400);
 
@@ -39,9 +43,13 @@ it('returns valid structure for missing required parameters', function (): void 
 
     init_test_database($dbPath);
 
-    $response = http_get('/v1/subscriptions/', [
-        // Both uri and email missing
-    ]);
+    try {
+        $response = http_get('/v1/subscriptions/', [
+            // Both uri and email missing
+        ]);
+    } catch (\Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface $e) {
+        $response = $e->getResponse();
+    }
 
     expect($response->getStatusCode())->toBe(400);
 
@@ -130,11 +138,15 @@ it('returns valid error structure for invalid confirmation token', function (): 
 
     init_test_database($dbPath);
 
-    $response = http_get('/v1/subscriptions/confirmation/', [
-        'uri' => 'http://127.0.0.1:9995/valid.xml',
-        'email' => 'test@example.com',
-        'token' => 'wrong-token',
-    ]);
+    try {
+        $response = http_get('/v1/subscriptions/confirmation/', [
+            'uri' => 'http://127.0.0.1:9995/valid.xml',
+            'email' => 'test@example.com',
+            'token' => 'wrong-token',
+        ]);
+    } catch (\Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface $e) {
+        $response = $e->getResponse();
+    }
 
     expect($response->getStatusCode())->toBe(400);
 
@@ -206,11 +218,15 @@ it('returns valid error structure for invalid cancellation token', function (): 
 
     init_test_database($dbPath);
 
-    $response = http_get('/v1/subscriptions/cancellation/', [
-        'uri' => 'http://127.0.0.1:9995/valid.xml',
-        'email' => 'test@example.com',
-        'token' => 'wrong-token',
-    ]);
+    try {
+        $response = http_get('/v1/subscriptions/cancellation/', [
+            'uri' => 'http://127.0.0.1:9995/valid.xml',
+            'email' => 'test@example.com',
+            'token' => 'wrong-token',
+        ]);
+    } catch (\Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface $e) {
+        $response = $e->getResponse();
+    }
 
     expect($response->getStatusCode())->toBe(400);
 
