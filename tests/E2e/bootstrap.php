@@ -33,13 +33,23 @@ if (! function_exists('init_test_database')) {
     function init_test_database(string $dbPath): void
     {
         if (\file_exists($dbPath)) {
-            \unlink($dbPath);
+            // Database exists, clear data instead of recreating schema
+            $pdo = new \PDO("sqlite:{$dbPath}");
+            $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+            try {
+                $pdo->exec('DELETE FROM rate_limits');
+            } catch (\PDOException) {
+                // rate_limits table might not exist yet - ignore
+            }
+            $pdo->exec('DELETE FROM subscriptions');
+            $pdo->exec('DELETE FROM feeds');
+            return;
         }
-
+        // Database doesn't exist, create fresh with migrations
         $pdo = new \PDO("sqlite:{$dbPath}");
         $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 
-        // Apply migrations in order
+        // Apply migrations in order for new database
         $migrationsDir = __DIR__ . '/../../migrations';
         $migrationFiles = [
             '00-setup.sql',

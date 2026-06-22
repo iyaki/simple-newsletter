@@ -185,18 +185,14 @@ it('returns valid cancellation response structure', function (): void {
     expect($response->getStatusCode())->toBe(200);
 
     $headers = $response->getHeaders();
+    $contentType = $headers['content-type'][0] ?? '';
 
     // Check for X-Robots-Tag header per OpenAPI spec
     expect($headers)->toHaveKey('x-robots-tag');
     $xRobotsTag = $headers['x-robots-tag'][0] ?? '';
     expect($xRobotsTag)->toContain('noindex');
-    expect($headers)->toHaveKey('x-robots-tag');
     expect(\in_array($xRobotsTag, ['noindex', 'nofollow', 'noindex, nofollow'], strict: true))->toBeTrue();
     if (\str_contains($contentType, 'application/json')) {
-        $body = to_array_safe($response);
-        expect($body)->toHaveKey('title');
-    }
-    if (str_contains($contentType, 'application/json')) {
         $body = to_array_safe($response);
         expect($body)->toHaveKey('title');
     }
