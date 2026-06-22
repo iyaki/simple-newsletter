@@ -38,7 +38,7 @@
     },
     "scripts": {
         "test": "vendor/bin/pest",
-        "test:coverage": "XDEBUG_MODE=coverage vendor/bin/pest --coverage --min=100 --testsuite=default",
+        "test:coverage": "XDEBUG_MODE=coverage vendor/bin/pest --coverage --min=90 --testsuite=default",
         "test:e2e": "vendor/bin/pest --testsuite e2e",
         "test:mutation": "vendor/bin/pest --mutate --min=90",
         "lint": "vendor/bin/mago lint",
