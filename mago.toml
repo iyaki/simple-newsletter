@@ -20,6 +20,7 @@ preserve-breaking-parameter-list = true
 # baseline = ".mago/lint-baseline.toml"
 
 [linter.rules]
+no-error-control-operator = { enabled = true, exclude = ["tests/*"] }
 no-inline = {
     enabled = true,
     exclude = ["public/*"]
