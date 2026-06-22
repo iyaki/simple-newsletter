@@ -104,7 +104,7 @@ echo ""
 echo "5. Running E2E tests..."
 echo "=========================================="
 
-E2E_BASE_URL='http://localhost:8089' vendor/bin/pest tests/E2e/ --testdox
+E2E_BASE_URL='http://localhost:8080' vendor/bin/pest tests/E2e/ --testdox
 TEST_EXIT=$?
 
 # Cleanup
