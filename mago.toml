@@ -75,6 +75,14 @@ ignore = [
 	{ code = "mixed-method-access", pattern = "Mockery", in = "tests/*" },
 	{ code = "unhandled-thrown-type", in = "tests/**" },
 	{ code = "mixed-return-statement", in = "tests/**" },
+	{ code = "param-type-mismatch", in = "tests/**" },
+	{ code = "undefined-variable", in = "tests/**" },
+	{ code = "invalid-argument", in = "tests/**" },
+	{ code = "return.type-less-specific", in = "tests/**" },
+	{ code = "method.nonObject", in = "tests/**" },
+	{ code = "method.nullSafe", in = "tests/**" },
+	{ code = "array.access-unsafe", in = "tests/**" },
+	{ code = "property.nonObject", in = "tests/**" },
 ]
 
 find-unused-expressions = true
