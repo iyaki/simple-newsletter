@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 // Set test database path
 $testDbPath = __DIR__ . '/../../data/test-e2e.db';
-$_ENV['NEWSLETTER_DB_PATH'] = $testDbPath;
-$_ENV['SECRET_KEY'] = 'test-e2e-secret-key-32chars!';
-$_ENV['SERVER_NAME'] = 'http://localhost:8080';
+putenv('NEWSLETTER_DB_PATH=' . $testDbPath);
+putenv('SECRET_KEY=test-e2e-secret-key-32chars!');
+putenv('SERVER_NAME=http://localhost:8080');
 
 require __DIR__ . '/../../vendor/autoload.php';
 
