@@ -27,10 +27,14 @@ final readonly class JsonResponse implements ResponseInterface
     #[\Override]
     public function getBody(): string
     {
-        return \json_encode([
-            'title' => $this->title,
-            'detail' => $this->message,
-        ], JSON_THROW_ON_ERROR);
+        try {
+            return \json_encode([
+                'title' => $this->title,
+                'detail' => $this->message,
+            ], JSON_THROW_ON_ERROR);
+        } catch (\JsonException) {
+            return '{}';
+        }
     }
 
     #[\Override]

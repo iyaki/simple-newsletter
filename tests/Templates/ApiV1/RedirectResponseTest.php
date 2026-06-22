@@ -44,9 +44,7 @@ test('Location header contains return URL with title message and ok params', fun
 
     $headers = $response->getHeaders();
     \assert(\array_key_exists('Location', $headers), 'Location header should exist');
-    expect($headers['Location'])->toBe(
-        'https://example.com/back?title=Done&message=Success&ok=1',
-    );
+    expect($headers['Location'])->toBe('https://example.com/back?title=Done&message=Success&ok=1');
 });
 
 test('fromEndUserException Location header contains ok=0', function (): void {

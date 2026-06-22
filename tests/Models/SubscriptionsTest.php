@@ -19,12 +19,16 @@ use SimpleNewsletter\Models\Subscriptions;
  */
 it('throws on invalid URI in add', function (): void {
     /** @var SubscriptionsDAO $subscriptionsDAO */
+    /** @var SubscriptionsDAO&\Mockery\MockInterface $subscriptionsDAO */
     $subscriptionsDAO = \Mockery::mock(SubscriptionsDAO::class);
     /** @var Feeds $feeds */
+    /** @var Feeds&\Mockery\MockInterface $feeds */
     $feeds = \Mockery::mock(Feeds::class);
     /** @var Newsletter $newsletter */
+    /** @var Newsletter&\Mockery\MockInterface $newsletter */
     $newsletter = \Mockery::mock(Newsletter::class);
     /** @var Auth $auth */
+    /** @var Auth&\Mockery\MockInterface $auth */
     $auth = \Mockery::mock(Auth::class);
 
     $subs = new Subscriptions($subscriptionsDAO, $feeds, $newsletter, $auth);
@@ -37,9 +41,13 @@ it('throws on invalid URI in add', function (): void {
  * @throws \Random\RandomException
  */
 it('throws on invalid email in add', function (): void {
+    /** @var SubscriptionsDAO&\Mockery\MockInterface $subscriptionsDAO */
     $subscriptionsDAO = \Mockery::mock(SubscriptionsDAO::class);
+    /** @var Feeds&\Mockery\MockInterface $feeds */
     $feeds = \Mockery::mock(Feeds::class);
+    /** @var Newsletter&\Mockery\MockInterface $newsletter */
     $newsletter = \Mockery::mock(Newsletter::class);
+    /** @var Auth&\Mockery\MockInterface $auth */
     $auth = \Mockery::mock(Auth::class);
 
     $now = new DateTimeImmutable();
@@ -57,9 +65,13 @@ it('throws on invalid email in add', function (): void {
  * @throws \Random\RandomException
  */
 it('calls feeds->retrieve and newsletter->sendConfirmation on valid input', function (): void {
+    /** @var SubscriptionsDAO&\Mockery\MockInterface $subscriptionsDAO */
     $subscriptionsDAO = \Mockery::mock(SubscriptionsDAO::class);
+    /** @var Feeds&\Mockery\MockInterface $feeds */
     $feeds = \Mockery::mock(Feeds::class);
+    /** @var Newsletter&\Mockery\MockInterface $newsletter */
     $newsletter = \Mockery::mock(Newsletter::class);
+    /** @var Auth&\Mockery\MockInterface $auth */
     $auth = \Mockery::mock(Auth::class);
 
     $now = new DateTimeImmutable();
@@ -96,9 +108,13 @@ it('calls feeds->retrieve and newsletter->sendConfirmation on valid input', func
  * @throws \Random\RandomException
  */
 it('throws when subscription already active in add', function (): void {
+    /** @var SubscriptionsDAO&\Mockery\MockInterface $subscriptionsDAO */
     $subscriptionsDAO = \Mockery::mock(SubscriptionsDAO::class);
+    /** @var Feeds&\Mockery\MockInterface $feeds */
     $feeds = \Mockery::mock(Feeds::class);
+    /** @var Newsletter&\Mockery\MockInterface $newsletter */
     $newsletter = \Mockery::mock(Newsletter::class);
+    /** @var Auth&\Mockery\MockInterface $auth */
     $auth = \Mockery::mock(Auth::class);
 
     $now = new DateTimeImmutable();
@@ -124,9 +140,13 @@ it('throws when subscription already active in add', function (): void {
  * @throws \Random\RandomException
  */
 it('activates subscription on valid confirm token', function (): void {
+    /** @var SubscriptionsDAO&\Mockery\MockInterface $subscriptionsDAO */
     $subscriptionsDAO = \Mockery::mock(SubscriptionsDAO::class);
+    /** @var Feeds&\Mockery\MockInterface $feeds */
     $feeds = \Mockery::mock(Feeds::class);
+    /** @var Newsletter&\Mockery\MockInterface $newsletter */
     $newsletter = \Mockery::mock(Newsletter::class);
+    /** @var Auth&\Mockery\MockInterface $auth */
     $auth = \Mockery::mock(Auth::class);
 
     $feedUri = 'https://example.com/feed';
@@ -150,9 +170,13 @@ it('activates subscription on valid confirm token', function (): void {
  * @throws \Random\RandomException
  */
 it('throws on invalid confirm token', function (): void {
+    /** @var SubscriptionsDAO&\Mockery\MockInterface $subscriptionsDAO */
     $subscriptionsDAO = \Mockery::mock(SubscriptionsDAO::class);
+    /** @var Feeds&\Mockery\MockInterface $feeds */
     $feeds = \Mockery::mock(Feeds::class);
+    /** @var Newsletter&\Mockery\MockInterface $newsletter */
     $newsletter = \Mockery::mock(Newsletter::class);
+    /** @var Auth&\Mockery\MockInterface $auth */
     $auth = \Mockery::mock(Auth::class);
 
     $feedUri = 'https://example.com/feed';
@@ -173,9 +197,13 @@ it('throws on invalid confirm token', function (): void {
  * @throws \Random\RandomException
  */
 it('throws when subscription not found in confirm', function (): void {
+    /** @var SubscriptionsDAO&\Mockery\MockInterface $subscriptionsDAO */
     $subscriptionsDAO = \Mockery::mock(SubscriptionsDAO::class);
+    /** @var Feeds&\Mockery\MockInterface $feeds */
     $feeds = \Mockery::mock(Feeds::class);
+    /** @var Newsletter&\Mockery\MockInterface $newsletter */
     $newsletter = \Mockery::mock(Newsletter::class);
+    /** @var Auth&\Mockery\MockInterface $auth */
     $auth = \Mockery::mock(Auth::class);
 
     $feedUri = 'https://example.com/feed';
@@ -197,9 +225,13 @@ it('throws when subscription not found in confirm', function (): void {
  * @throws \Random\RandomException
  */
 it('deactivates subscription on valid cancel token', function (): void {
+    /** @var SubscriptionsDAO&\Mockery\MockInterface $subscriptionsDAO */
     $subscriptionsDAO = \Mockery::mock(SubscriptionsDAO::class);
+    /** @var Feeds&\Mockery\MockInterface $feeds */
     $feeds = \Mockery::mock(Feeds::class);
+    /** @var Newsletter&\Mockery\MockInterface $newsletter */
     $newsletter = \Mockery::mock(Newsletter::class);
+    /** @var Auth&\Mockery\MockInterface $auth */
     $auth = \Mockery::mock(Auth::class);
 
     $feedUri = 'https://example.com/feed';
@@ -223,9 +255,13 @@ it('deactivates subscription on valid cancel token', function (): void {
  * @throws \Random\RandomException
  */
 it('throws on invalid cancel token', function (): void {
+    /** @var SubscriptionsDAO&\Mockery\MockInterface $subscriptionsDAO */
     $subscriptionsDAO = \Mockery::mock(SubscriptionsDAO::class);
+    /** @var Feeds&\Mockery\MockInterface $feeds */
     $feeds = \Mockery::mock(Feeds::class);
+    /** @var Newsletter&\Mockery\MockInterface $newsletter */
     $newsletter = \Mockery::mock(Newsletter::class);
+    /** @var Auth&\Mockery\MockInterface $auth */
     $auth = \Mockery::mock(Auth::class);
 
     $feedUri = 'https://example.com/feed';
@@ -246,9 +282,13 @@ it('throws on invalid cancel token', function (): void {
  * @throws \Random\RandomException
  */
 it('throws when subscription not found in cancel', function (): void {
+    /** @var SubscriptionsDAO&\Mockery\MockInterface $subscriptionsDAO */
     $subscriptionsDAO = \Mockery::mock(SubscriptionsDAO::class);
+    /** @var Feeds&\Mockery\MockInterface $feeds */
     $feeds = \Mockery::mock(Feeds::class);
+    /** @var Newsletter&\Mockery\MockInterface $newsletter */
     $newsletter = \Mockery::mock(Newsletter::class);
+    /** @var Auth&\Mockery\MockInterface $auth */
     $auth = \Mockery::mock(Auth::class);
 
     $feedUri = 'https://example.com/feed';
@@ -270,9 +310,13 @@ it('throws when subscription not found in cancel', function (): void {
  * @throws \Random\RandomException
  */
 it('sendScheduled gets scheduled feeds, fetches posts, and sends to subscribers', function (): void {
+    /** @var SubscriptionsDAO&\Mockery\MockInterface $subscriptionsDAO */
     $subscriptionsDAO = \Mockery::mock(SubscriptionsDAO::class);
+    /** @var Feeds&\Mockery\MockInterface $feeds */
     $feeds = \Mockery::mock(Feeds::class);
+    /** @var Newsletter&\Mockery\MockInterface $newsletter */
     $newsletter = \Mockery::mock(Newsletter::class);
+    /** @var Auth&\Mockery\MockInterface $auth */
     $auth = \Mockery::mock(Auth::class);
 
     $datetime = new DateTimeImmutable();
@@ -314,9 +358,13 @@ it('sendScheduled gets scheduled feeds, fetches posts, and sends to subscribers'
  * @throws \Random\RandomException
  */
 it('sendScheduled skips already-sent posts', function (): void {
+    /** @var SubscriptionsDAO&\Mockery\MockInterface $subscriptionsDAO */
     $subscriptionsDAO = \Mockery::mock(SubscriptionsDAO::class);
+    /** @var Feeds&\Mockery\MockInterface $feeds */
     $feeds = \Mockery::mock(Feeds::class);
+    /** @var Newsletter&\Mockery\MockInterface $newsletter */
     $newsletter = \Mockery::mock(Newsletter::class);
+    /** @var Auth&\Mockery\MockInterface $auth */
     $auth = \Mockery::mock(Auth::class);
 
     $datetime = new DateTimeImmutable();
@@ -351,9 +399,13 @@ it('sendScheduled skips already-sent posts', function (): void {
  * @throws \Random\RandomException
  */
 it('sendScheduled handles multiple scheduled feeds', function (): void {
+    /** @var SubscriptionsDAO&\Mockery\MockInterface $subscriptionsDAO */
     $subscriptionsDAO = \Mockery::mock(SubscriptionsDAO::class);
+    /** @var Feeds&\Mockery\MockInterface $feeds */
     $feeds = \Mockery::mock(Feeds::class);
+    /** @var Newsletter&\Mockery\MockInterface $newsletter */
     $newsletter = \Mockery::mock(Newsletter::class);
+    /** @var Auth&\Mockery\MockInterface $auth */
     $auth = \Mockery::mock(Auth::class);
 
     $datetime = new DateTimeImmutable();

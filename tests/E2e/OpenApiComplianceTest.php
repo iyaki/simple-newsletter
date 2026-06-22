@@ -52,6 +52,7 @@ it('returns valid structure for missing required parameters', function (): void 
     }
 });
 
+/** @throws \Exception */
 it('returns HTML by default (content negotiation)', function (): void {
     $dbPath = getenv('NEWSLETTER_DB_PATH');
 
@@ -159,7 +160,7 @@ it('returns valid error structure for invalid confirmation token', function (): 
         $body = to_array_safe($response);
         expect($body)->toHaveKey('title');
         $title = $body['title'] ?? '';
-    expect(\in_array($title, ['Invalid', 'Error'], strict: true))->toBeTrue();
+        expect(\in_array($title, ['Invalid', 'Error'], strict: true))->toBeTrue();
     }
 });
 
