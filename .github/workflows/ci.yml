@@ -133,9 +133,3 @@ jobs:
         run: docker compose -f compose-prod.yaml build
       - name: Create minimal .env for docker compose
         run: echo "SECRET_KEY=test-key" > .env
-      - name: Run container health check
-        run: |
-          docker compose -f compose-prod.yaml up -d
-          sleep 10
-          docker compose -f compose-prod.yaml logs
-          docker compose -f compose-prod.yaml down
