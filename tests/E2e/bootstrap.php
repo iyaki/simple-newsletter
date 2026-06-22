@@ -118,9 +118,9 @@ function get_status_safe(\Symfony\Contracts\HttpClient\ResponseInterface $respon
     try {
         return $response->getStatusCode();
     } catch (\Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface $e) {
-        return $e->getResponse()->getStatusCode();
+        return @$e->getResponse()->getStatusCode();
     } catch (\Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface $e) {
-        return $e->getResponse()->getStatusCode();
+        return @$e->getResponse()->getStatusCode();
     }
 }
 
@@ -136,9 +136,9 @@ function get_headers_safe(\Symfony\Contracts\HttpClient\ResponseInterface $respo
     try {
         return $response->getHeaders();
     } catch (\Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface $e) {
-        return $e->getResponse()->getHeaders();
+        return @$e->getResponse()->getHeaders();
     } catch (\Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface $e) {
-        return $e->getResponse()->getHeaders();
+        return @$e->getResponse()->getHeaders();
     }
 }
 
