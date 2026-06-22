@@ -131,8 +131,8 @@ jobs:
         uses: docker/setup-buildx-action@v3
       - name: Build production image
         run: docker compose -f compose-prod.yaml build
-+      - name: Create minimal .env for docker compose
-+        run: echo "SECRET_KEY=test-key" > .env
+      - name: Create minimal .env for docker compose
+        run: echo "SECRET_KEY=test-key" > .env
       - name: Run container health check
         run: |
           docker compose -f compose-prod.yaml up -d
