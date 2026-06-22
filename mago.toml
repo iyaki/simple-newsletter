@@ -83,6 +83,9 @@ ignore = [
 	{ code = "method.nullSafe", in = "tests/**" },
 	{ code = "array.access-unsafe", in = "tests/**" },
 	{ code = "property.nonObject", in = "tests/**" },
+	{ code = "type-less-specific", in = "tests/**" },
+	{ code = "invalid-named-argument", in = "tests/**" },
+	{ code = "dim fetch on non-iterable", in = "tests/**" },
 ]
 
 find-unused-expressions = true
