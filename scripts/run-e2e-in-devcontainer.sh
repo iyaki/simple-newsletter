@@ -124,8 +124,8 @@ done
 
 # Set environment variables
 export SECRET_KEY='test-e2e-secret-key-32chars!'
-export SERVER_NAME='http://localhost:8089'
-export URI_SELF='http://localhost:8089'
+export SERVER_NAME='http://localhost:8080'
+export URI_SELF='http://localhost:8080'
 export SMTP_HOST='127.0.0.1'
 export SMTP_PORT='1025'
 export SMTP_ENCRYPTION=''
