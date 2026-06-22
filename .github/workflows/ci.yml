@@ -127,6 +127,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+        env:
+          SERVER_NAME: localhost:8080
       - name: Build production image
         run: docker compose -f compose-prod.yaml build
       - name: Run container health check

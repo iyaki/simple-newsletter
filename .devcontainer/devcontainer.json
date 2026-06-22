@@ -31,7 +31,7 @@
 		"source=${localWorkspaceFolder}/.php/development.ini,target=/usr/local/etc/php/conf.d/dev.ini,type=bind",
 		"source=caddy_data,target=/data,type=volume",
 		"source=caddy_config,target=/config,type=volume",
-		{ "source": "${localEnv:HOME}/.config/gh/", "target": "/home/root/.config/gh/", "type": "bind" },
+		{ "source": "${localEnv:HOME}/.config/gh/", "target": "/root/.config/gh/", "type": "bind" },
 		{
 			"source": "${localEnv:HOME}/.omp",
 			"target": "/root/.omp",
