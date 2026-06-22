@@ -86,6 +86,11 @@ ignore = [
 	{ code = "type-less-specific", in = "tests/**" },
 	{ code = "invalid-named-argument", in = "tests/**" },
 	{ code = "dim fetch on non-iterable", in = "tests/**" },
+	{ code = "possibly-null-method-call", in = "tests/**" },
+	{ code = "possibly-false-method-call", in = "tests/**" },
+	{ code = "possibly-mixed-property-fetch", in = "tests/**" },
+	{ code = "possibly-mixed-array-access", in = "tests/**" },
+	{ code = "possibly-mixed-arg", in = "tests/**" },
 ]
 
 find-unused-expressions = true
