@@ -108,6 +108,39 @@ function http_get(
         'headers' => $headers,
     ]);
 }
+/**
+ * Safely get status code without throwing on error status
+ *
+ * @throws \Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface
+ */
+function get_status_safe(\Symfony\Contracts\HttpClient\ResponseInterface $response): int
+{
+    try {
+        return $response->getStatusCode();
+    } catch (\Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface $e) {
+        return $e->getResponse()->getStatusCode();
+    } catch (\Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface $e) {
+        return $e->getResponse()->getStatusCode();
+    }
+}
+
+/**
+ * Safely get headers without throwing on error status
+ *
+ * @return array<string, array<string>>
+ *
+ * @throws \Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface
+ */
+function get_headers_safe(\Symfony\Contracts\HttpClient\ResponseInterface $response): array
+{
+    try {
+        return $response->getHeaders();
+    } catch (\Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface $e) {
+        return $e->getResponse()->getHeaders();
+    } catch (\Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface $e) {
+        return $e->getResponse()->getHeaders();
+    }
+}
 
 /**
  * Safely get response content without throwing on error status
