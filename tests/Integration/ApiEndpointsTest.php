@@ -74,7 +74,8 @@ function seed_subscription(\PDO $db): void
  */
 function activate_subscription(\PDO $db): void
 {
-    new SubscriptionsDAO($db)->activate(new Subscription(TEST_FEED_URI, TEST_EMAIL));
+    $dao = new SubscriptionsDAO($db);
+    $dao->activate(new Subscription(TEST_FEED_URI, TEST_EMAIL));
 }
 
 function make_auth(): Auth
