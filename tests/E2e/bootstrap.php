@@ -2,11 +2,14 @@
 
 declare(strict_types=1);
 
-// Set test database path
+// Set test environment variables
 $testDbPath = __DIR__ . '/../../data/test-e2e.db';
 putenv('NEWSLETTER_DB_PATH=' . $testDbPath);
 putenv('SECRET_KEY=test-e2e-secret-key-32chars!');
 putenv('SERVER_NAME=http://localhost:8080');
+putenv('URI_SELF=http://localhost:8080');
+// Disable Sentry for e2e tests
+putenv('SENTRY_DSN=');
 
 require __DIR__ . '/../../vendor/autoload.php';
 
