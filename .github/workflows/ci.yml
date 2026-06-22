@@ -86,29 +86,10 @@ jobs:
         run: composer install --no-progress
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Set test environment variables
-        run: |
-          echo "NEWSLETTER_DB_PATH=${{ github.workspace }}/data/test-e2e.db" >> $GITHUB_ENV
-          echo "SECRET_KEY=test-e2e-secret-key-32chars!" >> $GITHUB_ENV
-          echo "SERVER_NAME=http://localhost:8080" >> $GITHUB_ENV
-          echo "URI_SELF=http://localhost:8080" >> $GITHUB_ENV
-      - name: Initialize test database
-        run: php -r "require 'vendor/autoload.php'; require 'tests/E2e/bootstrap.php'; init_test_database(getenv('NEWSLETTER_DB_PATH'));"
-      - name: Start dev server
-        run: php -S localhost:8080 -t public &
-      - name: Wait for dev server
-        run: |
-          for i in {1..30}; do
-            if curl -s http://localhost:8080 > /dev/null 2>&1; then
-              echo "Server is up"
-              exit 0
-            fi
-            sleep 1
-          done
-          echo "Server did not start"
-          exit 1
-      - name: Run e2e tests
-        run: composer test:e2e
+      - name: Run E2E tests
+        run: ./scripts/run-e2e-in-devcontainer.sh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   mutation-tests:
     runs-on: ubuntu-latest

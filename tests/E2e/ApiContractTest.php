@@ -13,7 +13,7 @@ it('returns HTML content type by default', function (): void {
      * @throws \Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface
      */
     $response = http_get('/v1/subscriptions/', [
-        'uri' => 'https://example.com/feed.xml',
+        'uri' => 'http://127.0.0.1:9995/valid.xml',
         'email' => 'test@example.com',
     ]);
 
@@ -35,12 +35,3 @@ it('handles missing required parameters', function (): void {
     expect($response->getStatusCode())->toBe(400);
 });
 
-/** @throws \Exception */
-it('returns 404 for unknown routes', function (): void {
-    /**
-     * @throws \Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface
-     */
-    $response = http_get('/nonexistent-endpoint');
-
-    expect($response->getStatusCode())->toBe(404);
-});

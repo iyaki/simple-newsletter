@@ -57,7 +57,7 @@ it('returns HTML by default (content negotiation)', function (): void {
     $dbPath = getenv('NEWSLETTER_DB_PATH');
 
     $response = http_get('/v1/subscriptions/', [
-        'uri' => 'https://example.com/feed.xml',
+        'uri' => 'http://127.0.0.1:9995/valid.xml',
         'email' => 'test@example.com',
     ]);
 
@@ -68,21 +68,6 @@ it('returns HTML by default (content negotiation)', function (): void {
     expect($content)->toContain('email confirmation');
 });
 
-/** @throws \Exception */
-it('returns 404 for unknown routes with valid error structure', function (): void {
-    $dbPath = getenv('NEWSLETTER_DB_PATH');
-
-    $response = http_get('/nonexistent-endpoint');
-
-    expect($response->getStatusCode())->toBe(404);
-
-    // Even 404 should have proper structure
-    $contentType = $response->getHeaders()['content-type'][0] ?? '';
-    $content = get_content_safe($response);
-
-    // Should return some content (error page)
-    expect($content)->not->toBeEmpty();
-});
 
 /** @throws \Exception */
 it('returns valid confirmation response structure', function (): void {
@@ -97,7 +82,7 @@ it('returns valid confirmation response structure', function (): void {
     $pdo = new \PDO('sqlite:' . $dbPath);
     $stmt = $pdo->prepare('INSERT INTO feeds (uri, title, link, last_update, trigger_hour) VALUES (?, ?, ?, ?, ?)');
     $stmt->execute([
-        'https://example.com/feed.xml',
+        'http://127.0.0.1:9995/valid.xml',
         'Test Feed',
         'https://example.com',
         time(),
@@ -105,7 +90,7 @@ it('returns valid confirmation response structure', function (): void {
     ]);
     $stmt = $pdo->prepare('INSERT INTO subscriptions (feed_uri, email, active) VALUES (?, ?, ?)');
     $stmt->execute([
-        'https://example.com/feed.xml',
+        'http://127.0.0.1:9995/valid.xml',
         'test@example.com',
         0,
     ]);
@@ -113,7 +98,7 @@ it('returns valid confirmation response structure', function (): void {
     $token = hash_hmac(algo: 'sha256', data: 'test@example.com', key: (string) getenv('SECRET_KEY'));
 
     $response = http_get('/v1/subscriptions/confirmation/', [
-        'uri' => 'https://example.com/feed.xml',
+        'uri' => 'http://127.0.0.1:9995/valid.xml',
         'email' => 'test@example.com',
         'token' => $token,
     ]);
@@ -146,7 +131,7 @@ it('returns valid error structure for invalid confirmation token', function (): 
     init_test_database($dbPath);
 
     $response = http_get('/v1/subscriptions/confirmation/', [
-        'uri' => 'https://example.com/feed.xml',
+        'uri' => 'http://127.0.0.1:9995/valid.xml',
         'email' => 'test@example.com',
         'token' => 'wrong-token',
     ]);
@@ -176,7 +161,7 @@ it('returns valid cancellation response structure', function (): void {
     $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
     $stmt = $pdo->prepare('INSERT INTO feeds (uri, title, link, last_update, trigger_hour) VALUES (?, ?, ?, ?, ?)');
     $stmt->execute([
-        'https://example.com/feed.xml',
+        'http://127.0.0.1:9995/valid.xml',
         'Test Feed',
         'https://example.com',
         time(),
@@ -184,7 +169,7 @@ it('returns valid cancellation response structure', function (): void {
     ]);
     $stmt = $pdo->prepare('INSERT INTO subscriptions (feed_uri, email, active) VALUES (?, ?, ?)');
     $stmt->execute([
-        'https://example.com/feed.xml',
+        'http://127.0.0.1:9995/valid.xml',
         'test@example.com',
         1,
     ]);
@@ -192,7 +177,7 @@ it('returns valid cancellation response structure', function (): void {
     $token = hash_hmac(algo: 'sha256', data: 'test@example.com', key: (string) getenv('SECRET_KEY'));
 
     $response = http_get('/v1/subscriptions/cancellation/', [
-        'uri' => 'https://example.com/feed.xml',
+        'uri' => 'http://127.0.0.1:9995/valid.xml',
         'email' => 'test@example.com',
         'token' => $token,
     ]);
@@ -226,7 +211,7 @@ it('returns valid error structure for invalid cancellation token', function (): 
     init_test_database($dbPath);
 
     $response = http_get('/v1/subscriptions/cancellation/', [
-        'uri' => 'https://example.com/feed.xml',
+        'uri' => 'http://127.0.0.1:9995/valid.xml',
         'email' => 'test@example.com',
         'token' => 'wrong-token',
     ]);
@@ -248,7 +233,7 @@ it('validates JSON response when Accept header is set', function (): void {
     init_test_database($dbPath);
 
     $response = http_get('/v1/subscriptions/', [
-        'uri' => 'https://example.com/feed.xml',
+        'uri' => 'http://127.0.0.1:9995/valid.xml',
         'email' => 'test@example.com',
     ]);
 

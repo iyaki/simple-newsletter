@@ -90,6 +90,12 @@ ignore = [
 	{ code = "possibly-mixed-property-fetch", in = "tests/**" },
 	{ code = "possibly-mixed-array-access", in = "tests/**" },
 	{ code = "possibly-mixed-arg", in = "tests/**" },
+	{ code = "redundant-type-comparison", in = "tests/**" },
+	{ code = "redundant-comparison", in = "tests/**" },
+	{ code = "redundant-logical-operation", in = "tests/**" },
+	{ code = "invalid-method-access", pattern = "assert", in = "tests/**" },
+	{ code = "mixed-argument", pattern = "str_contains", in = "tests/**" },
+	{ code = "possibly-false-operand", in = "tests/**" },
 ]
 
 find-unused-expressions = true
