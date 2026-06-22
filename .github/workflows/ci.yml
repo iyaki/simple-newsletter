@@ -86,6 +86,12 @@ jobs:
         run: composer install --no-progress
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set test environment variables
+        run: |
+          echo "NEWSLETTER_DB_PATH=${{ github.workspace }}/data/test-e2e.db" >> $GITHUB_ENV
+          echo "SECRET_KEY=test-e2e-secret-key-32chars!" >> $GITHUB_ENV
+          echo "SERVER_NAME=http://localhost:8080" >> $GITHUB_ENV
+          echo "URI_SELF=http://localhost:8080" >> $GITHUB_ENV
       - name: Start dev server
         run: php -S localhost:8080 -t public &
       - name: Wait for dev server
