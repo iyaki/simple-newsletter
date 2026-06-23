@@ -29,6 +29,8 @@ final class ResponderHttp
         }
 
         echo $response->getBody();
+        \ob_flush();
+        \flush();
     }
 
     public function responseBuilderFromContentNegotiation(string $acceptHeaderValueAsString): ResponseBuilderInterface
