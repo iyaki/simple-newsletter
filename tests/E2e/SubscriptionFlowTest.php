@@ -11,8 +11,15 @@ use Symfony\Contracts\HttpClient\ResponseInterface;
 function e2e_sub_get(string $path, array $queryParams = []): ResponseInterface
 {
     static $client = null;
+    static $baseUrl = null;
+
+    if ($baseUrl === null) {
+        $envUrl = \getenv('E2E_BASE_URL');
+        $baseUrl = $envUrl !== false ? $envUrl : 'http://localhost:8080';
+    }
+
     if ($client === null) {
-        $client = HttpClient::create(['base_uri' => 'http://localhost:8080']);
+        $client = HttpClient::create(['base_uri' => $baseUrl]);
     }
     $url = $path;
     if (\count($queryParams) > 0) {
