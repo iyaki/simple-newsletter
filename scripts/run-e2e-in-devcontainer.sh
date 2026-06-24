@@ -152,8 +152,8 @@ done
 
 # Set environment variables
 export SECRET_KEY='test-e2e-secret-key-32chars!'
-export SERVER_NAME='http://localhost:8080'
-export URI_SELF='http://localhost:8080'
+export SERVER_NAME='http://localhost:8082'
+export URI_SELF='http://localhost:8082'
 export SMTP_HOST='127.0.0.1'
 export SMTP_PORT='1025'
 export SMTP_ENCRYPTION=''
@@ -165,8 +165,8 @@ export EMAIL_REPLY_TO='reply@test.localhost'
 echo "4. Starting test HTTP server on port 8080..."
 (
 export SECRET_KEY='test-e2e-secret-key-32chars!'
-export SERVER_NAME='http://localhost:8080'
-export URI_SELF='http://localhost:8080'
+export SERVER_NAME='http://localhost:8082'
+export URI_SELF='http://localhost:8082'
 export SMTP_HOST='127.0.0.1'
 export SMTP_PORT='1025'
 export SMTP_ENCRYPTION=''
@@ -175,12 +175,12 @@ export SMTP_PASSWORD=''
 export SMTP_ALLOW_SELF_SIGNED='1'
 export EMAIL_FROM='test@test.localhost'
 export EMAIL_REPLY_TO='reply@test.localhost'
-exec php -S localhost:8080 -t public > /tmp/php-server-e2e.log 2>&1
+exec php -d auto_prepend_file="$(pwd)/libs/bootstrap.php" -S localhost:8082 -t public > /tmp/php-server-e2e.log 2>&1
 ) &
 HTTP_PID=$!
 
 for i in {1..30}; do
-    if curl -sf http://localhost:8080 > /dev/null 2>&1; then
+    if curl -sf http://localhost:8082 > /dev/null 2>&1; then
         echo "   ✓ HTTP server ready"
         break
     fi
@@ -191,7 +191,7 @@ echo ""
 echo "5. Running E2E tests..."
 echo "=========================================="
 
-E2E_BASE_URL='http://localhost:8080' vendor/bin/pest tests/E2e/ --testdox
+E2E_BASE_URL='http://localhost:8082' vendor/bin/pest tests/E2e/ --testdox
 TEST_EXIT=$?
 
 # Cleanup

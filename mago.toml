@@ -70,6 +70,7 @@ no-literal-password = { exclude = ["tests/*"]}
 plugins = ["stdlib"]
 
 ignore = [
+	{ code = "non-existent-function", in = "tests/E2e/**" },
 	{ code = "non-existent-method", pattern = "Mockery", in = "tests/*" },
 	{ code = "non-documented-method", pattern = "Mockery", in = "tests/*" },
 	{ code = "mixed-method-access", pattern = "Mockery", in = "tests/*" },
