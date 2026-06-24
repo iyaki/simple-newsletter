@@ -15,7 +15,9 @@ function e2e_get_cancel(string $path, array $queryParams = []): ResponseInterfac
 {
     static $client = null;
     if ($client === null) {
-        $client = \Symfony\Component\HttpClient\HttpClient::create(['base_uri' => 'http://localhost:8080']);
+        $envUrl = \getenv('E2E_BASE_URL');
+        $baseUrl = $envUrl !== false ? $envUrl : 'http://localhost:8080';
+        $client = \Symfony\Component\HttpClient\HttpClient::create(['base_uri' => $baseUrl]);
     }
     $url = $path;
     if (\count($queryParams) > 0) {

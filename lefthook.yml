@@ -13,6 +13,7 @@ pre-commit:
       run: vendor/bin/mago analyze {staged_files}
     - name: tests
       glob: "*.php"
+      exclude: "tests/E2e/*"
       run: vendor/bin/pest {staged_files}
 
     - name: lefthook validate
