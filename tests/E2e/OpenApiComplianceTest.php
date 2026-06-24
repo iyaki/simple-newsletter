@@ -37,7 +37,9 @@ it('returns valid structure for missing required parameters', function (): void 
 /** @throws \Exception */
 it('returns HTML by default (content negotiation)', function (): void {
     $dbPath = getenv('NEWSLETTER_DB_PATH');
+    \assert(\is_string($dbPath) && $dbPath !== '', 'NEWSLETTER_DB_PATH must be set');
 
+    init_test_database($dbPath);
     $response = http_get('/v1/subscriptions/', [
         'uri' => 'http://127.0.0.1:9995/valid.xml',
         'email' => 'test@example.com',
