@@ -162,7 +162,7 @@ export EMAIL_FROM='test@test.localhost'
 export EMAIL_REPLY_TO='reply@test.localhost'
 
 # Start HTTP server with env vars
-echo "4. Starting test HTTP server on port 8080..."
+echo "4. Starting test HTTP server on port 8082..."
 (
 export SECRET_KEY='test-e2e-secret-key-32chars!'
 export SERVER_NAME='http://localhost:8082'
