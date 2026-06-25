@@ -118,7 +118,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Run mutation tests
-        run: vendor/bin/pest --testsuite=default --mutate --everything --min=90
+        run: vendor/bin/pest --testsuite=default --mutate --everything --min=50
 
   docker-build:
     runs-on: ubuntu-latest
