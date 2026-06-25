@@ -44,5 +44,4 @@ test('Newsletter body contains post uri and cancellation uri', function (): void
     expect($body)->toContain('<p>content html</p>');
 });
 
-covers(SimpleNewsletter\Templates\Email\Newsletter::class);
 

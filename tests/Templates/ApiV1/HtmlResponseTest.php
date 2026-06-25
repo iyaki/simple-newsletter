@@ -41,4 +41,3 @@ test('fromString with ok=true sets isOk to true', function (): void {
     expect($response->isOk())->toBeTrue();
 });
 
-covers(SimpleNewsletter\Templates\ApiV1\HtmlResponse::class);

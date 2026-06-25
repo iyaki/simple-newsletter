@@ -5,6 +5,7 @@ declare(strict_types=1);
 use SimpleNewsletter\Data\Feed;
 use SimpleNewsletter\Data\FeedMetadata;
 use SimpleNewsletter\Data\FeedsDAO;
+covers(SimpleNewsletter\Data\FeedsDAO::class);
 
 /** @var FeedsDAO|null $dao */
 $dao = null;
@@ -104,5 +105,4 @@ test('getScheduled returns empty array when no feeds match', function () use (&$
     expect($results)->toBeEmpty();
 });
 
-covers(SimpleNewsletter\Data\FeedsDAO::class);
 

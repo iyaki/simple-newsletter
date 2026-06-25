@@ -48,5 +48,4 @@ test('SubscriptionConfirmation body contains confirmation uri, feed title and fe
     expect($body)->toContain('https://example.com');
 });
 
-covers(SimpleNewsletter\Templates\Email\SubscriptionConfirmation::class);
 

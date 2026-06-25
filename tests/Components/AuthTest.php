@@ -26,4 +26,3 @@ test('verify returns false for wrong key', function (): void {
     expect($auth->verify('wrong-key', $token))->toBeFalse();
 });
 
-covers(SimpleNewsletter\Components\Auth::class);
