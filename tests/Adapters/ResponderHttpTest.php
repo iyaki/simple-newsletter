@@ -119,16 +119,17 @@ test('RedirectResponse fromString with explicit return value', function (): void
     $builder = $responder->responseBuilderFromRedirect();
     $response = $builder->fromString('Done', 'Success', 'https://example.com/explicit');
     expect($response->isOk())->toBeTrue();
-    // The return URL should be used, not defaulted to empty string
-    $html = $response->render();
-    expect($html)->toContain('https://example.com/explicit');
+    // The return URL should be used in Location header
+    $headers = $response->getHeaders();
+    \assert(\array_key_exists('Location', $headers), 'Location header should exist');
+    expect($headers['Location'])->toContain('https://example.com/explicit');
 });
-
 test('RedirectResponse fromEndUserException with explicit return value', function (): void {
     $responder = new ResponderHttp();
     $builder = $responder->responseBuilderFromRedirect();
     $response = $builder->fromEndUserException(new EndUserException('Error'), 'https://example.com/error-back');
     expect($response->isOk())->toBeFalse();
-    $html = $response->render();
-    expect($html)->toContain('https://example.com/error-back');
+    $headers = $response->getHeaders();
+    \assert(\array_key_exists('Location', $headers), 'Location header should exist');
+    expect($headers['Location'])->toContain('https://example.com/error-back');
 });
