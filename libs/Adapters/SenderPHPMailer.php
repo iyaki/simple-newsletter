@@ -54,11 +54,12 @@ final readonly class SenderPHPMailer implements Sender
     public function send(EmailInterface $template): void
     {
         try {
+            $this->mailer->CharSet = 'UTF-8';
+            $this->mailer->Encoding = 'base64';
             $this->mailer->addAddress($template->recipient());
             $this->mailer->Subject = $template->subject();
             $this->mailer->isHTML();
-            $body = \mb_convert_encoding($template->body(), to_encoding: '8bit');
-            $this->mailer->Body = $body === false ? '' : $body;
+            $this->mailer->Body = $template->body();
 
             $this->mailer->send();
 

@@ -105,3 +105,40 @@ test(
         $sender->send($email);
     },
 );
+test(
+    'send properly handles UTF-8 characters in subject and body',
+    /** @throws PHPMailerException|EndUserException */ function (): void {
+        /** @var PHPMailer&\Mockery\MockInterface $mailer */
+        $mailer = \Mockery::mock(PHPMailer::class);
+
+        // Constructor expectations
+        $mailer->shouldReceive('isSMTP')->once();
+        $mailer->shouldReceive('setFrom')->once();
+        $mailer->shouldReceive('addReplyTo')->once();
+
+        $config = new SmtpConfig(
+            new SmtpConnection('smtp.example.com', 587, PHPMailer::ENCRYPTION_STARTTLS, false),
+            new SmtpCredentials('user', 'secret'),
+            new SmtpSender('from@example.com', 'reply@example.com'),
+        );
+
+        $sender = new SenderPHPMailer($config, $mailer);
+
+        /** @var EmailInterface&\Mockery\MockInterface $email */
+        $email = \Mockery::mock(EmailInterface::class);
+        $email->shouldReceive('recipient')->andReturn('test@example.com');
+        $email->shouldReceive('subject')->andReturn("Jim Nielsen's Blog - Artículos diarios | iyaki");
+        $email->shouldReceive('body')->andReturn('<p>Contenido con caracteres especiales: ñ, é, á, ó, í, ú</p>');
+
+        // Send-method expectations
+        $mailer->shouldReceive('addAddress')->with('test@example.com')->once();
+        $mailer->shouldReceive('isHTML')->once();
+        $mailer->shouldReceive('send')->once();
+        $mailer->shouldReceive('clearAllRecipients')->once();
+        $mailer->shouldReceive('clearAttachments')->once();
+
+        $sender->send($email);
+
+        expect(true)->toBeTrue();
+    },
+);
