@@ -143,5 +143,4 @@ test(
     },
 );
 
-covers(SimpleNewsletter\Adapters\SenderPHPMailer::class);
 

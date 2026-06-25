@@ -56,5 +56,4 @@ test('fromEndUserException Location header contains ok=0', function (): void {
     expect($headers['Location'])->toContain('ok=0');
 });
 
-covers(SimpleNewsletter\Templates\ApiV1\RedirectResponse::class);
 

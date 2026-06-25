@@ -11,5 +11,4 @@ test('Post DTO constructor sets properties', function (): void {
     expect($post->content)->toBe('<p>Hello</p>');
 });
 
-covers(SimpleNewsletter\Data\Post::class);
 

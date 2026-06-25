@@ -44,5 +44,4 @@ test('fetchNew wraps invalid feed content in EndUserException', function (): voi
         ->toThrow(EndUserException::class);
 })->group('integration');
 
-covers(SimpleNewsletter\Adapters\FeedImporterLaminas::class);
 

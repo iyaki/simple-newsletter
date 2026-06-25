@@ -73,5 +73,4 @@ test('container creates independent instances', function (): void {
     expect($c2->responder())->toBeInstanceOf(\SimpleNewsletter\Adapters\ResponderHttp::class);
 });
 
-covers(SimpleNewsletter\Container::class);
 

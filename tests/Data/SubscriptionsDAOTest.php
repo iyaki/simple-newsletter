@@ -5,6 +5,7 @@ declare(strict_types=1);
 use SimpleNewsletter\Data\Feed;
 use SimpleNewsletter\Data\FeedMetadata;
 use SimpleNewsletter\Data\FeedsDAO;
+covers(SimpleNewsletter\Data\SubscriptionsDAO::class);
 use SimpleNewsletter\Data\Subscription;
 use SimpleNewsletter\Data\SubscriptionsDAO;
 
@@ -140,5 +141,4 @@ test('findActiveSubscriptionsFor returns empty array for feed with no active sub
     expect($results)->toBeEmpty();
 });
 
-covers(SimpleNewsletter\Data\SubscriptionsDAO::class);
 

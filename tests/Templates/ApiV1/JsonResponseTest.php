@@ -51,5 +51,4 @@ test('json_encode failure returns empty JSON object', function (): void {
     expect($body)->toBe('{}');
 });
 
-covers(SimpleNewsletter\Templates\ApiV1\JsonResponse::class);
 

@@ -199,5 +199,4 @@ test(
     },
 );
 
-covers(SimpleNewsletter\Models\Feeds::class);
 
