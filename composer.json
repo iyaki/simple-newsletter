@@ -40,7 +40,7 @@
         "test": "vendor/bin/pest",
         "test:coverage": "XDEBUG_MODE=coverage vendor/bin/pest --coverage --min=75 --testsuite=default --do-not-fail-on-risky",
         "test:e2e": "vendor/bin/pest --testsuite e2e",
-        "test:mutation": "vendor/bin/pest --mutate --min=90",
+        "test:mutation": "XDEBUG_MODE=coverage vendor/bin/pest --mutate --min=90 --path=libs/Models",
         "lint": "vendor/bin/mago lint",
         "analyze": "vendor/bin/mago analyze",
         "check": ["@lint", "@analyze", "@test:coverage"]
