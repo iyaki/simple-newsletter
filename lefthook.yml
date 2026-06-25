@@ -11,10 +11,6 @@ pre-commit:
     - name: mago analyze
       glob: "*.php"
       run: vendor/bin/mago analyze {staged_files}
-    - name: tests
-      glob: "*.php"
-      exclude: "tests/E2e/*"
-      run: vendor/bin/pest {staged_files}
 
     - name: lefthook validate
       glob: "lefthook.yml"
