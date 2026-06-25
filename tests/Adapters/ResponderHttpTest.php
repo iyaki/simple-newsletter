@@ -90,3 +90,45 @@ test('redirect builder fromEndUserException creates RedirectResponse with ok=fal
     expect($response->isOk())->toBeFalse();
 });
 
+test('responseBuilderFromContentNegotiation with mixed type array uses strict comparison', function (): void {
+    $responder = new ResponderHttp();
+    // With strict:true, integer 1 won't match string 'text/html'
+    // This test ensures the strict parameter matters
+    $builder = $responder->responseBuilderFromContentNegotiation('text/html,1,application/json');
+    $response = $builder->fromString('Title', 'Message');
+    // Should still match text/html and JSON, ignoring the integer
+    expect($response)->toBeInstanceOf(HtmlResponse::class);
+});
+
+test('JsonResponse fromString with ok=false', function (): void {
+    $responder = new ResponderHttp();
+    $builder = $responder->responseBuilderFromContentNegotiation('application/json');
+    $response = $builder->fromString('Title', 'Message', null, false);
+    expect($response->isOk())->toBeFalse();
+});
+
+test('HtmlResponse fromString with ok=false', function (): void {
+    $responder = new ResponderHttp();
+    $builder = $responder->responseBuilderFromContentNegotiation('text/html');
+    $response = $builder->fromString('Title', 'Message', null, false);
+    expect($response->isOk())->toBeFalse();
+});
+
+test('RedirectResponse fromString with explicit return value', function (): void {
+    $responder = new ResponderHttp();
+    $builder = $responder->responseBuilderFromRedirect();
+    $response = $builder->fromString('Done', 'Success', 'https://example.com/explicit');
+    expect($response->isOk())->toBeTrue();
+    // The return URL should be used, not defaulted to empty string
+    $html = $response->render();
+    expect($html)->toContain('https://example.com/explicit');
+});
+
+test('RedirectResponse fromEndUserException with explicit return value', function (): void {
+    $responder = new ResponderHttp();
+    $builder = $responder->responseBuilderFromRedirect();
+    $response = $builder->fromEndUserException(new EndUserException('Error'), 'https://example.com/error-back');
+    expect($response->isOk())->toBeFalse();
+    $html = $response->render();
+    expect($html)->toContain('https://example.com/error-back');
+});
