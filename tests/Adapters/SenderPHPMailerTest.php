@@ -142,3 +142,6 @@ test(
         expect(true)->toBeTrue();
     },
 );
+
+covers(SimpleNewsletter\Adapters\SenderPHPMailer::class);
+
