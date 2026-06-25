@@ -89,3 +89,5 @@ test('redirect builder fromEndUserException creates RedirectResponse with ok=fal
     expect($response)->toBeInstanceOf(RedirectResponse::class);
     expect($response->isOk())->toBeFalse();
 });
+
+covers(SimpleNewsletter\Adapters\ResponderHttp::class);

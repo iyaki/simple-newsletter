@@ -489,3 +489,6 @@ it('sendScheduled handles multiple scheduled feeds', function (): void {
 
     $subs->sendScheduled($datetime);
 });
+
+covers(SimpleNewsletter\Models\Subscriptions::class);
+

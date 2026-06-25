@@ -10,3 +10,6 @@ test('Post DTO constructor sets properties', function (): void {
     expect($post->title)->toBe('Test Title');
     expect($post->content)->toBe('<p>Hello</p>');
 });
+
+covers(SimpleNewsletter\Data\Post::class);
+

@@ -139,3 +139,6 @@ test('findActiveSubscriptionsFor returns empty array for feed with no active sub
     $results = $dao->findActiveSubscriptionsFor($feed);
     expect($results)->toBeEmpty();
 });
+
+covers(SimpleNewsletter\Data\SubscriptionsDAO::class);
+

@@ -55,3 +55,6 @@ test('fromEndUserException Location header contains ok=0', function (): void {
     \assert(\array_key_exists('Location', $headers), 'Location header should exist');
     expect($headers['Location'])->toContain('ok=0');
 });
+
+covers(SimpleNewsletter\Templates\ApiV1\RedirectResponse::class);
+

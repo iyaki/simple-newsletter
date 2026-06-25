@@ -43,3 +43,6 @@ test('fetchNew wraps invalid feed content in EndUserException', function (): voi
     expect(fn () => $importer->fetchNew(FEED_TEST_BASE . '/invalid.txt'))
         ->toThrow(EndUserException::class);
 })->group('integration');
+
+covers(SimpleNewsletter\Adapters\FeedImporterLaminas::class);
+

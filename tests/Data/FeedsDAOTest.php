@@ -103,3 +103,6 @@ test('getScheduled returns empty array when no feeds match', function () use (&$
     $results = $dao->getScheduled(new \DateTimeImmutable('2024-01-01 03:00:00'));
     expect($results)->toBeEmpty();
 });
+
+covers(SimpleNewsletter\Data\FeedsDAO::class);
+

@@ -47,3 +47,6 @@ test('createNewsletter returns Newsletter with correct subject format and cancel
     expect($result->subject())->toEqual('Test Post Title - Test Feed');
     expect($result->body())->toContain(\urlencode($token));
 });
+
+covers(SimpleNewsletter\Components\EmailTemplateFactory::class);
+

@@ -139,3 +139,6 @@ test('sendPostToSubscribers creates correct template per subscription', function
     $newsletter = new Newsletter($sender, $emailTemplateFactory, $auth);
     $newsletter->sendPostToSubscribers($feed, $post, $sub);
 });
+
+covers(SimpleNewsletter\Models\Newsletter::class);
+
