@@ -2,17 +2,25 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Simple Newsletter</title>
+    <title>Simple Newsletter - Free RSS & Atom Feed to Email Newsletter</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="author" content="Ivan Yaki">
-    <meta name="description" content="Simple and free Atom and RSS feeds to newsletter subscription service">
-    <meta property="og:title" content="Simple Newsletter">
-    <meta property="og:description" content="Free Atom and RSS feeds to newsletter subscription service">
+    <meta name="description" content="Transform any RSS or Atom feed into an email newsletter. Free, privacy-friendly, double opt-in. No RSS reader needed.">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="<?= rtrim(\getenv('URI_SELF'), '/') ?>">
+    <meta property="og:title" content="Simple Newsletter - RSS & Atom to Email">
+    <meta property="og:description" content="Convert RSS or Atom feeds into email newsletters. Free, privacy-friendly, double opt-in. No account required.">
     <meta property="og:url" content="<?= \getenv('URI_SELF') ?>">
     <meta property="og:site_name" content="Simple Newsletter">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="en_US">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Simple Newsletter - RSS & Atom to Email">
+    <meta name="twitter:description" content="Convert RSS or Atom feeds into email newsletters. Free, privacy-friendly, double opt-in. No account required.">
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css">
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css"></noscript>
 
     <link
         rel="icon"
@@ -22,16 +30,40 @@
         :target {
             scroll-margin-block: 5ex;
         }
+        .skip-link {
+            position: absolute;
+            left: -9999px;
+            top: auto;
+        }
+        .skip-link:focus {
+            position: static;
+            left: 0;
+        }
         section {
             margin: 2.5em auto;
         }
     </style>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Simple Newsletter",
+        "description": "Free service that converts RSS and Atom feeds into email newsletters",
+        "url": "<?= rtrim(\getenv('URI_SELF'), '/') ?>",
+        "applicationCategory": "Utility",
+        "operatingSystem": "Web",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "isAccessibleForFree": true,
+        "featureList": "RSS to email, Atom feed newsletter, Double opt-in, Privacy-friendly, No account required"
+    }
+    </script>
 </head>
 <body>
-    <main>
+    <a href="#main" class="skip-link">Skip to main content</a>
+    <main id="main">
         <h1 style="text-align: center; margin-top: 1em; margin-bottom: 2em;">Simple Newsletter</h1>
-        <h2 style="text-align: center;">Atom & RSS Feeds to Newsletter</h2>
-        <h3 style="text-align: center;">The news that you want to hear about, delivered directly to your e-mail inbox, for free.</h3>
+        <h2 style="text-align: center;">RSS & Atom Feed to Email Newsletter</h2>
+        <h3 style="text-align: center;">Subscribe to any RSS or Atom feed and receive updates directly in your email inbox — free, private, no RSS reader required.</h3>
         <section style="margin: 7em auto 10em;">
             <p>Enter the feed’s URI and your email to transform any Atom or RSS feed into a newsletter.</p>
             <style>
@@ -75,30 +107,39 @@
                 </fieldset>
             </form>
         </section>
+        <section id="how-it-works">
+            <h2>How It Works</h2>
+            <ol>
+                <li><strong>Enter a feed</strong> — Paste any RSS or Atom feed URL</li>
+                <li><strong>Confirm your email</strong> — Click the double opt-in link you receive</li>
+                <li><strong>Receive newsletters</strong> — New posts from the feed arrive in your inbox</li>
+                <li><strong>Unsubscribe anytime</strong> — One-click link in every email</li>
+            </ol>
+        </section>
         <section id="about" style="position: relative;">
             <header>
-                <h2>Why?</h2>
+                <h2>Why RSS to Email?</h2>
             </header>
-            <p>I have used RSS Feeds for a long time and I completely love them. I use them, advocate for them and try to spread the word about them.</p>
-            <p>But at the beggining of 2024 I came across <a href="https://ochagavia.nl/blog/rss-is-dead-subscribe-through-email/" title="RSS is dead, subscribe through email. - Adolfo Ochagavía">this blogpost</a> and it left me thinking.</p>
-            <p>It's true that for a lot of readers from newer generations the RSS is an old and strange technology. But for publishers the RSS (or Atom) is almost omnipresent without efforts, unlike email newsletters.</p>
-            <p>So, inspired by the great <a href="https://kill-the-newsletter.com/"><i>Kill the Newsletter</i></a>, I decided to build this service that converts any Atom or RSS feed into a newsletter, accessible via email for any reader.</p>
+            <p>I have used RSS feeds for a long time and I completely love them. I use them, advocate for them and try to spread the word about them.</p>
+            <p>But at the beginning of 2024 I came across <a href="https://ochagavia.nl/blog/rss-is-dead-subscribe-through-email/" title="RSS is dead, subscribe through email. - Adolfo Ochagavía">this blogpost</a> and it left me thinking.</p>
+            <p>It's true that for a lot of readers from newer generations RSS feeds can feel unfamiliar. But for publishers, RSS and Atom feeds are almost omnipresent without extra effort — unlike email newsletters that require a mailing list service.</p>
+            <p>So, inspired by the great <a href="https://kill-the-newsletter.com/"><i>Kill the Newsletter</i></a>, I built this service that converts any Atom or RSS feed into a newsletter, accessible via email for any reader — no feed reader needed.</p>
         </section>
         <section id="faq">
             <header>
-                <h2>F.A.Q.</h2>
+                <h2>Frequently Asked Questions</h2>
                 <ul style="list-style: none; padding: 0;">
                     <li><details>
                         <summary>How do I subscribe?</summary>
-                        <p>Just input the Atom or RSS feed’s URI and your email address in the form and hit submit. You’ll receive and email to confirm the subscription.</p>
+                        <p>Just input the Atom or RSS feed's URI and your email address in the form and hit submit. You'll receive an email to confirm the subscription.</p>
                     </details></li>
                     <li><details>
                         <summary>How do I unsubscribe?</summary>
-                        <p>Each newsletter includes an unsubscribe link, giving you the freedom to opt-out anytime.	</p>
+                        <p>Each newsletter includes an unsubscribe link, giving you the freedom to opt-out anytime.</p>
                     </details></li>
                     <li><details>
                         <summary>Is this service free?</summary>
-                        <p>Yes!</p>
+                        <p>Yes, Simple Newsletter is completely free. No account required, no premium tiers.</p>
                     </details></li>
                     <li><details>
                         <summary>I’m a publisher, can I integrate this service into my website?</summary>
@@ -137,11 +178,15 @@
             </details>
         </section>
     </main>
-    <footer style="text-align: center; display: flex; justify-content: center; align-items: stretch; gap: 1em; padding-top: 20px;">
+    <footer style="text-align: center; padding-top: 20px;">
+        <nav style="margin-bottom: 1em;">
+            <a href="#how-it-works">How It Works</a> ·
+            <a href="#about">Why RSS to Email</a> ·
+            <a href="#faq">FAQ</a> ·
+            <a href="#docs">API Docs</a> ·
+            <a href="https://github.com/iyaki/simple-newsletter" title="Simple Newsletter on GitHub">Source Code</a>
+        </nav>
         <p style="margin: 0">Made with 🧉 by <a href="https://iyaki.ar">iyaki</a></p>
-        <div> - </div>
-        <a href="https://github.com/iyaki/simple-newsletter" title="Simple Newsletter on Github"><svg viewBox="0 0 32.58 31.77" height="1.5em"><path d="M16.29.0C7.29.0.0 7.29.0 16.29c0 7.2 4.67 13.3 11.14 15.46.81.15 1.11-.35 1.11-.79.0-.39-.01-1.41-.02-2.77-4.53.98-5.49-2.18-5.49-2.18-.74-1.88-1.81-2.38-1.81-2.38-1.48-1.01.11-.99.11-.99 1.63.12 2.5 1.68 2.5 1.68 1.45 2.49 3.81 1.77 4.74 1.35.15-1.05.57-1.77 1.03-2.18-3.62-.41-7.42-1.81-7.42-8.05.0-1.78.63-3.23 1.68-4.37-.17-.41-.73-2.07.16-4.31.0.0 1.37-.44 4.48 1.67 1.3-.36 2.69-.54 4.08-.55 1.38.0 2.78.19 4.08.55 3.11-2.11 4.48-1.67 4.48-1.67.89 2.24.33 3.9.16 4.31 1.04 1.14 1.67 2.59 1.67 4.37.0 6.26-3.81 7.63-7.44 8.04.58.5 1.11 1.5 1.11 3.02.0 2.18-.02 3.93-.02 4.47.0.44.29.94 1.12.78 6.47-2.16 11.13-8.26 11.13-15.45C32.58 7.29 25.29.0 16.29.0z"></path></svg>
-        </a>
     </footer>
     <script data-goatcounter="https://simple-newsletter.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </body>
