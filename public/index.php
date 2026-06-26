@@ -63,7 +63,9 @@
     <main id="main">
         <h1 style="text-align: center; margin-top: 1em; margin-bottom: 2em;">Simple Newsletter</h1>
         <h2 style="text-align: center;">RSS & Atom Feed to Email Newsletter</h2>
-        <h3 style="text-align: center;">Subscribe to any RSS or Atom feed and receive updates directly in your email inbox — free, private, no RSS reader required.</h3>
+        <section id="intro" style="max-width: 750px; margin: 0.5em auto 3em; padding: 0 1em;">
+            <p style="text-align: center; font-size: 1.15em; line-height: 1.65; margin: 0;">Simple Newsletter is a free web service that converts any RSS or Atom feed into email newsletters. Readers subscribe with their email, confirm via double opt-in, and receive new posts directly in their inbox — no RSS reader app required. Publishers get automatic email distribution without managing a mailing list.</p>
+        </section>
         <section style="margin: 7em auto 10em;">
             <p>Enter the feed’s URI and your email to transform any Atom or RSS feed into a newsletter.</p>
             <style>
@@ -110,10 +112,10 @@
         <section id="how-it-works">
             <h2>How It Works</h2>
             <ol>
-                <li><strong>Enter a feed</strong> — Paste any RSS or Atom feed URL</li>
-                <li><strong>Confirm your email</strong> — Click the double opt-in link you receive</li>
-                <li><strong>Receive newsletters</strong> — New posts from the feed arrive in your inbox</li>
-                <li><strong>Unsubscribe anytime</strong> — One-click link in every email</li>
+                <li><strong>Enter a feed and email</strong> — Paste any RSS or Atom feed URL (e.g., <code>https://example.com/blog/feed.xml</code> or a YouTube channel RSS)</li>
+                <li><strong>Confirm your email</strong> — Click the double opt-in link you receive (sent immediately, takes 30 seconds)</li>
+                <li><strong>Receive newsletters</strong> — New posts from the feed arrive in your inbox within an hour of publication</li>
+                <li><strong>Unsubscribe anytime</strong> — One-click link in every email, instant removal</li>
             </ol>
         </section>
         <section id="about" style="position: relative;">
@@ -122,8 +124,8 @@
             </header>
             <p>I have used RSS feeds for a long time and I completely love them. I use them, advocate for them and try to spread the word about them.</p>
             <p>But at the beginning of 2024 I came across <a href="https://ochagavia.nl/blog/rss-is-dead-subscribe-through-email/" title="RSS is dead, subscribe through email. - Adolfo Ochagavía">this blogpost</a> and it left me thinking.</p>
-            <p>It's true that for a lot of readers from newer generations RSS feeds can feel unfamiliar. But for publishers, RSS and Atom feeds are almost omnipresent without extra effort — unlike email newsletters that require a mailing list service.</p>
-            <p>So, inspired by the great <a href="https://kill-the-newsletter.com/"><i>Kill the Newsletter</i></a>, I built this service that converts any Atom or RSS feed into a newsletter, accessible via email for any reader — no feed reader needed.</p>
+            <p>It's true that for a lot of readers from newer generations RSS feeds can feel unfamiliar. But for publishers, RSS and Atom feeds are almost omnipresent without extra effort — unlike email newsletters that require a mailing list service or platform like Substack, ConvertKit, or Mailchimp.</p>
+            <p>So I built this service that converts any Atom or RSS feed into a newsletter, accessible via email for any reader — no feed reader needed, no newsletter platform to manage, and no subscriber list to maintain.</p>
         </section>
         <section id="faq">
             <header>
@@ -142,6 +144,18 @@
                         <p>Yes, Simple Newsletter is completely free. No account required, no premium tiers.</p>
                     </details></li>
                     <li><details>
+                        <summary>What feed formats are supported?</summary>
+                        <p>Any RSS 2.0 or Atom 1.0 feed. This includes most blogs (WordPress, Ghost, Medium exports), YouTube channel RSS, podcast feeds, and most news sites.</p>
+                    </details></li>
+                    <li><details>
+                        <summary>How often are newsletters sent?</summary>
+                        <p>New posts are delivered once per day for every source.</p>
+                    </details></li>
+                    <li><details>
+                        <summary>What data do you store?</summary>
+                        <p>We store your email address, the feed URI you subscribed to, and a confirmation timestamp. No browsing data, no cookies for tracking, no selling to third parties. Delete your subscription anytime via the unsubscribe link — data is removed immediately.</p>
+                    </details></li>
+                    <li><details>
                         <summary>I’m a publisher, can I integrate this service into my website?</summary>
                         <p>Definitely! Check out our <a href="#docs">documentation</a> for easy integration instructions.</p>
                     </details></li>
@@ -156,6 +170,14 @@
             <header>
                 <h2>API Docs</h2>
             </header>
+            <p><strong>For publishers:</strong> Add email newsletters to your site in 2 minutes. No migration from RSS, no newsletter platform to manage, no subscriber database to maintain.</p>
+            <ul>
+                <li>Works with any RSS 2.0 or Atom 1.0 feed — blogs, YouTube channels, podcasts, news sites</li>
+                <li>Double opt-in compliance</li>
+                <li>Automatic delivery within the day of publication</li>
+                <li>Free, no premium tiers, no account required</li>
+                <li>Unsubscribe link in every email</li>
+            </ul>
             <a href="https://editor.swagger.io/?url=https://simple-newsletter.com/api-spec.yaml">OpenAPI API Docs</a>
             <h3>Example HTML Form for publishers</h3>
             <pre><code><?= htmlentities(<<<HTML
