@@ -224,7 +224,7 @@ it('throws when subscription not found in confirm', function (): void {
  * @throws EndUserException
  * @throws \Random\RandomException
  */
-it('deactivates subscription on valid cancel token', function (): void {
+it('deletes subscription on valid cancel token', function (): void {
     /** @var SubscriptionsDAO&\Mockery\MockInterface $subscriptionsDAO */
     $subscriptionsDAO = \Mockery::mock(SubscriptionsDAO::class);
     /** @var Feeds&\Mockery\MockInterface $feeds */
@@ -243,7 +243,7 @@ it('deactivates subscription on valid cancel token', function (): void {
 
     $subscriptionsDAO->shouldReceive('find')->once()->with($feedUri, $email)->andReturn($subscription);
 
-    $subscriptionsDAO->shouldReceive('deactivate')->once()->with($subscription);
+    $subscriptionsDAO->shouldReceive('delete')->once()->with($subscription);
 
     $subs = new Subscriptions($subscriptionsDAO, $feeds, $newsletter, $auth);
 
