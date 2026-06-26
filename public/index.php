@@ -8,7 +8,7 @@
     <meta name="author" content="Ivan Yaki">
     <meta name="description" content="Transform any RSS or Atom feed into an email newsletter. Free, privacy-friendly, double opt-in. No RSS reader needed.">
     <meta name="robots" content="index, follow">
-    <link rel="canonical" href="<?= rtrim(\getenv('URI_SELF'), '/') ?>">
+    <link rel="canonical" href="<?= rtrim(\getenv('URI_SELF') ?: '', '/') ?>">
     <meta property="og:title" content="Simple Newsletter - RSS & Atom to Email">
     <meta property="og:description" content="Convert RSS or Atom feeds into email newsletters. Free, privacy-friendly, double opt-in. No account required.">
     <meta property="og:url" content="<?= \getenv('URI_SELF') ?>">
@@ -49,7 +49,7 @@
         "@type": "WebApplication",
         "name": "Simple Newsletter",
         "description": "Free service that converts RSS and Atom feeds into email newsletters",
-        "url": "<?= rtrim(\getenv('URI_SELF'), '/') ?>",
+        "url": "<?= rtrim(\getenv('URI_SELF') ?: '', '/') ?>",
         "applicationCategory": "Utility",
         "operatingSystem": "Web",
         "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
