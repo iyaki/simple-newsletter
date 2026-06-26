@@ -10,6 +10,12 @@ use SimpleNewsletter\Components\EndUserException;
 use SimpleNewsletter\Data\Subscription;
 use SimpleNewsletter\Data\SubscriptionsDAO;
 
+/**
+ * Manages newsletter subscriptions and delivery workflows.
+ *
+ * Orchestrates the double-opt-in subscription flow, confirmation token validation,
+ * cancellation, and scheduled newsletter delivery to confirmed subscribers.
+ */
 final readonly class Subscriptions
 {
     public function __construct(

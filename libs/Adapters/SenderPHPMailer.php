@@ -9,6 +9,12 @@ use SimpleNewsletter\Components\EndUserException;
 use SimpleNewsletter\Components\Sender;
 use SimpleNewsletter\Templates\Email\EmailInterface;
 
+/**
+ * PHPMailer implementation of the Sender interface.
+ *
+ * Configures SMTP relay with PHPMailer, handles UTF-8 encoding and base64 transfer.
+ * Requires SmtpConfig with connection (host, port, encryption) and credentials.
+ */
 final readonly class SenderPHPMailer implements Sender
 {
     private PHPMailer $mailer;

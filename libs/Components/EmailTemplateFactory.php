@@ -10,6 +10,15 @@ use SimpleNewsletter\Data\Subscription;
 use SimpleNewsletter\Templates\Email\Newsletter;
 use SimpleNewsletter\Templates\Email\SubscriptionConfirmation;
 
+/**
+ * Factory for creating email templates.
+ *
+ * Constructs confirmation and newsletter email templates with signed token links
+ * for subscription management. Requires service host URI for link generation.
+ *
+ * @method SubscriptionConfirmation createConfirmation(Subscription, Feed, string)
+ * @method Newsletter createNewsletter(Subscription, Feed, Post, string)
+ */
 final readonly class EmailTemplateFactory
 {
     public function __construct(

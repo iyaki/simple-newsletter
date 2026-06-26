@@ -6,7 +6,14 @@ namespace SimpleNewsletter\Components;
 
 use SimpleNewsletter\Data\Feed;
 
-/** @api */
+/**
+ * Interface for fetching and parsing RSS/Atom feeds.
+ *
+ * Implementations handle feed retrieval, caching (24h TTL for unchanged feeds),
+ * and incremental updates with new posts since last fetch.
+ *
+ * @api
+ */
 interface FeedImporter
 {
     public function fetchNew(string $uri): Feed;

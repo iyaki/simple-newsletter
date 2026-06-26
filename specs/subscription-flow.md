@@ -87,3 +87,24 @@ Query parameters:
 - Confirmation links are single-purpose (no re-confirmation possible after token change).
 - Unsubscribe operations require valid token tied to the email.
 - Rate limiting is NOT currently implemented (future consideration).
+
+## Sequence Diagram
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant H as HTTP Handler
+    participant S as Subscriptions Model
+    participant F as Feeds Model
+    participant D as DAO
+    participant E as Email Sender
+
+    U->>H: POST /v1/subscriptions (uri, email)
+    H->>S: add(uri, email)
+    S->>F: retrieve(uri)
+    F->>D: findOrCreate Feed
+    D->>S: Feed DTO
+    S->>D: create Subscription
+    S->>E: sendConfirmation(token)
+    E->>U: Confirmation email
+```

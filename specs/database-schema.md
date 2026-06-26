@@ -63,6 +63,28 @@ CREATE INDEX idx_subscriptions_created_at
     ON subscriptions(created_at);
 ```
 
+## Entity Relationship Diagram
+
+```mermaid
+erDiagram
+    feeds ||--o{ subscriptions : "has"
+    feeds {
+        text uri PK
+        text title
+        text link
+        text last_update
+        text last_post
+    }
+    subscriptions {
+        text feed_uri FK
+        text email
+        text token
+        integer confirmed
+        text created_at
+        text updated_at
+    }
+```
+
 ## Workflows
 
 ### Migration strategy
