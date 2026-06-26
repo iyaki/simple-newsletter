@@ -66,47 +66,56 @@
         <section id="intro" style="max-width: 750px; margin: 0.5em auto 3em; padding: 0 1em;">
             <p style="text-align: center; font-size: 1.15em; line-height: 1.65; margin: 0;">Simple Newsletter is a free web service that converts any RSS or Atom feed into email newsletters. Readers subscribe with their email, confirm via double opt-in, and receive new posts directly in their inbox — no RSS reader app required. Publishers get automatic email distribution without managing a mailing list.</p>
         </section>
-        <section style="margin: 7em auto 10em;">
-            <p>Enter the feed’s URI and your email to transform any Atom or RSS feed into a newsletter.</p>
+        <section id="subscribe" style="max-width: 600px; margin: 0 auto 4em; padding: 2em; border: 1px solid var(--border); border-radius: 8px; background: var(--background);">
             <style>
                 .subscription-form {
-                    margin: 2em auto;
-                    text-align: center;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 1.5em;
                 }
-                .subscription-form fieldset {
-                    padding-top: 2em;
-                    padding-bottom: 2em;
+                .subscription-form label {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.5em;
+                    font-weight: 600;
                 }
-                .subscription-form fieldset label {
-                    text-align: left;
-                    margin-left: 1em;
-                    margin-right: 1em;
-                    margin-bottom: 2em;
+                .subscription-form input[type="url"],
+                .subscription-form input[type="email"] {
+                    padding: 0.6em 0.8em;
+                    border: 1px solid var(--border);
+                    border-radius: 4px;
+                    font-size: 1em;
+                    background: white;
                 }
-                .subscription-form fieldset button[type="submit"] {
+                .subscription-form button[type="submit"] {
                     background-color: var(--links);
                     color: white;
-                    padding-left: 3em;
-                    padding-right: 3em;
+                    padding: 0.75em 2em;
+                    border: none;
+                    border-radius: 4px;
+                    font-size: 1.05em;
+                    font-weight: 600;
+                    cursor: pointer;
+                    align-self: center;
+                    width: 100%;
+                }
+                .subscription-form button[type="submit"]:hover {
+                    opacity: 0.9;
                 }
             </style>
             <form action="/v1/subscriptions/" class="subscription-form">
                 <input type="hidden" name="return" value="<?= \getenv('URI_SELF') ?>">
-                <fieldset>
-                    <div>
-                        <label>
-                            Feed
-                            <input type="url" name="uri" value="<?= \is_string($_GET['feed'] ?? null)
-                                ? $_GET['feed']
-                                : ''; ?>" required>
-                        </label>
-                        <label>
-                            Email
-                            <input type="email" name="email" required>
-                        </label>
-                    </div>
-                    <button type="submit">Subscribe!</button>
-                </fieldset>
+                <label>
+                    Feed URL
+                    <input type="url" name="uri" placeholder="https://example.com/feed.xml" value="<?= \is_string($_GET['feed'] ?? null)
+                        ? $_GET['feed']
+                        : ''; ?>" required>
+                </label>
+                <label>
+                    Email address
+                    <input type="email" name="email" placeholder="you@example.com" required>
+                </label>
+                <button type="submit">Subscribe!</button>
             </form>
         </section>
         <section id="how-it-works">
