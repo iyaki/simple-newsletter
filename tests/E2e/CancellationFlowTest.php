@@ -88,15 +88,15 @@ it(
 
         expect($response->getStatusCode())->toBe(200);
 
-        // Verify subscription is inactive
+        // Verify subscription is deleted
         $pdo = new \PDO('sqlite:' . (string) \getenv('NEWSLETTER_DB_PATH'));
         $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
         /** @var \PDOStatement $stmt */
-        $stmt = $pdo->prepare('SELECT active FROM subscriptions WHERE feed_uri = ? AND email = ?');
+        $stmt = $pdo->prepare('SELECT COUNT(*) as count FROM subscriptions WHERE feed_uri = ? AND email = ?');
         $stmt->execute(['http://127.0.0.1:9995/valid.xml', 'test@example.com']);
-        /** @var array<string, mixed> $sub */
-        $sub = $stmt->fetch(\PDO::FETCH_ASSOC);
-        expect($sub['active'] ?? 0)->toBe(0);
+        /** @var array<string, mixed> $result */
+        $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+        expect((int) $result['count'])->toBe(0);
     },
 );
 

@@ -96,15 +96,14 @@ test('activate sets active flag', function () use (&$dao): void {
  * @throws \SimpleNewsletter\Components\EndUserException
  * @throws \Random\RandomException
  */
-test('deactivate clears active flag', function () use (&$dao): void {
+test('delete removes subscription from database', function () use (&$dao): void {
     \assert($dao instanceof SubscriptionsDAO, 'dao should be initialized');
     $sub = new Subscription('https://example.com/feed', 'user@example.com');
     $dao->new($sub);
     $dao->activate($sub);
-    $dao->deactivate($sub);
+    $dao->delete($sub);
     $found = $dao->find('https://example.com/feed', 'user@example.com');
-    \assert($found instanceof Subscription, 'found should be a Subscription');
-    expect($found->active)->toBeFalse();
+    expect($found)->toBeNull();
 });
 
 /**

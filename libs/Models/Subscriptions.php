@@ -80,7 +80,7 @@ final readonly class Subscriptions
             throw new EndUserException('Subscription not found');
         }
 
-        $this->subscriptionsDAO->deactivate($subscription);
+        $this->subscriptionsDAO->delete($subscription);
     }
 
     /** @throws EndUserException */
