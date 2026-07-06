@@ -15,9 +15,6 @@ use SimpleNewsletter\Templates\Email\SubscriptionConfirmation;
  *
  * Constructs confirmation and newsletter email templates with signed token links
  * for subscription management. Requires service host URI for link generation.
- *
- * @method SubscriptionConfirmation createConfirmation(Subscription, Feed, string)
- * @method Newsletter createNewsletter(Subscription, Feed, Post, string)
  */
 final readonly class EmailTemplateFactory
 {
