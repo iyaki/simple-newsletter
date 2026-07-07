@@ -48,7 +48,7 @@ jobs:
           extensions: pdo_sqlite, intl, mbstring, ctype
           coverage: xdebug
       - name: Cache composer dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             vendor/
@@ -74,7 +74,7 @@ jobs:
           tools: composer:v2
           extensions: pdo_sqlite, intl, mbstring, ctype
       - name: Cache composer dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             vendor/
@@ -105,7 +105,7 @@ jobs:
           extensions: pdo_sqlite, intl, mbstring, ctype
           coverage: xdebug
       - name: Cache composer dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             vendor/
