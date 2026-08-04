@@ -14,6 +14,22 @@ putenv('SENTRY_DSN=');
 require __DIR__ . '/../../vendor/autoload.php';
 
 /**
+ * Hostname the app should use to reach the test feed server.
+ *
+ * Default `127.0.0.1` matches the legacy `php -S 127.0.0.1:9995` runner. When
+ * the app runs inside a container (prod e2e runner), the runner exports
+ * `E2E_FEED_HOST=host.docker.internal` so the app reaches the feed server on
+ * the host.
+ *
+ * @return non-empty-string
+ */
+function e2e_feed_host(): string
+{
+    $h = \getenv('E2E_FEED_HOST');
+    return \is_string($h) && $h !== '' ? $h : '127.0.0.1';
+}
+
+/**
  * Initialize test database with fresh schema
  *
  * @param string $dbPath Path to the test database file

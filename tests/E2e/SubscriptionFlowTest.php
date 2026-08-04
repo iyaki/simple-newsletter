@@ -40,7 +40,7 @@ it('completes subscription flow end-to-end', function (): void {
     $this->markTestSkipped('Failing: subscription endpoint returns 400 instead of 200; needs app fix for double-opt-in flow');
     // 1. Initial subscription request
     $response = e2e_sub_get('/v1/subscriptions/', [
-        'uri' => 'http://127.0.0.1:9995/valid.xml',
+        'uri' => 'http://' . e2e_feed_host() . ':9995/valid.xml',
         'email' => 'test@example.com',
         'return' => 'https://example.com',
         'redirect' => 'false',
@@ -57,7 +57,7 @@ it('completes subscription flow end-to-end', function (): void {
     $pdo = new \PDO('sqlite:' . $dbPath);
     $stmt = $pdo->prepare('SELECT * FROM subscriptions WHERE feed_uri = ? AND email = ?');
     \assert($stmt instanceof \PDOStatement, 'stmt should be prepared');
-    $stmt->execute(['http://127.0.0.1:9995/valid.xml', 'test@example.com']);
+    $stmt->execute(['http://' . e2e_feed_host() . ':9995/valid.xml', 'test@example.com']);
     /** @var array{active: int, ...}|false $sub */
     $sub = $stmt->fetch(\PDO::FETCH_ASSOC);
     \assert(\is_array($sub), 'subscription should exist');
@@ -67,7 +67,7 @@ it('completes subscription flow end-to-end', function (): void {
     $token = hash_hmac('sha256', 'test@example.com', $rawKey);
     // 4. Confirm subscription
     $confirmResponse = e2e_sub_get('/v1/subscriptions/confirmation/', [
-        'uri' => 'http://127.0.0.1:9995/valid.xml',
+        'uri' => 'http://' . e2e_feed_host() . ':9995/valid.xml',
         'email' => 'test@example.com',
         'token' => $token,
     ]);
@@ -75,7 +75,7 @@ it('completes subscription flow end-to-end', function (): void {
     expect(get_status_safe($confirmResponse))->toBe(200);
 
     // 5. Verify subscription active in DB (re-execute query)
-    $stmt->execute(['http://127.0.0.1:9995/valid.xml', 'test@example.com']);
+    $stmt->execute(['http://' . e2e_feed_host() . ':9995/valid.xml', 'test@example.com']);
     /** @var array{active: int, ...}|false $confirmedSub */
     $confirmedSub = $stmt->fetch(\PDO::FETCH_ASSOC);
     \assert(\is_array($confirmedSub), 'confirmed subscription should exist');
@@ -96,7 +96,7 @@ it('rejects invalid feed URI', function (): void {
 /** @throws \Exception */
 it('rejects missing required fields', function (): void {
     $response = e2e_sub_get('/v1/subscriptions/', [
-        'uri' => 'http://127.0.0.1:9995/valid.xml',
+        'uri' => 'http://' . e2e_feed_host() . ':9995/valid.xml',
         // email missing
     ]);
 
