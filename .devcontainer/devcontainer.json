@@ -14,7 +14,8 @@
 	"forwardPorts": [8080],
 	"runArgs": [
 		"--env-file", "${localWorkspaceFolder}/.env",
-		"--memory", "8g"
+		"--memory", "8g",
+		"--privileged"
 	],
 	"mounts": [
 		{
@@ -73,6 +74,11 @@
 		"ghcr.io/devcontainers-extra/features/gh-cli": {},
 		"ghcr.io/iyaki/devcontainer-features/oh-my-pi:": {},
 		"ghcr.io/devcontainers/features/node:": {},
-		"ghcr.io/iyaki/devcontainer-features/lefthook:": {}
+		"ghcr.io/devcontainers/features/docker-in-docker:2": {
+			"version": "latest",
+			"moby": false,
+			"dockerDashComposeVersion": "v2"
+		},
+ 		"ghcr.io/iyaki/devcontainer-features/lefthook:": {}
 	}
 }

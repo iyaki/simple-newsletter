@@ -13,7 +13,7 @@ it('returns HTML content type by default', function (): void {
      * @throws \Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface
      */
     $response = http_get('/v1/subscriptions/', [
-        'uri' => 'http://127.0.0.1:9995/valid.xml',
+        'uri' => 'http://' . e2e_feed_host() . ':9995/valid.xml',
         'email' => 'test@example.com',
     ]);
 

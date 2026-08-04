@@ -55,7 +55,7 @@ beforeEach(
         /** @var \PDOStatement $stmt */
         $stmt = $pdo->prepare('INSERT INTO feeds (uri, title, link, last_update, trigger_hour) VALUES (?, ?, ?, ?, ?)');
         $stmt->execute([
-            'http://127.0.0.1:9995/valid.xml',
+            'http://' . e2e_feed_host() . ':9995/valid.xml',
             'Test Feed',
             'https://example.com',
             time(),
@@ -64,7 +64,7 @@ beforeEach(
         /** @var \PDOStatement $stmt */
         $stmt = $pdo->prepare('INSERT INTO subscriptions (feed_uri, email, active) VALUES (?, ?, ?)');
         $stmt->execute([
-            'http://127.0.0.1:9995/valid.xml',
+            'http://' . e2e_feed_host() . ':9995/valid.xml',
             'test@example.com',
             1,
         ]);
@@ -81,7 +81,7 @@ it(
         $token = hash_hmac(algo: 'sha256', data: 'test@example.com', key: (string) getenv('SECRET_KEY'));
 
         $response = e2e_get_cancel('/v1/subscriptions/cancellation/', [
-            'uri' => 'http://127.0.0.1:9995/valid.xml',
+            'uri' => 'http://' . e2e_feed_host() . ':9995/valid.xml',
             'email' => 'test@example.com',
             'token' => $token,
         ]);
@@ -93,7 +93,7 @@ it(
         $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
         /** @var \PDOStatement $stmt */
         $stmt = $pdo->prepare('SELECT active FROM subscriptions WHERE feed_uri = ? AND email = ?');
-        $stmt->execute(['http://127.0.0.1:9995/valid.xml', 'test@example.com']);
+        $stmt->execute(['http://' . e2e_feed_host() . ':9995/valid.xml', 'test@example.com']);
         /** @var array<string, mixed> $sub */
         $sub = $stmt->fetch(\PDO::FETCH_ASSOC);
         expect($sub['active'] ?? 0)->toBe(0);
@@ -105,7 +105,7 @@ it(
     /** @throws TransportExceptionInterface */
     function (): void {
         $response = e2e_get_cancel('/v1/subscriptions/cancellation/', [
-            'uri' => 'http://127.0.0.1:9995/valid.xml',
+            'uri' => 'http://' . e2e_feed_host() . ':9995/valid.xml',
             'email' => 'test@example.com',
             'token' => 'invalid-token',
         ]);
