@@ -123,37 +123,34 @@ if ! getent hosts host.docker.internal >/dev/null 2>&1; then
 fi
 
 # 5. Detect this host's IP from the perspective of the docker daemon.
-#    On plain Docker (CI runner, workstation), the default gateway from
-#    `ip route` is exactly what `host-gateway` resolves to inside any
-#    container, so passing it explicitly is identical to letting compose
-#    fall back to `host-gateway`. On Docker-in-Docker (DinD inside the
-#    devcontainer), `host-gateway` would point at DinD's child-network
-#    gateway instead of the devcontainer where the feed and SMTP servers
-#    live — so we MUST pass the devcontainer's IP explicitly via HOST_IP,
-#    which compose substitutes into `extra_hosts`.
+#    Plain Docker (CI runner, workstation): `docker network inspect bridge`
+#    returns exactly the gateway IP that `host-gateway` resolves to inside
+#    any container started by the daemon. We can pass it explicitly or omit
+#    HOST_IP entirely and let compose resolve `host-gateway`; both behave
+#    the same. We pass it explicitly because DinD setups (DinD inside a
+#    devcontainer) need a DIFFERENT IP — the devcontainer's, not DinD's
+#    bridge gateway — and the user signals that by exporting HOST_IP
+#    manually before invoking this script.
+#
+#    `ip route` is intentionally avoided: on some CI runners (e.g. GitHub
+#    Actions ubuntu-latest) it returns an unrelated external gateway that
+#    is NOT reachable from inside any container started by the runner's
+#    docker daemon, so it can never be the right answer here.
 if [ -z "${HOST_IP:-}" ]; then
-    # Prefer `ip route` (Linux), fall back to the gateway IP from
-    # `docker network inspect bridge` (works on Linux hosts without iproute2
-    # or inside Docker Desktop), and finally to the literal `host-gateway`
-    # which Compose resolves at runtime.
-    if command -v ip >/dev/null 2>&1; then
-        HOST_IP="$(ip route 2>/dev/null | awk '/default/ {print $3; exit}')"
+    if command -v docker >/dev/null 2>&1; then
+        BRIDGE_GW="$(docker network inspect bridge --format '{{(index .IPAM.Config 0).Gateway}}' 2>/dev/null || true)"
     fi
-    if [ -z "${HOST_IP:-}" ] && command -v docker >/dev/null 2>&1; then
-        HOST_IP="$(docker network inspect bridge --format '{{(index .IPAM.Config 0).Gateway}}' 2>/dev/null || true)"
-    fi
-    if [ -z "${HOST_IP:-}" ] || [ "${HOST_IP:-}" = "127.0.0.1" ] || [ "${HOST_IP:-}" = "::1" ]; then
+    if [ -n "${BRIDGE_GW:-}" ] && [ "${BRIDGE_GW:-}" != "127.0.0.1" ] && [ "${BRIDGE_GW:-}" != "::1" ]; then
+        HOST_IP="$BRIDGE_GW"
+    else
         HOST_IP="host-gateway"
     fi
     export HOST_IP
     echo "=== 5. Detected HOST_IP=$HOST_IP (for compose extra_hosts) ==="
 fi
-
-# 6. Build and start the production container
 echo "=== 6. Building & starting production container ==="
 docker compose -f compose-e2e.yaml up -d --build
 
-echo "=== 7. Waiting for app on :8082 ==="
 READY=0
 for i in {1..30}; do
     if curl -sf -o /dev/null http://localhost:8082/; then
