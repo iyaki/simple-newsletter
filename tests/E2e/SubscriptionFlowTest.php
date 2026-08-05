@@ -37,7 +37,6 @@ beforeEach(function (): void {
 
 /** @throws \Exception */
 it('completes subscription flow end-to-end', function (): void {
-    $this->markTestSkipped('Failing: subscription endpoint returns 400 instead of 200; needs app fix for double-opt-in flow');
     // 1. Initial subscription request
     $response = e2e_sub_get('/v1/subscriptions/', [
         'uri' => 'http://' . e2e_feed_host() . ':9995/valid.xml',

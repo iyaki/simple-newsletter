@@ -6,14 +6,43 @@ require_once __DIR__ . '/bootstrap.php';
 
 /** @throws \Exception */
 it('returns valid JSON error response structure', function (): void {
-    $this->markTestSkipped('Error response body is empty in dev server; needs investigation');
+    $dbPath = getenv('NEWSLETTER_DB_PATH');
+    \assert(\is_string($dbPath) && $dbPath !== '', 'NEWSLETTER_DB_PATH must be set');
+
+    init_test_database($dbPath);
+
+    // Test with invalid URI - should return 400 with valid error structure
+    try {
+        $response = http_get('/v1/subscriptions/', [
+            'uri' => 'not-a-valid-url',
+            'email' => 'test@example.com',
+        ]);
+    } catch (\Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface $e) {
+        $response = $e->getResponse();
+    }
+
+    expect(get_status_safe($response))->toBe(400);
+
+    // Response should be either HTML or JSON
+    try {
+        $contentType = get_headers_safe($response)['content-type'][0] ?? '';
+    } catch (\Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface $e) {
+        $contentType = $e->getResponse()->getHeaders()['content-type'][0] ?? '';
+    }
+
+    if (str_contains($contentType, 'application/json')) {
+        $body = to_array_safe($response);
+        expect($body)->toHaveKey('title');
+    } else {
+        $content = get_content_safe($response);
+        expect($content)->toContain('Invalid');
+    }
 });
 
 /** @throws \Exception */
 it('returns valid structure for missing required parameters', function (): void {
     $dbPath = getenv('NEWSLETTER_DB_PATH');
     \assert(\is_string($dbPath) && $dbPath !== '', 'NEWSLETTER_DB_PATH must be set');
-    assert(\is_string($dbPath) && $dbPath !== '', 'dbPath must be a non-empty string');
 
     init_test_database($dbPath);
 
@@ -56,13 +85,10 @@ it('returns HTML by default (content negotiation)', function (): void {
 /** @throws \Exception */
 it('returns valid confirmation response structure', function (): void {
     $dbPath = getenv('NEWSLETTER_DB_PATH');
-    $dbPath = getenv('NEWSLETTER_DB_PATH');
-    assert(\is_string($dbPath) && $dbPath !== '', 'dbPath must be a non-empty string');
+    \assert(\is_string($dbPath) && $dbPath !== '', 'NEWSLETTER_DB_PATH must be set');
 
     init_test_database($dbPath);
 
-    $dbPath = getenv('NEWSLETTER_DB_PATH');
-    assert($dbPath !== false, 'NEWSLETTER_DB_PATH not set');
     $pdo = new \PDO('sqlite:' . $dbPath);
     $stmt = $pdo->prepare('INSERT INTO feeds (uri, title, link, last_update, trigger_hour) VALUES (?, ?, ?, ?, ?)');
     $stmt->execute([
@@ -91,7 +117,6 @@ it('returns valid confirmation response structure', function (): void {
 
     $contentType = get_headers_safe($response)['content-type'][0] ?? '';
 
-    // Check for X-Robots-Tag header per OpenAPI spec
     // Check for X-Robots-Tag header per OpenAPI spec
     $headers = get_headers_safe($response);
     expect($headers)->toHaveKey('x-robots-tag');
@@ -141,8 +166,6 @@ it('returns valid error structure for invalid confirmation token', function (): 
 it('returns valid cancellation response structure', function (): void {
     $dbPath = getenv('NEWSLETTER_DB_PATH');
     \assert(\is_string($dbPath) && $dbPath !== '', 'NEWSLETTER_DB_PATH must be set');
-    $dbPath = getenv('NEWSLETTER_DB_PATH');
-    assert(\is_string($dbPath) && $dbPath !== '', 'dbPath must be a non-empty string');
 
     init_test_database($dbPath);
     $pdo = new \PDO('sqlite:' . $dbPath);
@@ -189,8 +212,7 @@ it('returns valid cancellation response structure', function (): void {
 /** @throws \Exception */
 it('returns valid error structure for invalid cancellation token', function (): void {
     $dbPath = getenv('NEWSLETTER_DB_PATH');
-    assert(\is_string($dbPath) && $dbPath !== '', 'dbPath must be a non-empty string');
-    assert(\is_string($dbPath) && $dbPath !== '', 'dbPath must be a non-empty string');
+    \assert(\is_string($dbPath) && $dbPath !== '', 'NEWSLETTER_DB_PATH must be set');
 
     init_test_database($dbPath);
 
