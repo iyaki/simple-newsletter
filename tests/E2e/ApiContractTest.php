@@ -3,6 +3,9 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/bootstrap.php';
+beforeEach(function (): void {
+    init_test_database((string) \getenv('NEWSLETTER_DB_PATH'));
+});
 
 /** @throws \Exception */
 it('returns HTML content type by default', function (): void {

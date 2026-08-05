@@ -156,23 +156,14 @@ function get_headers_safe(\Symfony\Contracts\HttpClient\ResponseInterface $respo
 }
 function get_content_safe(\Symfony\Contracts\HttpClient\ResponseInterface $response): string
 {
+    // Use getContent(false) so HTTP error statuses do not throw - the body
+    // is still drained into $this->content during initialization and can be
+    // read back even when Symfony's checkStatusCode() would normally reject
+    // it. Falling back to reflection here would race with the destructor
+    // and yield empty strings for buffered responses.
     try {
-        return $response->getContent();
-
-        // @mago-expect no-empty-catch-clause
-    } catch (\Symfony\Component\HttpClient\Exception\ClientException) {
-        // Fall through to try reflection
+        return $response->getContent(false);
     } catch (\Throwable) {
-        // Intentionally silenced - get_content_safe should never throw
-        return '';
-    }
-
-    try {
-        $reflection = new \ReflectionClass($response);
-        $property = $reflection->getProperty('body');
-        /** @var string $body */
-        return $property->getValue($response);
-    } catch (\Exception) {
         return '';
     }
 }
