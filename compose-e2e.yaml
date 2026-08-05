@@ -1,0 +1,37 @@
+# E2E against the production stage image.
+# Builds and runs the `production` stage of ./Dockerfile locally, exposing the
+# app on host port 8082. The host-runner (scripts/run-e2e-against-prod.sh)
+# bind-mounts the entire ./data directory so the e2e suite and the in-container
+# app share the same SQLite file (and its WAL/SHM sidecars). `host.docker.internal`
+# is mapped to the host gateway so the in-container app can reach the feed and
+# SMTP servers that the runner spins up on the host.
+#
+# A directory bind mount (not a single-file bind mount) is required so writes
+# from the host's pest process and from the container's FrankenPHP worker stay
+# visible to both sides; SQLite's WAL/SHM live alongside the DB file.
+services:
+  prod:
+    image: simple-newsletter:e2e
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    ports:
+      - "8082:80"
+    environment:
+      NEWSLETTER_DB_PATH: /app/data/test-e2e.db
+      SECRET_KEY: test-e2e-secret-key-32chars!
+      SERVER_NAME: ":80"
+      URI_SELF: http://localhost:8082
+      SMTP_HOST: host.docker.internal
+      SMTP_PORT: "1025"
+      SMTP_ENCRYPTION: ""
+      SMTP_USER: test
+      SMTP_PASSWORD: test
+      EMAIL_FROM: noreply@example.com
+      EMAIL_REPLY_TO: dev@example.com
+      SENTRY_DSN: ""
+    extra_hosts:
+      - "host.docker.internal:${HOST_IP:-host-gateway}"
+    volumes:
+      - ./data:/app/data
