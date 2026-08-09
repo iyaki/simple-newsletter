@@ -177,14 +177,103 @@ export E2E_FEED_HOST="host.docker.internal"
 set +e
 php -d output_buffering=off vendor/bin/pest --testsuite e2e --testdox
 TEST_EXIT=$?
-set -e
+SMOKE_EXIT=0
+
+# 8b. Smoke-test the CLI delivery entrypoint inside the production container.
+# Seeds a confirmed subscription + a feed due this hour, triggers the cron,
+# and asserts the SMTP mock received the newsletter. This is the only e2e
+# coverage of bin/send-newsletters.php — the HTTP suite never exercises it.
+echo "=== 8b. Smoke-testing CLI delivery (bin/send-newsletters.php) ==="
+export E2E_FEED_URI="http://host.docker.internal:9995/valid.xml"
+export E2E_SUB_EMAIL="delivery-test@example.com"
+# trigger_hour must equal the in-container current hour for getScheduled() to
+# pick the feed up; the cron uses new \DateTimeImmutable() under the
+# production timezone (America/Argentina/Buenos_Aires), so read it from there.
+TRIGGER_HOUR="$(docker compose -f compose-e2e.yaml exec -T prod php -r 'echo (int)(new \DateTimeImmutable())->format("H");' 2>/dev/null | tr -dc '0-9')"
+if [ -z "$TRIGGER_HOUR" ]; then
+    echo "FAIL: could not read current hour from container" >&2
+    SMOKE_EXIT=1
+else
+    TRIGGER_HOUR=$(( 10#$TRIGGER_HOUR ))
+    export E2E_TRIGGER_HOUR="$TRIGGER_HOUR"
+    php -r '
+        $dbPath = getenv("NEWSLETTER_DB_PATH");
+        $feedUri = getenv("E2E_FEED_URI");
+        $subEmail = getenv("E2E_SUB_EMAIL");
+        $triggerHour = (int) getenv("E2E_TRIGGER_HOUR");
+        $pdo = new PDO("sqlite:" . $dbPath);
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $pdo->exec("DELETE FROM subscriptions");
+        $pdo->exec("DELETE FROM feeds");
+        $pdo->prepare("INSERT INTO feeds (uri, title, link, last_update, trigger_hour, last_sent_post_uri) VALUES (?, ?, ?, ?, ?, NULL)")
+            ->execute([$feedUri, "Test Blog", "https://example.com", time(), $triggerHour]);
+        $pdo->prepare("INSERT INTO subscriptions (feed_uri, email, active) VALUES (?, ?, 1)")
+            ->execute([$feedUri, $subEmail]);
+        echo "   ✓ Seeded confirmed subscription + feed due hour {$triggerHour}\n";
+    '
+    if [ $? -ne 0 ]; then
+        echo "FAIL: DB seed failed" >&2
+        SMOKE_EXIT=1
+    else
+        SMTP_BEFORE="$(wc -l < /tmp/smtp-mock-prod.log 2>/dev/null | tr -dc '0-9')"
+        SMTP_BEFORE="${SMTP_BEFORE:-0}"
+        # Run the cron inside the production container (the real delivery path).
+        docker compose -f compose-e2e.yaml exec -T prod php /app/bin/send-newsletters.php >/tmp/cron-prod.log 2>&1
+        # The script swallows exceptions and always exits 0, so assert by effect:
+        # the SMTP mock must have logged a delivery to the subscriber.
+        sleep 1
+        if tail -n +"$((SMTP_BEFORE + 1))" /tmp/smtp-mock-prod.log 2>/dev/null | grep -q "To:.*$E2E_SUB_EMAIL"; then
+            echo "   ✓ Newsletter delivered to SMTP mock"
+        else
+            echo "FAIL: cron ran but no email to $E2E_SUB_EMAIL in SMTP mock log" >&2
+            echo "   --- cron output ---" >&2
+            cat /tmp/cron-prod.log >&2
+            echo "   --- smtp mock log (tail) ---" >&2
+            tail -20 /tmp/smtp-mock-prod.log >&2
+            SMOKE_EXIT=1
+        fi
+    fi
+fi
+
+# 8c. Assert clean PHP startup inside the production container — no failed
+# extension loads, startup warnings, or notices. A regression like the
+# opcache.so one (broken zend_extension in production.ini) is invisible to the
+# HTTP suite because display_startup_errors=Off keeps it out of HTTP responses;
+# this step surfaces it from the container logs and a direct CLI probe.
+echo "=== 8c. Checking for PHP startup diagnostics ==="
+STARTUP_ERR="$(docker compose -f compose-e2e.yaml exec -T prod php -r 'echo "php-ok";' 2>&1)"
+if printf '%s\n' "$STARTUP_ERR" | grep -qE 'PHP (Warning|Notice|Parse error|Fatal error|Deprecated):|Failed loading (Zend )?extension'; then
+    echo "FAIL: PHP emitted startup diagnostics:" >&2
+    printf '%s\n' "$STARTUP_ERR" >&2
+    SMOKE_EXIT=1
+else
+    echo "   ✓ No PHP startup diagnostics"
+fi
+# Also scan the container's own logs for startup warnings emitted by the
+# FrankenPHP worker since boot.
+if docker compose -f compose-e2e.yaml logs --no-color prod 2>&1 | grep -qE 'PHP (Warning|Notice|Parse error|Fatal error):|Failed loading (Zend )?extension'; then
+    echo "FAIL: production container logs contain PHP startup diagnostics:" >&2
+    docker compose -f compose-e2e.yaml logs --no-color prod 2>&1 | grep -E 'PHP (Warning|Notice|Parse error|Fatal error):|Failed loading (Zend )?extension' >&2
+    SMOKE_EXIT=1
+else
+    echo "   ✓ Container logs clean of PHP startup diagnostics"
+fi
+
 
 echo ""
 echo "=========================================="
-if [ "$TEST_EXIT" -eq 0 ]; then
-    echo "✓ All E2E tests passed against the production container"
-else
+FINAL_EXIT=0
+if [ "$TEST_EXIT" -ne 0 ]; then
     echo "✗ E2E tests failed with exit code: $TEST_EXIT"
+    FINAL_EXIT=1
+else
+    echo "✓ All E2E tests passed against the production container"
+fi
+if [ "$SMOKE_EXIT" -ne 0 ]; then
+    echo "✗ Production smoke checks failed (CLI delivery and/or PHP startup diagnostics)" >&2
+    FINAL_EXIT=1
+else
+    echo "✓ Production smoke checks passed (CLI delivery + clean PHP startup)"
 fi
 
-exit "$TEST_EXIT"
+exit "$FINAL_EXIT"
