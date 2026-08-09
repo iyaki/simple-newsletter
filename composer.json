@@ -20,7 +20,8 @@
         "laminas/laminas-feed": "^2.22",
         "laminas/laminas-http": "^2.19",
         "phpmailer/phpmailer": "^7.0",
-        "sentry/sentry": "^4.7"
+        "sentry/sentry": "^4.7",
+        "symfony/html-sanitizer": "^7.0"
     },
     "require-dev": {
         "pestphp/pest": "^3.0",
@@ -33,8 +34,7 @@
         "cebe/php-openapi": "^1.8",
         "rector/rector": "^2.4",
         "phpstan/phpstan-mockery": "^2.0",
-        "symfony/options-resolver": "^7.0",
-        "symfony/html-sanitizer": "^7.0"
+        "symfony/options-resolver": "^7.0"
     },
     "scripts": {
         "test": "vendor/bin/pest",
