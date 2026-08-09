@@ -35,8 +35,9 @@ Configured via environment variables.
 
 ### 1. Scheduled delivery
 
-1. Cron triggers `bin/send-newsletters.php` every hour.
-2. For each feed that has confirmed subscribers:
+1. Each feed has a `trigger_hour` that indicates at which hour of the day their newsletters should be sent.
+2. Cron triggers `bin/send-newsletters.php` every hour.
+3. For each which `trigger_hour` matches the current hour, and has confirmed subscribers:
    - Re-fetch the feed to find new posts.
    - For each new post (since `last_post`):
      - Compose a newsletter email (HTML template).

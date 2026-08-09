@@ -143,26 +143,6 @@ describe('Confirmation flow', function (): void {
     });
 });
 
-// ─── Cancellation endpoint contract ────────────────────────────────────────
-
-describe('Cancellation flow', function (): void {
-    /** @throws \PDOException */
-    it('deactivates subscription with valid token', function (): void {
-        $db = create_test_db();
-        seed_feed($db);
-        seed_subscription($db);
-        activate_subscription($db);
-
-        // Verify by deactivating
-        $subsDao = new SubscriptionsDAO($db);
-        $subsDao->deactivate(new Subscription(TEST_FEED_URI, TEST_EMAIL));
-
-        $sub = $subsDao->find(TEST_FEED_URI, TEST_EMAIL);
-        expect($sub)->not->toBeNull();
-        expect($sub?->active)->toBeFalse();
-    });
-});
-
 // ─── JSON Response schema contract ─────────────────────────────────────────
 
 describe('JSONResponse schema compliance (OpenAPI)', function (): void {

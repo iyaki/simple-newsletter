@@ -67,15 +67,12 @@ final class SubscriptionsDAO
     }
 
     /** @throws EndUserException */
-
-    public function deactivate(Subscription $subscription): void
+    public function delete(Subscription $subscription): void
     {
         try {
             /** @var \PDOStatement $stmt */
             $stmt = $this->db->prepare(<<<SQL
-                UPDATE {$this->TABLE}
-                SET
-                    active = 0
+                DELETE FROM {$this->TABLE}
                 WHERE
                     feed_uri = :feed_uri
                 AND email = :email
