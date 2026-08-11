@@ -5,9 +5,9 @@ declare(strict_types=1);
 return (
     /** @return array<string, string> */
     static function (): array {
-        $dbPath = \getenv('NEWSLETTER_DB_PATH');
+        $dbPath = \getenv('NEWSLETTER_DB_PATH') ?: __DIR__ . '/../data/database.sqlite3';
         return [
-            'dsn' => 'sqlite:' . (\is_string($dbPath) ? $dbPath : ':memory:'),
+            'dsn' => 'sqlite:' . $dbPath,
         ];
     }
 )();
