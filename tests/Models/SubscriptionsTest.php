@@ -344,7 +344,7 @@ it('sendScheduled gets scheduled feeds, fetches posts, and sends to subscribers'
         ->with($feedWithPosts)
         ->andReturn([$activeSub1, $activeSub2]);
 
-    $newsletter->shouldReceive('sendPostToSubscribers')->once()->with($feedWithPosts, $post1, $activeSub1, $activeSub2);
+    $newsletter->shouldReceive('sendPostsToSubscribers')->once()->with($feedWithPosts, [$post1], $activeSub1, $activeSub2);
 
     $feeds->shouldReceive('updateLastSentPost')->once()->with($feedWithPosts, $post1);
 
@@ -385,7 +385,52 @@ it('sendScheduled skips already-sent posts', function (): void {
     $feeds->shouldReceive('retrieveWithPosts')->once()->with($scheduledFeed)->andReturn($feedWithPosts);
 
     $subscriptionsDAO->shouldNotReceive('findActiveSubscriptionsFor');
-    $newsletter->shouldNotReceive('sendPostToSubscribers');
+    $newsletter->shouldNotReceive('sendPostsToSubscribers');
+    $feeds->shouldNotReceive('updateLastSentPost');
+
+    $subs = new Subscriptions($subscriptionsDAO, $feeds, $newsletter, $auth);
+
+    $subs->sendScheduled($datetime);
+});
+
+/**
+ * Regression: when the newest post was already sent (lastSentPostUri points at
+ * posts[0]), older posts must NOT be re-emailed. Previously `continue` skipped
+ * the watermark and then sent the next (older) post, regressing the watermark.
+ *
+ * @throws EndUserException
+ * @throws \Random\RandomException
+ */
+it('sendScheduled does not resend older posts once the newest is sent', function (): void {
+    /** @var SubscriptionsDAO&\Mockery\MockInterface $subscriptionsDAO */
+    $subscriptionsDAO = \Mockery::mock(SubscriptionsDAO::class);
+    /** @var Feeds&\Mockery\MockInterface $feeds */
+    $feeds = \Mockery::mock(Feeds::class);
+    /** @var Newsletter&\Mockery\MockInterface $newsletter */
+    $newsletter = \Mockery::mock(Newsletter::class);
+    /** @var Auth&\Mockery\MockInterface $auth */
+    $auth = \Mockery::mock(Auth::class);
+
+    $datetime = new DateTimeImmutable();
+    $feedUri = 'https://example.com/feed';
+
+    $scheduledFeed = new Feed(new FeedMetadata($feedUri, 'Scheduled Feed', 'https://example.com', $datetime));
+
+    // Newest-first: the newest post was already sent (it is the watermark),
+    // an older post is still present in the feed.
+    $newest = new Post('https://example.com/newest', 'Newest', 'Content newest');
+    $older = new Post('https://example.com/older', 'Older', 'Content older');
+    $feedWithPosts = new Feed(
+        metadata: new FeedMetadata($feedUri, 'Scheduled Feed', 'https://example.com', $datetime),
+        lastSentPostUri: 'https://example.com/newest',
+        posts: [$newest, $older],
+    );
+
+    $feeds->shouldReceive('getScheduled')->once()->with($datetime)->andReturn([$scheduledFeed]);
+    $feeds->shouldReceive('retrieveWithPosts')->once()->with($scheduledFeed)->andReturn($feedWithPosts);
+
+    $subscriptionsDAO->shouldNotReceive('findActiveSubscriptionsFor');
+    $newsletter->shouldNotReceive('sendPostsToSubscribers');
     $feeds->shouldNotReceive('updateLastSentPost');
 
     $subs = new Subscriptions($subscriptionsDAO, $feeds, $newsletter, $auth);
@@ -450,9 +495,9 @@ it('sendScheduled handles multiple scheduled feeds', function (): void {
         });
 
     $newsletter
-        ->shouldReceive('sendPostToSubscribers')
+        ->shouldReceive('sendPostsToSubscribers')
         ->times(2)
-        ->andReturnUsing(function (Feed $feed, Post $post, Subscription ...$subs) use (
+        ->andReturnUsing(function (Feed $feed, array $posts, Subscription ...$subs) use (
             $feedWithPosts1,
             $feedWithPosts2,
             $post1,
@@ -460,10 +505,10 @@ it('sendScheduled handles multiple scheduled feeds', function (): void {
             $sub1,
             $sub2,
         ): void {
-            if ($feed === $feedWithPosts1 && $post === $post1 && $subs === [$sub1]) {
+            if ($feed === $feedWithPosts1 && $posts === [$post1] && $subs === [$sub1]) {
                 return;
             }
-            if ($feed === $feedWithPosts2 && $post === $post2 && $subs === [$sub2]) {
+            if ($feed === $feedWithPosts2 && $posts === [$post2] && $subs === [$sub2]) {
                 return;
             }
         });
@@ -484,6 +529,56 @@ it('sendScheduled handles multiple scheduled feeds', function (): void {
                 return;
             }
         });
+
+    $subs = new Subscriptions($subscriptionsDAO, $feeds, $newsletter, $auth);
+
+    $subs->sendScheduled($datetime);
+});
+
+/**
+ * Sends every post newer than the watermark in a single email (newest-first),
+ * advancing the watermark to the newest sent post.
+ *
+ * @throws EndUserException
+ * @throws \Random\RandomException
+ */
+it('sendScheduled sends all new posts in one email', function (): void {
+    /** @var SubscriptionsDAO&\Mockery\MockInterface $subscriptionsDAO */
+    $subscriptionsDAO = \Mockery::mock(SubscriptionsDAO::class);
+    /** @var Feeds&\Mockery\MockInterface $feeds */
+    $feeds = \Mockery::mock(Feeds::class);
+    /** @var Newsletter&\Mockery\MockInterface $newsletter */
+    $newsletter = \Mockery::mock(Newsletter::class);
+    /** @var Auth&\Mockery\MockInterface $auth */
+    $auth = \Mockery::mock(Auth::class);
+
+    $datetime = new DateTimeImmutable();
+    $feedUri = 'https://example.com/feed';
+
+    $scheduledFeed = new Feed(new FeedMetadata($feedUri, 'Scheduled Feed', 'https://example.com', $datetime));
+
+    // Newest-first; the oldest is the watermark (already sent).
+    $newest = new Post('https://example.com/newest', 'Newest', 'Newest content');
+    $middle = new Post('https://example.com/middle', 'Middle', 'Middle content');
+    $watermark = new Post('https://example.com/old', 'Old', 'Old content');
+    $feedWithPosts = new Feed(
+        metadata: new FeedMetadata($feedUri, 'Scheduled Feed', 'https://example.com', $datetime),
+        lastSentPostUri: 'https://example.com/old',
+        posts: [$newest, $middle, $watermark],
+    );
+
+    $activeSub = new Subscription($feedUri, 'user@example.com', true);
+
+    $feeds->shouldReceive('getScheduled')->once()->with($datetime)->andReturn([$scheduledFeed]);
+    $feeds->shouldReceive('retrieveWithPosts')->once()->with($scheduledFeed)->andReturn($feedWithPosts);
+
+    $subscriptionsDAO->shouldReceive('findActiveSubscriptionsFor')->once()->with($feedWithPosts)->andReturn([$activeSub]);
+
+    // Exactly one email containing both new posts (newest-first).
+    $newsletter->shouldReceive('sendPostsToSubscribers')->once()->with($feedWithPosts, [$newest, $middle], $activeSub);
+
+    // Watermark advances to the newest sent post.
+    $feeds->shouldReceive('updateLastSentPost')->once()->with($feedWithPosts, $newest);
 
     $subs = new Subscriptions($subscriptionsDAO, $feeds, $newsletter, $auth);
 

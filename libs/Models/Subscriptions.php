@@ -91,20 +91,34 @@ final readonly class Subscriptions
         foreach ($scheduledFeeds as $scheduledFeed) {
             $feed = $this->feeds->retrieveWithPosts($scheduledFeed);
 
-            $posts = $feed->posts;
-            foreach ($posts as $post) {
+            // Posts arrive newest→oldest. Collect every post newer than the
+            // watermark (lastSentPostUri); stop at it, since it and everything
+            // after were already sent.
+            /** @var list<\SimpleNewsletter\Data\Post> $newPosts */
+            $newPosts = [];
+            foreach ($feed->posts as $post) {
                 if ($post->uri === $feed->lastSentPostUri) {
-                    continue;
+                    break;
                 }
-
-                /** @var list<Subscription> $activeSubscriptions */
-                $activeSubscriptions = $this->subscriptionsDAO->findActiveSubscriptionsFor($feed);
-                $this->newsletter->sendPostToSubscribers($feed, $post, ...$activeSubscriptions);
-
-                $this->feeds->updateLastSentPost($feed, $post);
-
-                break;
+                $newPosts[] = $post;
             }
+
+            if ($newPosts === []) {
+                continue;
+            }
+
+            // First delivery (no watermark): seed with only the newest post
+            // instead of mailing the entire historical backlog.
+            if ($feed->lastSentPostUri === null) {
+                $newPosts = [$newPosts[0]];
+            }
+
+            /** @var list<Subscription> $activeSubscriptions */
+            $activeSubscriptions = $this->subscriptionsDAO->findActiveSubscriptionsFor($feed);
+            $this->newsletter->sendPostsToSubscribers($feed, $newPosts, ...$activeSubscriptions);
+
+            // $newPosts is newest-first; advance the watermark to the newest sent.
+            $this->feeds->updateLastSentPost($feed, $newPosts[0]);
         }
     }
 }

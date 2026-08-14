@@ -30,16 +30,19 @@ final readonly class Newsletter
         ));
     }
 
-    public function sendPostToSubscribers(
+    /**
+     * @param non-empty-list<Post> $posts
+     */
+    public function sendPostsToSubscribers(
         Feed $feed,
-        Post $post,
+        array $posts,
         Subscription ...$subscriptions,
     ): void {
         foreach ($subscriptions as $subscription) {
             $this->sender->send($this->emailTemplateFactory->createNewsletter(
                 $subscription,
                 $feed,
-                $post,
+                $posts,
                 $this->auth->hash($subscription->email),
             ));
         }

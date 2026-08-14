@@ -17,13 +17,13 @@ bin/send-newsletters.php (CLI entrypoint, called via cron)
     → Subscriptions::sendScheduled()
         → Feeds::getScheduled() — feeds with confirmed subscribers
         → For each feed:
-            → Feeds::retrieveWithPosts() — fetch new posts
-            → For each new post:
-                → Filter subscribers (confirmed, subscribed to this feed)
-                → Newsletter::sendPostToSubscribers()
-                    → EmailTemplateFactory::createNewsletter()
-                    → Sender::send() → SenderPHPMailer
-                → Feeds::updateLastSentPost()
+            → Feeds::retrieveWithPosts() — fetch posts
+            → Collect posts newer than feed.last_post (watermark); stop at it
+            → Filter subscribers (confirmed, subscribed to this feed)
+            → Newsletter::sendPostsToSubscribers() — one email per subscriber, all new posts
+                → EmailTemplateFactory::createNewsletter()
+                → Sender::send() → SenderPHPMailer
+            → Feeds::updateLastSentPost() — advance watermark to the newest sent post
 ```
 
 ### SenderPHPMailer
@@ -37,20 +37,23 @@ Configured via environment variables.
 
 1. Each feed has a `trigger_hour` that indicates at which hour of the day their newsletters should be sent.
 2. Cron triggers `bin/send-newsletters.php` every hour.
-3. For each which `trigger_hour` matches the current hour, and has confirmed subscribers:
-   - Re-fetch the feed to find new posts.
-   - For each new post (since `last_post`):
-     - Compose a newsletter email (HTML template).
-     - Send individually to each confirmed subscriber.
-     - Update `feed.last_post` to the latest sent post's URI.
+3. For each feed whose `trigger_hour` matches the current hour, and has confirmed subscribers:
+   - Re-fetch the feed to obtain its posts.
+   - Collect every post newer than the watermark (`feed.last_post`); stop at it,
+     since it and everything older were already sent.
+   - First delivery (`last_post` is null): send only the newest post, not the
+     entire historical backlog.
+   - Compose a single digest email containing all the new posts.
+   - Send one individual email per confirmed subscriber (not a BCC batch).
+   - Advance `feed.last_post` to the newest sent post's URI.
 
 ### 2. Email composition
 
 | Component | Implementation |
 |-----------|---------------|
 | From address | Configured via env `SMTP_FROM` |
-| Subject | `[Feed Title] Post Title` |
-| Body | HTML template from `EmailTemplateFactory` |
+| Subject | Single post: `Post Title - Feed Title`. Multiple posts: `First Post Title (+N more) - Feed Title` |
+| Body | One `<article>` per new post (title links to the original, sanitized HTML content); posts separated by a horizontal rule |
 | Unsubscribe link | Signed cancellation URL with token |
 | Per-recipient | Each subscriber gets an individual email (not BCC batch) |
 

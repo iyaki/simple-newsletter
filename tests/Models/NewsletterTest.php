@@ -20,7 +20,9 @@ use SimpleNewsletter\Templates\Email\SubscriptionConfirmation;
 test('sendConfirmation calls sender with template from EmailTemplateFactory', function (): void {
     /** @var Sender&\Mockery\MockInterface $sender */
     $sender = \Mockery::mock(Sender::class);
+    /** @var EmailTemplateFactory&\Mockery\MockInterface $emailTemplateFactory */
     $emailTemplateFactory = \Mockery::mock(EmailTemplateFactory::class);
+    /** @var Auth&\Mockery\MockInterface $auth */
     $auth = \Mockery::mock(Auth::class);
 
     $now = new DateTimeImmutable();
@@ -52,8 +54,11 @@ test('sendConfirmation calls sender with template from EmailTemplateFactory', fu
  * @throws AssertionFailedError
  */
 test('sendConfirmation uses auth hash of subscription email as token', function (): void {
+    /** @var Sender&\Mockery\MockInterface $sender */
     $sender = \Mockery::mock(Sender::class);
+    /** @var EmailTemplateFactory&\Mockery\MockInterface $emailTemplateFactory */
     $emailTemplateFactory = \Mockery::mock(EmailTemplateFactory::class);
+    /** @var Auth&\Mockery\MockInterface $auth */
     $auth = \Mockery::mock(Auth::class);
 
     $now = new DateTimeImmutable();
@@ -79,9 +84,12 @@ test('sendConfirmation uses auth hash of subscription email as token', function 
  * @throws AssertionFailedError
  * @throws \InvalidArgumentException
  */
-test('sendPostToSubscribers calls sender for each subscription', function (): void {
+test('sendPostsToSubscribers calls sender for each subscription', function (): void {
+    /** @var Sender&\Mockery\MockInterface $sender */
     $sender = \Mockery::mock(Sender::class);
+    /** @var EmailTemplateFactory&\Mockery\MockInterface $emailTemplateFactory */
     $emailTemplateFactory = \Mockery::mock(EmailTemplateFactory::class);
+    /** @var Auth&\Mockery\MockInterface $auth */
     $auth = \Mockery::mock(Auth::class);
 
     $now = new DateTimeImmutable();
@@ -91,19 +99,19 @@ test('sendPostToSubscribers calls sender for each subscription', function (): vo
     $sub1 = new Subscription('https://example.com/feed', 'user1@example.com');
     $sub2 = new Subscription('https://example.com/feed', 'user2@example.com');
 
-    $template1 = new NewsletterTemplate($sub1, $feed, $post, 'https://example.com/cancel/user1');
-    $template2 = new NewsletterTemplate($sub2, $feed, $post, 'https://example.com/cancel/user2');
+    $template1 = new NewsletterTemplate($sub1, $feed, [$post], 'https://example.com/cancel/user1');
+    $template2 = new NewsletterTemplate($sub2, $feed, [$post], 'https://example.com/cancel/user2');
 
     $auth->shouldReceive('hash')->twice()->andReturn('token1', 'token2');
 
     $emailTemplateFactory
         ->shouldReceive('createNewsletter')
-        ->with($sub1, $feed, $post, 'token1')
+        ->with($sub1, $feed, [$post], 'token1')
         ->once()
         ->andReturn($template1);
     $emailTemplateFactory
         ->shouldReceive('createNewsletter')
-        ->with($sub2, $feed, $post, 'token2')
+        ->with($sub2, $feed, [$post], 'token2')
         ->once()
         ->andReturn($template2);
 
@@ -111,11 +119,14 @@ test('sendPostToSubscribers calls sender for each subscription', function (): vo
     $sender->shouldReceive('send')->with($template2)->once();
 
     $newsletter = new Newsletter($sender, $emailTemplateFactory, $auth);
-    $newsletter->sendPostToSubscribers($feed, $post, $sub1, $sub2);
+    $newsletter->sendPostsToSubscribers($feed, [$post], $sub1, $sub2);
 });
-test('sendPostToSubscribers creates correct template per subscription', function (): void {
+test('sendPostsToSubscribers creates correct template per subscription', function (): void {
+    /** @var Sender&\Mockery\MockInterface $sender */
     $sender = \Mockery::mock(Sender::class);
+    /** @var EmailTemplateFactory&\Mockery\MockInterface $emailTemplateFactory */
     $emailTemplateFactory = \Mockery::mock(EmailTemplateFactory::class);
+    /** @var Auth&\Mockery\MockInterface $auth */
     $auth = \Mockery::mock(Auth::class);
 
     $now = new DateTimeImmutable();
@@ -124,20 +135,20 @@ test('sendPostToSubscribers creates correct template per subscription', function
 
     $sub = new Subscription('https://example.com/feed', 'alice@example.com');
 
-    $template = new NewsletterTemplate($sub, $feed, $post, 'https://example.com/cancel/alice');
+    $template = new NewsletterTemplate($sub, $feed, [$post], 'https://example.com/cancel/alice');
 
     $auth->shouldReceive('hash')->andReturn('token-for-alice');
 
     $emailTemplateFactory
         ->shouldReceive('createNewsletter')
-        ->with($sub, $feed, $post, 'token-for-alice')
+        ->with($sub, $feed, [$post], 'token-for-alice')
         ->once()
         ->andReturn($template);
 
     $sender->shouldReceive('send')->with($template)->once();
 
     $newsletter = new Newsletter($sender, $emailTemplateFactory, $auth);
-    $newsletter->sendPostToSubscribers($feed, $post, $sub);
+    $newsletter->sendPostsToSubscribers($feed, [$post], $sub);
 });
 
 
