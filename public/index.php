@@ -123,7 +123,7 @@
             <ol>
                 <li><strong>Enter a feed and email</strong> — Paste any RSS or Atom feed URL (e.g., <code>https://example.com/blog/feed.xml</code> or a YouTube channel RSS)</li>
                 <li><strong>Confirm your email</strong> — Click the double opt-in link you receive (sent immediately, takes 30 seconds)</li>
-                <li><strong>Receive newsletters</strong> — New posts from the feed arrive in your inbox within an hour of publication</li>
+                <li><strong>Receive newsletters</strong> — New posts from the feed arrive in your inbox once per day, bundled into a single digest email</li>
                 <li><strong>Unsubscribe anytime</strong> — One-click link in every email, instant removal</li>
             </ol>
         </section>
@@ -158,7 +158,7 @@
                     </details></li>
                     <li><details>
                         <summary>How often are newsletters sent?</summary>
-                        <p>New posts are delivered once per day for every source.</p>
+                        <p>New posts are delivered once per day per feed, bundled into a single digest email.</p>
                     </details></li>
                     <li><details>
                         <summary>What data do you store?</summary>
@@ -200,13 +200,6 @@
                     <button type="submit">Subscribe!</button>
                 </form>
                 HTML) ?></code></pre>
-            <details>
-                <summary>Known limitations</summary>
-                <ul>
-                    <li>Currently the service sends only one newsletter per day for each subscription (Feed/E-mail combination). I'm working to improve that.</li>
-                    <!-- <li>For performance reasons all the subscriptors to a Feed are BCCed on the same e-mail. If you don't find the newsletter e-mails in your inbox please check your spam folder and mark the message as "Not Spam".</li> -->
-                </ul>
-            </details>
         </section>
     </main>
     <footer style="text-align: center; padding-top: 20px;">
