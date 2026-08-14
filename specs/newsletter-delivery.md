@@ -18,7 +18,7 @@ bin/send-newsletters.php (CLI entrypoint, called via cron)
         → Feeds::getScheduled() — feeds with confirmed subscribers
         → For each feed:
             → Feeds::retrieveWithPosts() — fetch posts
-            → Collect posts newer than feed.last_post (watermark); stop at it
+            → Collect posts newer than feed.last_sent_post_uri (watermark); stop at it
             → Filter subscribers (confirmed, subscribed to this feed)
             → Newsletter::sendPostsToSubscribers() — one email per subscriber, all new posts
                 → EmailTemplateFactory::createNewsletter()
@@ -39,13 +39,13 @@ Configured via environment variables.
 2. Cron triggers `bin/send-newsletters.php` every hour.
 3. For each feed whose `trigger_hour` matches the current hour, and has confirmed subscribers:
    - Re-fetch the feed to obtain its posts.
-   - Collect every post newer than the watermark (`feed.last_post`); stop at it,
+   - Collect every post newer than the watermark (`feed.last_sent_post_uri`); stop at it,
      since it and everything older were already sent.
-   - First delivery (`last_post` is null): send only the newest post, not the
+   - First delivery (`last_sent_post_uri` is null): send only the newest post, not the
      entire historical backlog.
    - Compose a single digest email containing all the new posts.
    - Send one individual email per confirmed subscriber (not a BCC batch).
-   - Advance `feed.last_post` to the newest sent post's URI.
+   - Advance `feed.last_sent_post_uri` to the newest sent post's URI.
 
 ### 2. Email composition
 

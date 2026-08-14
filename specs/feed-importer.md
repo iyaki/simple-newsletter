@@ -35,7 +35,7 @@ Uses `laminas/laminas-http` Client for HTTP fetching.
 | title | string | Extracted feed title |
 | link | string | Feed website link |
 | lastUpdate | DateTimeImmutable | Timestamp of last fetch |
-| lastPost | ?string | URI of most recently sent post |
+| lastSentPostUri | ?string | URI of most recently sent post |
 
 ### Post value object (libs/Data/Post.php)
 
@@ -61,7 +61,7 @@ Uses `laminas/laminas-http` Client for HTTP fetching.
 1. `FeedImporter::fetchWithPosts(feed: Feed): Feed`
 2. Re-fetch feed XML.
 3. Parse all entries.
-4. Filter posts newer than `feed.lastPost`.
+4. Filter posts newer than `feed.lastSentPostUri`.
 5. Return updated Feed with `posts` array.
 
 ### 3. Update stale feed
