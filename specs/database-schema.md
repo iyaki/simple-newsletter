@@ -20,7 +20,7 @@ Define the SQLite database schema, constraints, and indexing strategy.
 | title | TEXT | NOT NULL | Feed title from XML |
 | link | TEXT | NOT NULL | Feed website link |
 | last_update | TEXT | NOT NULL | ISO 8601 timestamp of last fetch |
-| last_post | TEXT | | URI of the most recently sent post |
+| last_sent_post_uri | TEXT | | URI of the most recently sent post |
 
 #### subscriptions
 
@@ -46,7 +46,7 @@ CREATE TABLE feeds (
     title       TEXT NOT NULL,
     link        TEXT NOT NULL,
     last_update TEXT NOT NULL,
-    last_post   TEXT
+    last_sent_post_uri TEXT
 );
 
 CREATE TABLE subscriptions (
@@ -73,7 +73,7 @@ erDiagram
         text title
         text link
         text last_update
-        text last_post
+        text last_sent_post_uri
     }
     subscriptions {
         text feed_uri FK

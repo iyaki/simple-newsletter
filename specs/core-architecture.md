@@ -78,7 +78,7 @@ Delivery flow:
           → Feeds::getScheduled()
           → For each feed with subscriptions:
               → Feeds::retrieveWithPosts() → FeedImporter::fetchWithPosts()
-              → Collect posts newer than the watermark (feed.last_post)
+              → Collect posts newer than the watermark (feed.last_sent_post_uri)
               → Newsletter::sendPostsToSubscribers() — one email per subscriber with all new posts
               → Feeds::updateLastSentPost() — advance watermark to the newest sent post
 ```

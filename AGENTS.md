@@ -47,7 +47,7 @@ Container.php (manual DI)      ← top-level wiring
 
 **subscriptions**: `feed_uri` (TEXT NOT NULL → FK feeds.uri), `email` (TEXT NOT NULL), `active` (INTEGER NOT NULL boolean). UNIQUE(feed_uri, email). Index on `feed_uri`.
 
-> **Note**: The specs describe an evolved schema not yet migrated (subscriptions: token, confirmed, created_at, updated_at; feeds: last_post). The 6-month-old migrations are the ground truth.
+> **Note**: The specs describe an evolved schema not yet migrated (subscriptions: token, confirmed, created_at, updated_at; feeds: trigger_hour missing, last_update semantics, link nullability). The 6-month-old migrations are the ground truth.
 
 ## Key Directories
 
