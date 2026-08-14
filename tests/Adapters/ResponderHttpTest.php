@@ -161,10 +161,18 @@ test('responseBuilderFromContentNegotiation trims and lowercases accept values',
 
 test('sendResponse calls flush after echo', function (): void {
     // This test verifies flush() is called - mutation removing it should be caught
+    $captured = '';
+    \ob_start(function (string $buf) use (&$captured): string {
+        $captured .= $buf;
+        return '';
+    });
+    \ob_start();
+
     $responder = new ResponderHttp();
-    $response = HtmlResponse::fromString('T', 'M');
-    // The sendResponse method should call flush() - we can't easily capture this
-    // but the test executes the code path
-    $responder->sendResponse($response);
-    expect(true)->toBeTrue(); // Placeholder - actual verification would need mocking
+    $responder->sendResponse(HtmlResponse::fromString('T', 'M'));
+
+    \ob_end_clean();
+    \ob_end_clean();
+
+    expect($captured)->toContain('T')->toContain('M');
 });
