@@ -40,7 +40,7 @@ test('createNewsletter returns Newsletter with correct subject format and cancel
     $post = new Post('https://example.com/post/1', 'Test Post Title', '<p>Test content</p>');
     $token = 'cancel-token-456';
 
-    $result = $factory->createNewsletter($subscription, $feed, $post, $token);
+    $result = $factory->createNewsletter($subscription, $feed, [$post], $token);
 
     expect($result)->toBeInstanceOf(\SimpleNewsletter\Templates\Email\Newsletter::class);
     expect($result->recipient())->toEqual('user@example.com');

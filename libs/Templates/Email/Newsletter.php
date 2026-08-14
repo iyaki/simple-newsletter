@@ -10,10 +10,13 @@ use SimpleNewsletter\Data\Subscription;
 
 final readonly class Newsletter implements EmailInterface
 {
+    /**
+     * @param non-empty-list<Post> $posts Newest-first.
+     */
     public function __construct(
         private Subscription $subscription,
         private Feed $feed,
-        private Post $post,
+        private array $posts,
         private string $cancellationURI,
     ) {}
 
@@ -26,17 +29,35 @@ final readonly class Newsletter implements EmailInterface
     #[\Override]
     public function subject(): string
     {
-        return $this->post->title . ' - ' . $this->feed->getTitle();
+        $count = \count($this->posts);
+        $title = $count > 1
+            ? $this->posts[0]->title . ' (+' . ($count - 1) . ' more)'
+            : $this->posts[0]->title;
+
+        return $title . ' - ' . $this->feed->getTitle();
     }
 
     #[\Override]
     public function body(): string
     {
         $fontStack = "Rockwell,'Rockwell Nova','Roboto Slab','DejaVu Serif','Sitka Small',serif";
+
+        $blocks = [];
+        foreach ($this->posts as $index => $post) {
+            if ($index > 0) {
+                $blocks[] = '<hr style="border:none;border-top:1px solid #ccc;margin:2em 0">';
+            }
+            $blocks[] = '<article>';
+            $blocks[] = '<h2 style="margin:0 0 .5em;font-size:1.3em"><a href="' . $post->uri . '">' . $post->title . '</a></h2>';
+            $blocks[] = $post->content;
+            $blocks[] = '</article>';
+        }
+
+        $postsHtml = \implode("\n", $blocks);
+
         return <<<HTML
-            <a href="{$this->post->uri}">Visit original website</a>
             <div style="max-width:60ch;margin:0 auto;font-size:18px;line-height:1.5;font-family:{$fontStack}">
-                {$this->post->content}
+                {$postsHtml}
             </div>
             <p><a href="{$this->cancellationURI}">To cancel your subscription to this newsletter click here</a></p>
             HTML;

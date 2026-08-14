@@ -43,17 +43,20 @@ final readonly class EmailTemplateFactory
         );
     }
 
+    /**
+     * @param non-empty-list<Post> $posts
+     */
     public function createNewsletter(
         Subscription $subscription,
         Feed $feed,
-        Post $post,
+        array $posts,
         #[\SensitiveParameter]
         string $token,
     ): Newsletter {
         return new Newsletter(
             $subscription,
             $feed,
-            $post,
+            $posts,
             \sprintf(
                 '%s/v1/subscriptions/cancellation/?uri=%s&email=%s&token=%s',
                 $this->serviceHost,
