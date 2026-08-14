@@ -46,7 +46,14 @@ final class FeedTestServer
         for ($i = 0; $i < 15; $i++) {
             $errorCode = 0;
             $errorString = '';
-            $sock = \fsockopen('127.0.0.1', FEED_TEST_SERVER_PORT, $errorCode, $errorString, timeout: 1);
+            \set_error_handler(static function (): bool {
+                return true; // "connection refused" while the server boots is expected
+            });
+            try {
+                $sock = \fsockopen('127.0.0.1', FEED_TEST_SERVER_PORT, $errorCode, $errorString, timeout: 1);
+            } finally {
+                \restore_error_handler();
+            }
             if (\is_resource($sock)) {
                 \fclose($sock);
                 break;
