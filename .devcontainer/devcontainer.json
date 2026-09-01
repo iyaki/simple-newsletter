@@ -74,7 +74,7 @@
 		"ghcr.io/devcontainers-extra/features/gh-cli": {},
 		"ghcr.io/iyaki/devcontainer-features/oh-my-pi:": {},
 		"ghcr.io/devcontainers/features/node:": {},
-		"ghcr.io/devcontainers/features/docker-in-docker:2": {
+		"ghcr.io/devcontainers/features/docker-in-docker:4": {
 			"version": "latest",
 			"moby": false,
 			"dockerDashComposeVersion": "v2"
