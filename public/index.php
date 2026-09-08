@@ -116,6 +116,7 @@
                     <input type="email" name="email" placeholder="you@example.com" required>
                 </label>
                 <button type="submit">Subscribe!</button>
+                <p style="margin: 0; font-size: 0.85em; text-align: center;">By subscribing you agree to our <a href="/terms/">Terms</a> and <a href="/privacy/">Privacy Policy</a>. You can unsubscribe anytime from any email.</p>
             </form>
         </section>
         <section id="how-it-works">
@@ -208,7 +209,9 @@
             <a href="#about">Why RSS to Email</a> ·
             <a href="#faq">FAQ</a> ·
             <a href="#docs">API Docs</a> ·
-            <a href="https://github.com/iyaki/simple-newsletter" title="Simple Newsletter on GitHub">Source Code</a>
+            <a href="https://github.com/iyaki/simple-newsletter" title="Simple Newsletter on GitHub">Source Code</a> ·
+            <a href="/terms/">Terms</a> ·
+            <a href="/privacy/">Privacy</a>
         </nav>
         <p style="margin: 0">Made with 🧉 by <a href="https://iyaki.ar">iyaki</a></p>
     </footer>
