@@ -28,11 +28,13 @@ final readonly class HtmlResponse implements ResponseInterface
     #[\Override]
     public function getBody(): string
     {
+        $esc = static fn (string $value): string => \htmlspecialchars($value, \ENT_QUOTES | \ENT_SUBSTITUTE, encoding: 'UTF-8');
+
         $redirectLink = $this->return
             ? sprintf(
                 '<br><p style="text-align: center;"><a href="%s">Return to %s</a><p>',
-                $this->return,
-                $this->return,
+                $esc($this->return),
+                $esc($this->return),
             )
             : '';
 
@@ -54,8 +56,8 @@ final readonly class HtmlResponse implements ResponseInterface
             <body>
                 <main>
                     <h1 style="text-align: center; margin-top: 1em; margin-bottom: 2em;">Simple Newsletter</h1>
-                    <h2 style="text-align: center;">{$this->title}</h2>
-                    <p style="text-align: center;">{$this->message}</p>
+                    <h2 style="text-align: center;">{$esc($this->title)}</h2>
+                    <p style="text-align: center;">{$esc($this->message)}</p>
                     {$redirectLink}
                 </main>
             </body>
