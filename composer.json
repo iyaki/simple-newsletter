@@ -34,7 +34,6 @@
         "cebe/php-openapi": "^1.8",
         "rector/rector": "^2.4",
         "phpstan/phpstan-mockery": "^2.0",
-        "symfony/options-resolver": "^7.0",
         "symfony/process": "^7.0"
     },
     "scripts": {
