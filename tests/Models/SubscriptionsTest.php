@@ -628,3 +628,48 @@ it('sendScheduled keeps delivering later feeds when one feed fetch fails', funct
 
     expect(true)->toBeTrue();
 });
+
+/**
+ * Regression: when the stored watermark URI is absent from the fetched
+ * document (rolling window overflow or publisher drop), the delivery state
+ * is unknown - only the newest post may be sent, never the whole backlog.
+ *
+ * @throws \Random\RandomException
+ */
+it('sendScheduled sends only the newest post when the watermark is missing from the feed', function (): void {
+    /** @var SubscriptionsDAO&\Mockery\MockInterface $subscriptionsDAO */
+    $subscriptionsDAO = \Mockery::mock(SubscriptionsDAO::class);
+    /** @var Feeds&\Mockery\MockInterface $feeds */
+    $feeds = \Mockery::mock(Feeds::class);
+    /** @var Newsletter&\Mockery\MockInterface $newsletter */
+    $newsletter = \Mockery::mock(Newsletter::class);
+    /** @var Auth&\Mockery\MockInterface $auth */
+    $auth = \Mockery::mock(Auth::class);
+
+    $datetime = new DateTimeImmutable();
+    $feedUri = 'https://example.com/feed';
+
+    $scheduledFeed = new Feed(new FeedMetadata($feedUri, 'Feed', 'https://example.com', $datetime));
+
+    $oldest = new Post('https://example.com/a-old', 'Old', 'Old content');
+    $middle = new Post('https://example.com/b-mid', 'Mid', 'Mid content');
+    $newest = new Post('https://example.com/c-new', 'New', 'New content');
+    // Watermark points at an entry the publisher dropped from the document.
+    $feedWithPosts = new Feed(
+        new FeedMetadata($feedUri, 'Feed', 'https://example.com', $datetime),
+        lastSentPostUri: 'https://example.com/zz-dropped',
+        posts: [$newest, $middle, $oldest],
+    );
+    $subscriber = new Subscription($feedUri, 'user@example.com', true);
+
+    $feeds->shouldReceive('getScheduled')->once()->with($datetime)->andReturn([$scheduledFeed]);
+    $feeds->shouldReceive('retrieveWithPosts')->once()->with($scheduledFeed)->andReturn($feedWithPosts);
+    $subscriptionsDAO->shouldReceive('findActiveSubscriptionsFor')->once()->with($feedWithPosts)->andReturn([$subscriber]);
+    // Newest post only - not the full three-post backlog.
+    $newsletter->shouldReceive('sendPostsToSubscribers')->once()->with($feedWithPosts, [$newest], $subscriber);
+    $feeds->shouldReceive('updateLastSentPost')->once()->with($feedWithPosts, $newest);
+
+    $subs = new Subscriptions($subscriptionsDAO, $feeds, $newsletter, $auth);
+
+    $subs->sendScheduled($datetime);
+});
