@@ -108,7 +108,7 @@
                 <label>
                     Feed URL
                     <input type="url" name="uri" placeholder="https://example.com/feed.xml" value="<?= \is_string($_GET['feed'] ?? null)
-                        ? $_GET['feed']
+                        ? \htmlspecialchars($_GET['feed'], \ENT_QUOTES | \ENT_SUBSTITUTE, encoding: 'UTF-8')
                         : ''; ?>" required>
                 </label>
                 <label>
