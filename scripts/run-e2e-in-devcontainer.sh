@@ -14,18 +14,8 @@ sleep 2
 # Initialize test database
 echo "1. Setting up test database..."
 export NEWSLETTER_DB_PATH="$PWD/data/test-e2e.db"
-rm -f "$NEWSLETTER_DB_PATH" "$NEWSLETTER_DB_PATH-wal" "$NEWSLETTER_DB_PATH-shm"
-php -r "
-\$dbPath = getenv('NEWSLETTER_DB_PATH');
-\$pdo = new PDO(\"sqlite:{\$dbPath}\");
-\$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-\$files = glob('$PWD/migrations/*.sql');
-sort(\$files);
-foreach (\$files as \$file) {
-    \$pdo->exec(file_get_contents(\$file));
-}
-echo '   ✓ Database initialized\n';
-"
+php scripts/e2e-db-init.php "$NEWSLETTER_DB_PATH"
+echo '   ✓ Database initialized'
 
 # Setup test feeds
 echo "2. Setting up test feed server..."
@@ -33,24 +23,7 @@ FEED_DIR="/tmp/feedtest"
 rm -rf "$FEED_DIR"
 mkdir -p "$FEED_DIR"
 
-cat > "$FEED_DIR/valid.xml" << 'XMLEOF'
-<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0">
-<channel>
-<title>Test Blog</title>
-<link>https://example.com</link>
-<description>Test feed for E2E</description>
-<item>
-<title>First Post</title>
-<link>https://example.com/post1</link>
-<description>Test post content</description>
-<pubDate>Sat, 20 Jun 2026 12:00:00 +0000</pubDate>
-</item>
-</channel>
-</rss>
-XMLEOF
-
-echo "not xml" > "$FEED_DIR/invalid.txt"
+cp tests/fixtures/valid.xml tests/fixtures/invalid.txt "$FEED_DIR"/
 
 php -S 127.0.0.1:9995 -t "$FEED_DIR" > /tmp/feed-server.log 2>&1 &
 FEED_PID=$!
