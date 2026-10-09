@@ -78,10 +78,13 @@ it(
      * @throws \PDOException
      */
     function (): void {
-        $token = hash_hmac(algo: 'sha256', data: 'test@example.com', key: (string) getenv('SECRET_KEY'));
+        // Token binding (audit fix): MAC = HMAC('cancel|feedUri|email|nonce', SECRET_KEY);
+        // this row was seeded without a nonce, so the nonce component is empty.
+        $feedUri = 'http://' . e2e_feed_host() . ':9995/valid.xml';
+        $token = hash_hmac(algo: 'sha256', data: 'cancel|' . $feedUri . '|test@example.com|', key: (string) getenv('SECRET_KEY'));
 
         $response = e2e_get_cancel('/v1/subscriptions/cancellation/', [
-            'uri' => 'http://' . e2e_feed_host() . ':9995/valid.xml',
+            'uri' => $feedUri,
             'email' => 'test@example.com',
             'token' => $token,
         ]);

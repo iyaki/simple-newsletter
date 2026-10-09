@@ -63,7 +63,13 @@ it('completes subscription flow end-to-end', function (): void {
     expect($sub['active'])->toBe(0);
     $rawKey = \getenv('SECRET_KEY');
     \assert(\is_string($rawKey), 'SECRET_KEY must be set');
-    $token = hash_hmac('sha256', 'test@example.com', $rawKey);
+    // Token binding (audit fix): MAC = HMAC('confirm|feedUri|email|nonce', SECRET_KEY).
+    // The row was created by add() above — read its nonce from the DB.
+    $nonceStmt = $pdo->prepare('SELECT token_nonce FROM subscriptions WHERE feed_uri = ? AND email = ?');
+    \assert($nonceStmt instanceof \PDOStatement, 'stmt should be prepared');
+    $nonceStmt->execute(['http://' . e2e_feed_host() . ':9995/valid.xml', 'test@example.com']);
+    $nonce = (string) ($nonceStmt->fetchColumn() ?: '');
+    $token = hash_hmac('sha256', 'confirm|http://' . e2e_feed_host() . ':9995/valid.xml|test@example.com|' . $nonce, $rawKey);
     // 4. Confirm subscription
     $confirmResponse = e2e_sub_get('/v1/subscriptions/confirmation/', [
         'uri' => 'http://' . e2e_feed_host() . ':9995/valid.xml',
@@ -73,10 +79,17 @@ it('completes subscription flow end-to-end', function (): void {
 
     expect(get_status_safe($confirmResponse))->toBe(200);
 
-    // 5. Verify subscription active in DB (re-execute query)
-    $stmt->execute(['http://' . e2e_feed_host() . ':9995/valid.xml', 'test@example.com']);
+    // 5. Verify subscription active in DB via a FRESH connection: the
+    // connection above started its read before the confirm request, and this
+    // PDO sqlite build keeps that snapshot alive on the connection even after
+    // closeCursor(), so re-executing there observes the pre-confirm state.
+    $postConfirm = new \PDO('sqlite:' . $dbPath);
+    $postConfirm->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+    $stmt2 = $postConfirm->prepare('SELECT * FROM subscriptions WHERE feed_uri = ? AND email = ?');
+    \assert($stmt2 instanceof \PDOStatement, 'stmt should be prepared');
+    $stmt2->execute(['http://' . e2e_feed_host() . ':9995/valid.xml', 'test@example.com']);
     /** @var array{active: int, ...}|false $confirmedSub */
-    $confirmedSub = $stmt->fetch(\PDO::FETCH_ASSOC);
+    $confirmedSub = $stmt2->fetch(\PDO::FETCH_ASSOC);
     \assert(\is_array($confirmedSub), 'confirmed subscription should exist');
     expect($confirmedSub['active'])->toBe(1);
 });

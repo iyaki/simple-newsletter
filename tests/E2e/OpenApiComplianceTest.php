@@ -91,6 +91,7 @@ it('returns valid confirmation response structure', function (): void {
 
     $pdo = new \PDO('sqlite:' . $dbPath);
     $stmt = $pdo->prepare('INSERT INTO feeds (uri, title, link, last_update, trigger_hour) VALUES (?, ?, ?, ?, ?)');
+    \assert($stmt instanceof \PDOStatement);
     $stmt->execute([
         'http://' . e2e_feed_host() . ':9995/valid.xml',
         'Test Feed',
@@ -99,16 +100,20 @@ it('returns valid confirmation response structure', function (): void {
         12,
     ]);
     $stmt = $pdo->prepare('INSERT INTO subscriptions (feed_uri, email, active) VALUES (?, ?, ?)');
+    \assert($stmt instanceof \PDOStatement);
     $stmt->execute([
         'http://' . e2e_feed_host() . ':9995/valid.xml',
         'test@example.com',
         0,
     ]);
 
-    $token = hash_hmac(algo: 'sha256', data: 'test@example.com', key: (string) getenv('SECRET_KEY'));
+    // Token binding (audit fix): MAC = HMAC('confirm|feedUri|email|nonce', SECRET_KEY);
+    // rows seeded by this test carry the default empty nonce.
+    $feedUri = 'http://' . e2e_feed_host() . ':9995/valid.xml';
+    $token = hash_hmac(algo: 'sha256', data: 'confirm|' . $feedUri . '|test@example.com|', key: (string) getenv('SECRET_KEY'));
 
     $response = http_get('/v1/subscriptions/confirmation/', [
-        'uri' => 'http://' . e2e_feed_host() . ':9995/valid.xml',
+        'uri' => $feedUri,
         'email' => 'test@example.com',
         'token' => $token,
     ]);
@@ -171,6 +176,7 @@ it('returns valid cancellation response structure', function (): void {
     $pdo = new \PDO('sqlite:' . $dbPath);
     $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
     $stmt = $pdo->prepare('INSERT INTO feeds (uri, title, link, last_update, trigger_hour) VALUES (?, ?, ?, ?, ?)');
+    \assert($stmt instanceof \PDOStatement);
     $stmt->execute([
         'http://' . e2e_feed_host() . ':9995/valid.xml',
         'Test Feed',
@@ -179,16 +185,20 @@ it('returns valid cancellation response structure', function (): void {
         12,
     ]);
     $stmt = $pdo->prepare('INSERT INTO subscriptions (feed_uri, email, active) VALUES (?, ?, ?)');
+    \assert($stmt instanceof \PDOStatement);
     $stmt->execute([
         'http://' . e2e_feed_host() . ':9995/valid.xml',
         'test@example.com',
         1,
     ]);
 
-    $token = hash_hmac(algo: 'sha256', data: 'test@example.com', key: (string) getenv('SECRET_KEY'));
+    // Token binding (audit fix): MAC = HMAC('cancel|feedUri|email|nonce', SECRET_KEY);
+    // rows seeded by this test carry the default empty nonce.
+    $feedUri = 'http://' . e2e_feed_host() . ':9995/valid.xml';
+    $token = hash_hmac(algo: 'sha256', data: 'cancel|' . $feedUri . '|test@example.com|', key: (string) getenv('SECRET_KEY'));
 
     $response = http_get('/v1/subscriptions/cancellation/', [
-        'uri' => 'http://' . e2e_feed_host() . ':9995/valid.xml',
+        'uri' => $feedUri,
         'email' => 'test@example.com',
         'token' => $token,
     ]);
