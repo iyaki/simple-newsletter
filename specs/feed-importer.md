@@ -50,7 +50,7 @@ Uses `laminas/laminas-http` Client for HTTP fetching.
 
 ### 1. Fetch new feed
 
-1. `FeedImporter::fetchNew(uri: string): Feed`
+1. `FeedImporterLaminas::fetchNew(uri: string): Feed`
 2. Fetch feed XML over HTTP.
 3. Parse with Laminas Feed Reader.
 4. Extract title, link, last update timestamp.
@@ -58,7 +58,7 @@ Uses `laminas/laminas-http` Client for HTTP fetching.
 
 ### 2. Fetch existing feed with posts
 
-1. `FeedImporter::fetchWithPosts(feed: Feed): Feed`
+1. `FeedImporterLaminas::fetchWithPosts(feed: Feed): Feed`
 2. Re-fetch feed XML.
 3. Parse all entries.
 4. Filter posts newer than `feed.lastSentPostUri`.

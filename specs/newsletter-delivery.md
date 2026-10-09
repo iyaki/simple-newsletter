@@ -21,8 +21,8 @@ bin/send-newsletters.php (CLI entrypoint, called via cron)
             → Collect posts newer than feed.last_sent_post_uri (watermark); stop at it
             → Filter subscribers (confirmed, subscribed to this feed)
             → Newsletter::sendPostsToSubscribers() — one email per subscriber, all new posts
-                → EmailTemplateFactory::createNewsletter()
-                → Sender::send() → SenderPHPMailer
+                → constructs Newsletter template inline (cancellation link from URI_SELF)
+                → SenderPHPMailer::send()
             → Feeds::updateLastSentPost() — advance watermark to the newest sent post
 ```
 

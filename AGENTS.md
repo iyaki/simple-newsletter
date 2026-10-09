@@ -26,16 +26,14 @@ Container.php (manual DI)      ← top-level wiring
 
 ### Two Main Data Flows
 
-**Subscription** (double-opt-in): HTTP handler → `Subscriptions::add()` → `Feeds::retrieve()` (fetch/cache feed) → `SubscriptionsDAO::new()` → `Newsletter::sendConfirmation()` (Auth::hash → EmailTemplateFactory → Sender::send)
+**Subscription** (double-opt-in): HTTP handler → `Subscriptions::add()` → `Feeds::retrieve()` (fetch/cache feed) → `SubscriptionsDAO::new()` → `Newsletter::sendConfirmation()` (Auth::hash → templates constructed inline → SenderPHPMailer::send)
 
-**Delivery** (hourly cron): `bin/send-newsletters.php` → `Container::delivery()` → `NewsletterDelivery::sendScheduled()` → `Feeds::getScheduled()` → `FeedImporter::fetchWithPosts()` → `Newsletter::sendPostsToSubscribers()` per subscriber → `Feeds::updateLastSentPost()`
+**Delivery** (hourly cron): `bin/send-newsletters.php` → `Container::delivery()` → `NewsletterDelivery::sendScheduled()` → `Feeds::getScheduled()` → `FeedImporterLaminas::fetchWithPosts()` → `Newsletter::sendPostsToSubscribers()` per subscriber → `Feeds::updateLastSentPost()`
 
 ### Interface/Implementation Split
 
 | Interface | Implementations |
 |-----------|----------------|
-| `Components\FeedImporter` | `Adapters\FeedImporterLaminas` (laminas-feed + laminas-http) |
-| `Components\Sender` | `Adapters\SenderPHPMailer` (PHPMailer SMTP) |
 | `Templates\ApiV1\ResponseInterface` | `JsonResponse`, `HtmlResponse`, `RedirectResponse` |
 | `Templates\Email\EmailInterface` | `Newsletter`, `SubscriptionConfirmation` |
 
@@ -57,7 +55,7 @@ Container.php (manual DI)      ← top-level wiring
 | `public/v1/subscriptions/` | API handlers: `index.php` (subscribe), `confirmation/`, `cancellation/` |
 | `bin/` | CLI entrypoints — `send-newsletters.php` (cron trigger) |
 | `libs/Models/` | Domain orchestration — `Feeds`, `Subscriptions`, `Newsletter` |
-| `libs/Components/` | Interfaces and utilities — `FeedImporter`, `Sender`, `Auth`, `EmailTemplateFactory`, `EndUserException` |
+| `libs/Components/` | Utilities — `Auth`, `RateLimiter`, `ErrorReporter`, `EndUserException` |
 | `libs/Adapters/` | I/O implementations — `FeedImporterLaminas`, `SenderPHPMailer`, `ResponderHttp` |
 | `libs/Data/` | DAOs and DTOs — `FeedsDAO`, `SubscriptionsDAO`, `Feed`, `Post`, `Subscription` |
 | `libs/Templates/` | Renderers — `ApiV1/` (JSON/HTML/Redirect), `Email/` (Newsletter, SubscriptionConfirmation) |
