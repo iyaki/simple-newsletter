@@ -129,7 +129,7 @@ final class BudgetedSocket extends Socket
         }
 
         if (\is_resource($this->socket)) {
-            \stream_filter_append($this->socket, self::FILTER_NAME, STREAM_FILTER_READ, ['limit' => self::MAX_BYTES]);
+            \stream_filter_append($this->socket, self::FILTER_NAME, STREAM_FILTER_READ, ['limit' => self::MAX_BYTES, 'deadline' => $this->deadline]);
         }
     }
 
@@ -141,6 +141,9 @@ final class BudgetedSocket extends Socket
             throw new AdapterRuntimeException('Feed fetch exceeded the total time budget.');
         }
 
+        // The deadline is not only checked here (laminas calls read() once per
+        // request); the stream filter enforces it on every bucket so a
+        // trickle origin cannot hold the single parent::read() loop open.
         return parent::read();
     }
 }

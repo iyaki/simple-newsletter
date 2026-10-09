@@ -5,14 +5,18 @@ declare(strict_types=1);
 namespace SimpleNewsletter\Adapters;
 
 /**
- * Stream filter that stops passing data once a byte ceiling is exceeded.
+ * Stream filter that stops passing data once a byte ceiling is exceeded or a
+ * total-duration deadline passes.
  *
- * Used by BudgetedSocket so a hostile feed origin cannot force an unbounded
- * response into memory: past the cap no further data reaches the reader, the
- * truncated body fails XML parsing, and the socket read times out shortly
- * after (a catchable adapter exception instead of an uncatchable memory fatal).
+ * Used by BudgetedSocket so a hostile feed origin can neither force an
+ * unbounded response into memory nor trickle bytes forever: past either
+ * budget no further data reaches the reader, the blocked read trips the
+ * socket idle timeout, and the truncated body fails XML parsing (a
+ * catchable adapter exception instead of an uncatchable memory fatal or a
+ * worker held open indefinitely).
  *
- * Receives the limit via php_user_filter::$params as array{limit: int}.
+ * Receives its budget via php_user_filter::$params as
+ * array{limit: int, deadline: float} (deadline 0 disables the time budget).
  */
 final class FeedFetchByteCapFilter extends \php_user_filter
 {
@@ -23,11 +27,24 @@ final class FeedFetchByteCapFilter extends \php_user_filter
     #[\Override]
     public function filter($in, $out, &$consumed, bool $closing): int
     {
-        $limit = \is_array($this->params) ? (int) ($this->params['limit'] ?? 0) : 0;
+        $params = \is_array($this->params) ? $this->params : [];
+        $limit = (int) ($params['limit'] ?? 0);
+        $deadline = (float) ($params['deadline'] ?? 0.0);
 
-        if ($this->capped) {
+        if ($this->capped || ($deadline > 0.0 && \microtime(true) > $deadline)) {
+            if (! $this->capped) {
+                // Total-duration budget, evaluated on every bucket so an origin
+                // trickling bytes (each read inside the socket idle timeout)
+                // cannot outlive the connect-time budget.
+                $this->capped = true;
+            }
             // ponytail: swallow silently instead of PSFS_ERR_FATAL (which raises
-            // warnings); the read times out and the truncated body fails parsing.
+            // warnings) and drain the input brigade — leftover buckets would
+            // otherwise raise a stream-layer warning on the next read.
+            while ($bucket = \stream_bucket_make_writeable($in)) {
+                $consumed += $bucket->datalen;
+            }
+
             return \PSFS_FEED_ME;
         }
 
