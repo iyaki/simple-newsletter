@@ -217,7 +217,6 @@
             <a href="/terms/">Terms</a> ·
             <a href="/privacy/">Privacy</a>
         </nav>
-        <p style="margin: 0.5em 0 0; font-size: 0.9em;">If you find it useful, you can <a href="https://github.com/sponsors/iyaki" title="Support Simple Newsletter on GitHub Sponsors">support the project on GitHub Sponsors</a>.</p>
         <p style="margin: 0">Made with 🧉 by <a href="https://iyaki.ar">iyaki</a></p>
     </footer>
     <script data-goatcounter="https://simple-newsletter.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
