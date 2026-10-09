@@ -64,9 +64,10 @@ disallowed-functions = { functions = [
     'popen'
 ] }
 no-protected-in-final = { enabled = true }
-# Security egress policy: the fail-closed address-validation checklist is
-# inherently branchy; splitting it would scatter the policy across files.
-cyclomatic-complexity = { exclude = ["libs/Adapters/PrivateAddressGuard.php", "libs/Adapters/BudgetedSocket.php"] }
+# Security egress policy: the fail-closed address-validation and URI-scheme
+# checklists are inherently branchy; splitting them would scatter the policy
+# across files.
+cyclomatic-complexity = { exclude = ["libs/Adapters/PrivateAddressGuard.php", "libs/Adapters/BudgetedSocket.php", "libs/Adapters/FeedImporterLaminas.php"] }
 no-literal-password = { exclude = ["tests/*"]}
 
 [analyzer]
@@ -75,6 +76,7 @@ plugins = ["stdlib"]
 ignore = [
 	{ code = "non-existent-function", in = "tests/E2e/**" },
 	{ code = "mixed-method-access", in = "tests/Adapters/FeedImporterLaminasTest.php" },
+	{ code = "mixed-method-access", in = "tests/Integration/FailClosedConfigTest.php" },
 	{ code = "mixed-method-access", in = "tests/Adapters/ResponderHttpTest.php" },
 	{ code = "mixed-method-access", in = "tests/Models/NewsletterTest.php" },
 	{ code = "mixed-method-access", in = "tests/Data/FeedsDAOTest.php" },

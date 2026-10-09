@@ -37,6 +37,23 @@ final class FeedTestServer
                 XML);
             \file_put_contents(filename: $feedDir . '/invalid.txt', data: 'not xml');
         }
+        \file_put_contents(filename: $feedDir . '/hostile.xml', data: <<<XML
+            <?xml version="1.0" encoding="UTF-8"?>
+            <rss version="2.0">
+            <channel>
+            <title>Hostile Feed</title>
+            <link>javascript:alert(1)</link>
+            <item>
+            <title>Evil Post</title>
+            <link>javascript:alert(1)</link>
+            </item>
+            <item>
+            <title>Safe Post</title>
+            <link>https://example.com/safe-post</link>
+            </item>
+            </channel>
+            </rss>
+            XML);
 
         $cmd = ['php', '-S', '0.0.0.0:' . FEED_TEST_SERVER_PORT, '-t', $feedDir];
         self::$server = new Process($cmd, null, ['PHP_CLI_SERVER_WORKERS' => '1'], null, null);
