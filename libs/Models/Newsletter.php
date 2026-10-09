@@ -6,18 +6,19 @@ namespace SimpleNewsletter\Models;
 
 use SimpleNewsletter\Adapters\SenderPHPMailer;
 use SimpleNewsletter\Components\Auth;
-use SimpleNewsletter\Components\EmailTemplateFactory;
 use SimpleNewsletter\Components\EndUserException;
 use SimpleNewsletter\Components\ErrorReporter;
 use SimpleNewsletter\Data\Feed;
 use SimpleNewsletter\Data\Post;
 use SimpleNewsletter\Data\Subscription;
+use SimpleNewsletter\Templates\Email\Newsletter as NewsletterTemplate;
+use SimpleNewsletter\Templates\Email\SubscriptionConfirmation;
 
 final readonly class Newsletter
 {
     public function __construct(
         private SenderPHPMailer $sender,
-        private EmailTemplateFactory $emailTemplateFactory,
+        private string $uriSelf,
         private Auth $auth,
     ) {}
 
@@ -28,10 +29,17 @@ final readonly class Newsletter
         Feed $feed,
         Subscription $subscription,
     ): void {
-        $this->sender->send($this->emailTemplateFactory->createConfirmation(
-            $subscription,
+        $token = $this->auth->hash($this->auth->tokenKey('confirm', $feed->getUri(), $subscription->email, $subscription->tokenNonce));
+        $this->sender->send(new SubscriptionConfirmation(
+            $subscription->email,
             $feed,
-            $this->auth->hash($this->auth->tokenKey('confirm', $feed->getUri(), $subscription->email, $subscription->tokenNonce)),
+            \sprintf(
+                '%s/v1/subscriptions/confirmation/?uri=%s&email=%s&token=%s',
+                $this->uriSelf,
+                \urlencode($feed->getUri()),
+                \urlencode($subscription->email),
+                \urlencode($token),
+            ),
         ));
     }
 
@@ -49,11 +57,18 @@ final readonly class Newsletter
 
         foreach ($subscriptions as $subscription) {
             try {
-                $this->sender->send($this->emailTemplateFactory->createNewsletter(
+                $token = $this->auth->hash($this->auth->tokenKey('cancel', $feed->getUri(), $subscription->email, $subscription->tokenNonce));
+                $this->sender->send(new NewsletterTemplate(
                     $subscription,
                     $feed,
                     $posts,
-                    $this->auth->hash($this->auth->tokenKey('cancel', $feed->getUri(), $subscription->email, $subscription->tokenNonce)),
+                    \sprintf(
+                        '%s/v1/subscriptions/cancellation/?uri=%s&email=%s&token=%s',
+                        $this->uriSelf,
+                        \urlencode($feed->getUri()),
+                        \urlencode($subscription->email),
+                        \urlencode($token),
+                    ),
                 ));
                 $delivered++;
             } catch (\Throwable $sendFailure) {

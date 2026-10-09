@@ -11,7 +11,6 @@ use SimpleNewsletter\Adapters\ResponderHttp;
 use SimpleNewsletter\Adapters\SenderPHPMailer;
 use SimpleNewsletter\Adapters\SmtpConfig;
 use SimpleNewsletter\Components\Auth;
-use SimpleNewsletter\Components\EmailTemplateFactory;
 use SimpleNewsletter\Components\RateLimiter;
 use SimpleNewsletter\Data\FeedsDAO;
 use SimpleNewsletter\Data\SubscriptionsDAO;
@@ -72,19 +71,15 @@ final class Container
      */
     private function newsletter(): Newsletter
     {
-        return new Newsletter($this->sender(), $this->emailTemplateFactory(), $this->auth());
+        $uriSelf = \getenv('URI_SELF');
+
+        return new Newsletter($this->sender(), \is_string($uriSelf) ? $uriSelf : '', $this->auth());
     }
 
     /** @throws \PDOException */
     public function rateLimiter(): RateLimiter
     {
         return new RateLimiter($this->database());
-    }
-
-    private function emailTemplateFactory(): EmailTemplateFactory
-    {
-        $uriSelf = \getenv('URI_SELF');
-        return new EmailTemplateFactory(\is_string($uriSelf) ? $uriSelf : '');
     }
 
     /**
