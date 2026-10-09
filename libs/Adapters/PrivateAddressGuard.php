@@ -75,7 +75,14 @@ final class PrivateAddressGuard
     /** @return list<string> all A/AAAA addresses for the host, empty when unresolvable */
     public static function resolveAddresses(string $host): array
     {
-        $records = \dns_get_record($host, \DNS_A | \DNS_AAAA);
+        // Resolver warnings on malformed hostnames are expected (attacker
+        // input); suppress them and keep the fail-closed empty result.
+        \Laminas\Stdlib\ErrorHandler::start();
+        try {
+            $records = \dns_get_record($host, \DNS_A | \DNS_AAAA);
+        } finally {
+            \Laminas\Stdlib\ErrorHandler::stop();
+        }
         if (! \is_array($records)) {
             return [];
         }
@@ -104,6 +111,19 @@ final class PrivateAddressGuard
 
     public static function ipIsPublic(string $ip): bool
     {
-        return \filter_var($ip, \FILTER_VALIDATE_IP, \FILTER_FLAG_NO_PRIV_RANGE | \FILTER_FLAG_NO_RES_RANGE) !== false;
+        if (\filter_var($ip, \FILTER_VALIDATE_IP, \FILTER_FLAG_NO_PRIV_RANGE | \FILTER_FLAG_NO_RES_RANGE) === false) {
+            return false;
+        }
+
+        // PHP's range flags do not exclude NAT64 (64:ff9b::/96) or 6to4
+        // (2002::/16), whose low 32 bits embed an IPv4 address; an on-path
+        // translator would dial that embedded (possibly private) address.
+        $binary = \inet_pton($ip);
+        if ($binary !== false && \strlen($binary) === 16) {
+            return ! \str_starts_with($binary, "\x00\x64\xff\x9b")
+                && ! \str_starts_with($binary, "\x20\x02");
+        }
+
+        return true;
     }
 }
