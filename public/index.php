@@ -170,6 +170,10 @@
                         <p>Definitely! Check out our <a href="#docs">documentation</a> for easy integration instructions.</p>
                     </details></li>
                     <li><details>
+                        <summary>Why do links to my posts include utm parameters?</summary>
+                        <p>Links to your posts in the newsletters are tagged with <code>utm_source=simple-newsletter.com&amp;utm_medium=email</code>, so your analytics can show how much traffic Simple Newsletter sends your way. You can filter or exclude it like any other email source.</p>
+                    </details></li>
+                    <li><details>
                         <summary>Something is wrong</summary>
                         <p>Please, <a href="mailto:simple-newsletter@iyaki.ar">let me know</a></p>
                     </details></li>
@@ -213,6 +217,7 @@
             <a href="/terms/">Terms</a> ·
             <a href="/privacy/">Privacy</a>
         </nav>
+        <p style="margin: 0.5em 0 0; font-size: 0.9em;">If you find it useful, you can <a href="https://github.com/sponsors/iyaki" title="Support Simple Newsletter on GitHub Sponsors">support the project on GitHub Sponsors</a>.</p>
         <p style="margin: 0">Made with 🧉 by <a href="https://iyaki.ar">iyaki</a></p>
     </footer>
     <script data-goatcounter="https://simple-newsletter.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
