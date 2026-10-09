@@ -81,19 +81,52 @@ test('container uses empty string when URI_SELF not set', function (): void {
     expect($factory)->toBeInstanceOf(\SimpleNewsletter\Adapters\ResponderHttp::class);
 });
 
-test('container creates new Auth when weak reference is null', function (): void {
-    // Clear the static weak reference by setting null SECRET_KEY first
-    $prev = $_ENV['SECRET_KEY'] ?? null;
-    unset($_ENV['SECRET_KEY']);
-    
-    $container = new Container();
-    // This forces auth() to create new Auth with empty string
-    $subscriptions = $container->subscriptions();
-    expect($subscriptions)->toBeInstanceOf(\SimpleNewsletter\Models\Subscriptions::class);
-    
-    if ($prev !== null) {
-        $_ENV['SECRET_KEY'] = $prev;
+function reset_container_auth_cache(): void
+{
+    $auth = new \ReflectionProperty(Container::class, 'auth');
+    $auth->setValue(null, null);
+}
+
+test('container throws when SECRET_KEY is not set', function (): void {
+    $prev = \getenv('SECRET_KEY');
+    \putenv('SECRET_KEY');
+    reset_container_auth_cache();
+
+    try {
+        (new Container())->subscriptions();
+        $thrown = null;
+    } catch (\RuntimeException $exception) {
+        $thrown = $exception;
+    } finally {
+        if ($prev !== false) {
+            \putenv('SECRET_KEY=' . $prev);
+        }
+        reset_container_auth_cache();
     }
+
+    expect($thrown)->not->toBeNull()
+        ->and($thrown?->getMessage())->toContain('SECRET_KEY');
+});
+
+test('container throws when SECRET_KEY is empty', function (): void {
+    $prev = \getenv('SECRET_KEY');
+    \putenv('SECRET_KEY=');
+    reset_container_auth_cache();
+
+    try {
+        (new Container())->subscriptions();
+        $thrown = null;
+    } catch (\RuntimeException $exception) {
+        $thrown = $exception;
+    } finally {
+        if ($prev !== false) {
+            \putenv('SECRET_KEY=' . $prev);
+        }
+        reset_container_auth_cache();
+    }
+
+    expect($thrown)->not->toBeNull()
+        ->and($thrown?->getMessage())->toContain('SECRET_KEY');
 });
 
 test('SmtpConnection uses localhost when SMTP_HOST not set', function (): void {
