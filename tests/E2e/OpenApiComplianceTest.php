@@ -12,29 +12,21 @@ it('returns valid JSON error response structure', function (): void {
     init_test_database($dbPath);
 
     // Test with invalid URI - should return 400 with valid error structure
-    try {
-        $response = http_get('/v1/subscriptions/', [
-            'uri' => 'not-a-valid-url',
-            'email' => 'test@example.com',
-        ]);
-    } catch (\Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface $e) {
-        $response = $e->getResponse();
-    }
+    $response = http_get('/v1/subscriptions/', [
+        'uri' => 'not-a-valid-url',
+        'email' => 'test@example.com',
+    ]);
 
-    expect(get_status_safe($response))->toBe(400);
+    expect($response->getStatusCode())->toBe(400);
 
     // Response should be either HTML or JSON
-    try {
-        $contentType = get_headers_safe($response)['content-type'][0] ?? '';
-    } catch (\Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface $e) {
-        $contentType = $e->getResponse()->getHeaders()['content-type'][0] ?? '';
-    }
+    $contentType = $response->getHeaders(false)['content-type'][0] ?? '';
 
     if (str_contains($contentType, 'application/json')) {
-        $body = to_array_safe($response);
+        $body = \json_decode($response->getContent(false), true);
         expect($body)->toHaveKey('title');
     } else {
-        $content = get_content_safe($response);
+        $content = $response->getContent(false);
         expect($content)->toContain('Invalid');
     }
 });
@@ -46,19 +38,15 @@ it('returns valid structure for missing required parameters', function (): void 
 
     init_test_database($dbPath);
 
-    try {
-        $response = http_get('/v1/subscriptions/', [
-            // Both uri and email missing
-        ]);
-    } catch (\Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface $e) {
-        $response = $e->getResponse();
-    }
+    $response = http_get('/v1/subscriptions/', [
+        // Both uri and email missing
+    ]);
 
-    expect(get_status_safe($response))->toBe(400);
+    expect($response->getStatusCode())->toBe(400);
 
-    $contentType = get_headers_safe($response)['content-type'][0] ?? '';
+    $contentType = $response->getHeaders(false)['content-type'][0] ?? '';
     if (str_contains($contentType, 'application/json')) {
-        $body = to_array_safe($response);
+        $body = \json_decode($response->getContent(false), true);
         expect($body)->toHaveKey('title');
     }
 });
@@ -74,10 +62,10 @@ it('returns HTML by default (content negotiation)', function (): void {
         'email' => 'test@example.com',
     ]);
 
-    expect(get_status_safe($response))->toBe(200);
-    $contentType = get_headers_safe($response)['content-type'][0] ?? '';
+    expect($response->getStatusCode())->toBe(200);
+    $contentType = $response->getHeaders(false)['content-type'][0] ?? '';
     expect($contentType)->toContain('text/html');
-    $content = get_content_safe($response);
+    $content = $response->getContent(false);
     expect($content)->toContain('email confirmation');
 });
 
@@ -118,21 +106,21 @@ it('returns valid confirmation response structure', function (): void {
         'token' => $token,
     ]);
 
-    expect(get_status_safe($response))->toBe(200);
+    expect($response->getStatusCode())->toBe(200);
 
-    $contentType = get_headers_safe($response)['content-type'][0] ?? '';
+    $contentType = $response->getHeaders(false)['content-type'][0] ?? '';
 
     // Check for X-Robots-Tag header per OpenAPI spec
-    $headers = get_headers_safe($response);
+    $headers = $response->getHeaders(false);
     expect($headers)->toHaveKey('x-robots-tag');
     $xRobotsTag = $headers['x-robots-tag'][0] ?? '';
     expect($xRobotsTag)->toContain('noindex');
     // Response body should be HTML or JSON
     if (str_contains($contentType, 'application/json')) {
-        $body = to_array_safe($response);
+        $body = \json_decode($response->getContent(false), true);
         expect($body)->toHaveKey('title');
     } else {
-        $content = get_content_safe($response);
+        $content = $response->getContent(false);
         expect($content)->toContain('confirmed');
     }
 });
@@ -144,23 +132,19 @@ it('returns valid error structure for invalid confirmation token', function (): 
 
     init_test_database($dbPath);
 
-    try {
-        $response = http_get('/v1/subscriptions/confirmation/', [
-            'uri' => 'http://' . e2e_feed_host() . ':9995/valid.xml',
-            'email' => 'test@example.com',
-            'token' => 'wrong-token',
-        ]);
-    } catch (\Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface $e) {
-        $response = $e->getResponse();
-    }
+    $response = http_get('/v1/subscriptions/confirmation/', [
+        'uri' => 'http://' . e2e_feed_host() . ':9995/valid.xml',
+        'email' => 'test@example.com',
+        'token' => 'wrong-token',
+    ]);
 
-    expect(get_status_safe($response))->toBe(400);
+    expect($response->getStatusCode())->toBe(400);
 
-    $contentType = get_headers_safe($response)['content-type'][0] ?? '';
+    $contentType = $response->getHeaders(false)['content-type'][0] ?? '';
 
     // Error response should have valid structure
     if (str_contains($contentType, 'application/json')) {
-        $body = to_array_safe($response);
+        $body = \json_decode($response->getContent(false), true);
         expect($body)->toHaveKey('title');
         $title = $body['title'] ?? '';
         expect(\in_array($title, ['Invalid', 'Error'], strict: true))->toBeTrue();
@@ -203,9 +187,9 @@ it('returns valid cancellation response structure', function (): void {
         'token' => $token,
     ]);
 
-    expect(get_status_safe($response))->toBe(200);
+    expect($response->getStatusCode())->toBe(200);
 
-    $headers = get_headers_safe($response);
+    $headers = $response->getHeaders(false);
     $contentType = $headers['content-type'][0] ?? '';
 
     // Check for X-Robots-Tag header per OpenAPI spec
@@ -214,7 +198,7 @@ it('returns valid cancellation response structure', function (): void {
     expect($xRobotsTag)->toContain('noindex');
     expect(\in_array($xRobotsTag, ['noindex', 'nofollow', 'noindex, nofollow'], strict: true))->toBeTrue();
     if (\str_contains($contentType, 'application/json')) {
-        $body = to_array_safe($response);
+        $body = \json_decode($response->getContent(false), true);
         expect($body)->toHaveKey('title');
     }
 });
@@ -226,21 +210,17 @@ it('returns valid error structure for invalid cancellation token', function (): 
 
     init_test_database($dbPath);
 
-    try {
-        $response = http_get('/v1/subscriptions/cancellation/', [
-            'uri' => 'http://' . e2e_feed_host() . ':9995/valid.xml',
-            'email' => 'test@example.com',
-            'token' => 'wrong-token',
-        ]);
-    } catch (\Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface $e) {
-        $response = $e->getResponse();
-    }
+    $response = http_get('/v1/subscriptions/cancellation/', [
+        'uri' => 'http://' . e2e_feed_host() . ':9995/valid.xml',
+        'email' => 'test@example.com',
+        'token' => 'wrong-token',
+    ]);
 
-    expect(get_status_safe($response))->toBe(400);
+    expect($response->getStatusCode())->toBe(400);
 
-    $contentType = get_headers_safe($response)['content-type'][0] ?? '';
+    $contentType = $response->getHeaders(false)['content-type'][0] ?? '';
     if (str_contains($contentType, 'application/json')) {
-        $body = to_array_safe($response);
+        $body = \json_decode($response->getContent(false), true);
         expect($body)->toHaveKey('title');
     }
 });
@@ -257,11 +237,11 @@ it('validates JSON response when Accept header is set', function (): void {
         'email' => 'test@example.com',
     ]);
 
-    expect(get_status_safe($response))->toBe(200);
+    expect($response->getStatusCode())->toBe(200);
 
-    $contentType = get_headers_safe($response)['content-type'][0] ?? '';
+    $contentType = $response->getHeaders(false)['content-type'][0] ?? '';
     if (str_contains($contentType, 'application/json')) {
-        $body = to_array_safe($response);
+        $body = \json_decode($response->getContent(false), true);
         expect($body)->toHaveKey('title');
     }
 });

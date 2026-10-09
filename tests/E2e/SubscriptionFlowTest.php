@@ -45,10 +45,10 @@ it('completes subscription flow end-to-end', function (): void {
         'redirect' => 'false',
     ]);
 
-    expect(get_status_safe($response))->toBe(200);
-    expect(get_headers_safe($response)['content-type'][0] ?? '')->toContain('text/html');
+    expect($response->getStatusCode())->toBe(200);
+    expect($response->getHeaders(false)['content-type'][0] ?? '')->toContain('text/html');
 
-    $content = get_content_safe($response);
+    $content = $response->getContent(false);
     expect($content)->toContain('email confirmation');
 
     // 2. Verify subscription created in DB (unconfirmed)
@@ -77,7 +77,7 @@ it('completes subscription flow end-to-end', function (): void {
         'token' => $token,
     ]);
 
-    expect(get_status_safe($confirmResponse))->toBe(200);
+    expect($confirmResponse->getStatusCode())->toBe(200);
 
     // 5. Verify subscription active in DB via a FRESH connection: the
     // connection above started its read before the confirm request, and this
@@ -100,7 +100,7 @@ it('rejects invalid feed URI', function (): void {
         'email' => 'test@example.com',
     ]);
 
-    expect(get_status_safe($response))->toBe(400);
+    expect($response->getStatusCode())->toBe(400);
     $content = $response->getContent(false);
     expect($content)->toContain('Invalid');
 });
@@ -112,5 +112,5 @@ it('rejects missing required fields', function (): void {
         // email missing
     ]);
 
-    expect(get_status_safe($response))->toBe(400);
+    expect($response->getStatusCode())->toBe(400);
 });
