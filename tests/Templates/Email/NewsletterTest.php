@@ -39,9 +39,20 @@ test('Newsletter body contains post uri and cancellation uri', function (): void
     $newsletter = new Newsletter($subscription, $feed, [$post], 'https://example.com/cancel');
 
     $body = $newsletter->body();
-    expect($body)->toContain('https://example.com/post');
+    expect($body)->toContain('href="https://example.com/post?utm_source=simple-newsletter.com&utm_medium=email"');
     expect($body)->toContain('https://example.com/cancel');
     expect($body)->toContain('<p>content html</p>');
+});
+
+test('Newsletter appends utm with ampersand when post uri already has query string', function (): void {
+    $subscription = new Subscription('https://example.com/feed', 'user@example.com');
+    $feed = new Feed(
+        new FeedMetadata('https://example.com/feed', 'Blog Title', 'https://example.com', new \DateTimeImmutable()),
+    );
+    $post = new Post('https://example.com/post?id=1', 'Post Title', '<p>content html</p>');
+    $newsletter = new Newsletter($subscription, $feed, [$post], 'https://example.com/cancel');
+
+    expect($newsletter->body())->toContain('href="https://example.com/post?id=1&utm_source=simple-newsletter.com&utm_medium=email"');
 });
 
 test('Newsletter renders multiple posts separated and with digest subject', function (): void {
