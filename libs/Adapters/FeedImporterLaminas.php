@@ -26,7 +26,7 @@ final readonly class FeedImporterLaminas implements FeedImporter
         $metadata = new FeedMetadata(
             uri: $uri,
             title: $sourceFeed->getTitle() ?? '',
-            link: $sourceFeed->getLink() ?? '',
+            link: self::safeLink($uri, $sourceFeed->getLink()),
             lastUpdate: new \DateTimeImmutable(),
         );
         return new Feed($metadata);
@@ -40,7 +40,7 @@ final readonly class FeedImporterLaminas implements FeedImporter
         $metadata = new FeedMetadata(
             uri: $feed->getUri(),
             title: $sourceFeed->getTitle() ?? '',
-            link: $sourceFeed->getLink() ?? '',
+            link: self::safeLink($feed->getUri(), $sourceFeed->getLink()),
             lastUpdate: new \DateTimeImmutable(),
         );
         return new Feed(metadata: $metadata, lastSentPostUri: $feed->lastSentPostUri);
@@ -51,21 +51,28 @@ final readonly class FeedImporterLaminas implements FeedImporter
     public function fetchWithPosts(Feed $feed): Feed
     {
         $sourceFeed = $this->import($feed->getUri());
-
         $posts = [];
         $config = new HtmlSanitizerConfig();
         $config = $config->allowSafeElements();
 
         $sanitizer = new HtmlSanitizer($config);
         foreach ($sourceFeed as $sourcePost) {
+            $permalink = $sourcePost->getPermalink();
+            if (! \is_string($permalink) || ! self::isHttpUri($permalink)) {
+                // The permalink becomes the newsletter's primary click target
+                // and nothing downstream validates its scheme (HTML-encoding
+                // does not neutralize javascript:/data: URIs); entries
+                // without a browser-safe http(s) URI are dropped.
+                continue;
+            }
             $cleanContent = $sanitizer->sanitize($sourcePost->getContent());
-            $posts[] = new Post($sourcePost->getPermalink(), $sourcePost->getTitle(), $cleanContent);
+            $posts[] = new Post($permalink, $sourcePost->getTitle(), $cleanContent);
         }
 
         $metadata = new FeedMetadata(
             uri: $feed->getUri(),
             title: $sourceFeed->getTitle() ?? '',
-            link: $sourceFeed->getLink() ?? '',
+            link: self::safeLink($feed->getUri(), $sourceFeed->getLink()),
             lastUpdate: new \DateTimeImmutable(),
         );
         return new Feed(metadata: $metadata, lastSentPostUri: $feed->lastSentPostUri, posts: $posts);
@@ -123,5 +130,26 @@ final readonly class FeedImporterLaminas implements FeedImporter
         } catch (\Laminas\Http\Exception\InvalidArgumentException $uriException) {
             throw new EndUserException('Invalid Feed URI', 0, $uriException);
         }
+    }
+
+    private static function isHttpUri(string $uri): bool
+    {
+        $scheme = \parse_url($uri, \PHP_URL_SCHEME);
+
+        return \is_string($scheme) && \in_array(\strtolower($scheme), ['http', 'https'], strict: true);
+    }
+
+    /**
+     * The publisher-declared channel link is rendered as a click target in
+     * the confirmation email; when its scheme is not browser-safe, fall back
+     * to the (egress-validated, http(s)) feed URI instead.
+     */
+    private static function safeLink(string $feedUri, ?string $declaredLink): string
+    {
+        if (\is_string($declaredLink) && $declaredLink !== '' && self::isHttpUri($declaredLink)) {
+            return $declaredLink;
+        }
+
+        return $feedUri;
     }
 }

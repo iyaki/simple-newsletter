@@ -44,4 +44,23 @@ test('fetchNew wraps invalid feed content in EndUserException', function (): voi
         ->toThrow(EndUserException::class);
 })->group('integration');
 
+test('fetchWithPosts drops entries whose permalink scheme is not http(s)', function (): void {
+    $importer = new FeedImporterLaminas();
+    $metadata = new FeedMetadata(FEED_TEST_BASE . '/hostile.xml', 'Test', 'test', new \DateTimeImmutable());
+
+    $feed = $importer->fetchWithPosts(new Feed($metadata));
+    \assert(\is_array($feed->posts), 'posts should be an array');
+
+    $uris = \array_map(static fn (\SimpleNewsletter\Data\Post $post): string => $post->uri, $feed->posts);
+    expect($uris)->toBe(['https://example.com/safe-post']);
+})->group('integration');
+
+test('feed-declared link with an unsafe scheme falls back to the feed URI', function (): void {
+    $importer = new FeedImporterLaminas();
+
+    $feed = $importer->fetchNew(FEED_TEST_BASE . '/hostile.xml');
+
+    expect($feed->getLink())->toBe(FEED_TEST_BASE . '/hostile.xml');
+})->group('integration');
+
 
