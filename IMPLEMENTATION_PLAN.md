@@ -15,7 +15,7 @@
 | Feed importing | `specs/feed-importer.md` | `libs/Models/Feeds.php`, `libs/Adapters/FeedImporterLaminas.php`, `libs/Data/FeedsDAO.php` | Implemented |
 | Newsletter delivery | `specs/newsletter-delivery.md` | `libs/Models/Newsletter.php`, `libs/Adapters/SenderPHPMailer.php`, `bin/send-newsletters.php` | Implemented |
 | Auth token generation | `specs/subscription-flow.md` | `libs/Components/Auth.php` | Implemented |
-| Email templates | `specs/newsletter-delivery.md` | `libs/Components/EmailTemplateFactory.php`, `libs/Templates/Email/` | Implemented |
+| Email templates | `specs/newsletter-delivery.md` | `libs/Models/Newsletter.php`, `libs/Templates/Email/` | Implemented |
 | HTTP response handling | `specs/api-endpoints.md` | `libs/Adapters/ResponderHttp.php` | Implemented |
 | Dependency injection | `specs/core-architecture.md` | `libs/Container.php` | Implemented |
 
@@ -83,7 +83,7 @@
 
 #### 4.1 Newsletter composition
 
-- [x] `EmailTemplateFactory` for HTML templates.
+- [x] `Newsletter` model constructs `SubscriptionConfirmation`/`Newsletter` templates directly.
 - [x] `SenderPHPMailer` adapter.
 - [x] Per-subscriber individual emails.
 

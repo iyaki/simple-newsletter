@@ -20,4 +20,19 @@ final readonly class Auth
     {
         return \hash_equals($this->hash($key), $token);
     }
+
+    /**
+     * MAC input binding the action, the feed and the per-subscription nonce,
+     * so a link authorizes exactly one action on one subscription.
+     */
+    public function tokenKey(string $action, string $feedUri, string $email, #[\SensitiveParameter] string $nonce): string
+    {
+        return $action . '|' . $feedUri . '|' . $email . '|' . $nonce;
+    }
+
+    /** @throws \Random\RandomException */
+    public function newNonce(): string
+    {
+        return \bin2hex(\random_bytes(16));
+    }
 }

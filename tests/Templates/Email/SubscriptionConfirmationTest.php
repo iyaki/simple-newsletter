@@ -48,4 +48,22 @@ test('SubscriptionConfirmation body contains confirmation uri, feed title and fe
     expect($body)->toContain('https://example.com');
 });
 
+test('SubscriptionConfirmation body HTML-encodes hostile feed link and title', function (): void {
+    $metadata = new FeedMetadata(
+        'https://example.com/feed',
+        'My Blog </a><script>alert(1)</script>',
+        'https://evil.example/home" onmouseover="alert(2)" href="',
+        new \DateTimeImmutable(),
+    );
+    $feed = new Feed($metadata);
+    $confirmation = new SubscriptionConfirmation('user@example.com', $feed, 'https://example.com/confirm');
+
+    $body = $confirmation->body();
+
+    expect($body)
+        ->toContain('&quot; onmouseover=&quot;alert(2)&quot; href=&quot;')
+        ->toContain('My Blog &lt;/a&gt;&lt;script&gt;alert(1)&lt;/script&gt;')
+        ->and($body)->not->toContain('<script>alert(1)</script>');
+});
+
 

@@ -25,6 +25,8 @@ final readonly class Subscriptions
         private Auth $auth,
     ) {}
 
+    private const int RESEND_INTERVAL_SECONDS = 3600;
+
     /** @throws EndUserException|RandomException */
     public function add(string $feedUri, string $email): void
     {
@@ -38,31 +40,47 @@ final readonly class Subscriptions
             throw new EndUserException('Invalid email address');
         }
 
-        $subscription = $this->subscriptionsDAO->find($feedUri, $email);
+        $subscription = $this->subscriptionsDAO->find($feedUri, $email)
+            ?? $this->createPendingSubscription($feedUri, $email);
 
-        if ($subscription instanceof Subscription) {
-            if ($subscription->active) {
-                throw new EndUserException('You are already subscribed to this feed.');
-            }
-        } else {
-            $subscription = new Subscription($feedUri, $email);
-            $this->subscriptionsDAO->new($subscription);
+        if ($subscription->active) {
+            throw new EndUserException('You are already subscribed to this feed.');
+        }
+
+        // ponytail: claim the resend slot atomically BEFORE sending; on a
+        // failed send the slot stays claimed for one interval (bounded
+        // email-bombing surface over instant retry).
+        if (! $this->subscriptionsDAO->markConfirmationSent($subscription, self::RESEND_INTERVAL_SECONDS)) {
+            // Deliberately silent: the endpoint reports "confirmation sent"
+            // for every request, so responses cannot reveal whether a resend
+            // happened or the throttle suppressed it (anti-enumeration).
+            return;
         }
 
         $this->newsletter->sendConfirmation($feed, $subscription);
     }
 
+    /** @throws EndUserException|RandomException */
+    private function createPendingSubscription(string $feedUri, string $email): Subscription
+    {
+        $subscription = new Subscription($feedUri, $email, tokenNonce: $this->auth->newNonce());
+        $this->subscriptionsDAO->new($subscription);
+
+        return $subscription;
+    }
+
     /** @throws EndUserException */
     public function confirm(string $feedUri, string $email, #[\SensitiveParameter] string $token): void
     {
-        if (! $this->auth->verify($email, $token)) {
-            throw new EndUserException('Invalid token. Please check your confirmation link and try again.');
-        }
-
         $subscription = $this->subscriptionsDAO->find($feedUri, $email);
 
         if (! $subscription instanceof Subscription) {
             throw new EndUserException('Subscription not found. The link may be invalid or expired.');
+        }
+
+        $key = $this->auth->tokenKey('confirm', $feedUri, $email, $subscription->tokenNonce);
+        if (! $this->auth->verify($key, $token)) {
+            throw new EndUserException('Invalid token. Please check your confirmation link and try again.');
         }
 
         $this->subscriptionsDAO->activate($subscription);
@@ -71,54 +89,16 @@ final readonly class Subscriptions
     /** @throws EndUserException */
     public function cancel(string $feedUri, string $email, #[\SensitiveParameter] string $token): void
     {
-        if (! $this->auth->verify($email, $token)) {
-            throw new EndUserException('Invalid token. Please check your cancellation link and try again.');
-        }
-
         $subscription = $this->subscriptionsDAO->find($feedUri, $email);
         if (! $subscription instanceof Subscription) {
             throw new EndUserException('Subscription not found');
         }
 
-        $this->subscriptionsDAO->delete($subscription);
-    }
-
-    /** @throws EndUserException */
-    public function sendScheduled(\DateTimeImmutable $datetime): void
-    {
-        $scheduledFeeds = $this->feeds->getScheduled($datetime);
-
-        foreach ($scheduledFeeds as $scheduledFeed) {
-            $feed = $this->feeds->retrieveWithPosts($scheduledFeed);
-
-            // Posts arrive newest→oldest. Collect every post newer than the
-            // watermark (lastSentPostUri); stop at it, since it and everything
-            // after were already sent.
-            /** @var list<\SimpleNewsletter\Data\Post> $newPosts */
-            $newPosts = [];
-            foreach ($feed->posts as $post) {
-                if ($post->uri === $feed->lastSentPostUri) {
-                    break;
-                }
-                $newPosts[] = $post;
-            }
-
-            if ($newPosts === []) {
-                continue;
-            }
-
-            // First delivery (no watermark): seed with only the newest post
-            // instead of mailing the entire historical backlog.
-            if ($feed->lastSentPostUri === null) {
-                $newPosts = [$newPosts[0]];
-            }
-
-            /** @var list<Subscription> $activeSubscriptions */
-            $activeSubscriptions = $this->subscriptionsDAO->findActiveSubscriptionsFor($feed);
-            $this->newsletter->sendPostsToSubscribers($feed, $newPosts, ...$activeSubscriptions);
-
-            // $newPosts is newest-first; advance the watermark to the newest sent.
-            $this->feeds->updateLastSentPost($feed, $newPosts[0]);
+        $key = $this->auth->tokenKey('cancel', $feedUri, $email, $subscription->tokenNonce);
+        if (! $this->auth->verify($key, $token)) {
+            throw new EndUserException('Invalid token. Links from newsletters sent before a recent security update are no longer valid; use the unsubscribe link in the next newsletter.');
         }
+
+        $this->subscriptionsDAO->delete($subscription);
     }
 }

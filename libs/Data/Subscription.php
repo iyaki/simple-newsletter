@@ -10,5 +10,7 @@ final readonly class Subscription
         public string $feedUri,
         public string $email,
         public bool $active = false,
+        public string $tokenNonce = '',
+        public int $confirmationSentAt = 0,
     ) {}
 }

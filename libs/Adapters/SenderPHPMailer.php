@@ -6,16 +6,14 @@ namespace SimpleNewsletter\Adapters;
 
 use PHPMailer\PHPMailer\PHPMailer;
 use SimpleNewsletter\Components\EndUserException;
-use SimpleNewsletter\Components\Sender;
 use SimpleNewsletter\Templates\Email\EmailInterface;
 
 /**
- * PHPMailer implementation of the Sender interface.
+ * PHPMailer implementation for sending email templates.
  *
  * Configures SMTP relay with PHPMailer, handles UTF-8 encoding and base64 transfer.
- * Requires SmtpConfig with connection (host, port, encryption) and credentials.
  */
-final readonly class SenderPHPMailer implements Sender
+final readonly class SenderPHPMailer
 {
     private PHPMailer $mailer;
 
@@ -29,15 +27,15 @@ final readonly class SenderPHPMailer implements Sender
         $mailer ??= new PHPMailer(true);
 
         $mailer->isSMTP();
-        $mailer->SMTPSecure = $config->connection->encryption;
+        $mailer->SMTPSecure = $config->encryption;
         $mailer->SMTPKeepAlive = true;
-        $mailer->Host = $config->connection->host;
-        $mailer->Port = $config->connection->port;
+        $mailer->Host = $config->host;
+        $mailer->Port = $config->port;
         $mailer->SMTPAuth = true;
-        $mailer->Username = $config->credentials->user;
-        $mailer->Password = $config->credentials->password;
+        $mailer->Username = $config->user;
+        $mailer->Password = $config->password;
 
-        if ($config->connection->allowSelfSigned) {
+        if ($config->allowSelfSigned) {
             $mailer->SMTPOptions = [
                 'ssl' => [
                     'verify_peer' => false,
@@ -47,8 +45,8 @@ final readonly class SenderPHPMailer implements Sender
             ];
         }
 
-        $mailer->setFrom($config->sender->from, 'Simple Newsletter');
-        $mailer->addReplyTo($config->sender->replyTo, 'The Developer');
+        $mailer->setFrom($config->from, 'Simple Newsletter');
+        $mailer->addReplyTo($config->replyTo, 'The Developer');
 
         $this->mailer = $mailer;
     }
@@ -56,7 +54,6 @@ final readonly class SenderPHPMailer implements Sender
     /**
      * @throws EndUserException
      */
-    #[\Override]
     public function send(EmailInterface $template): void
     {
         try {

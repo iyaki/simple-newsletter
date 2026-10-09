@@ -31,10 +31,9 @@ Define the high-level architecture, module layout, and data flow of the Simple N
 │   │   └── Subscriptions.php      # Subscription workflow orchestration
 │   ├── Components/
 │   │   ├── Auth.php               # Token hashing for confirmation/cancellation
-│   │   ├── EmailTemplateFactory.php
 │   │   ├── EndUserException.php
-│   │   ├── FeedImporter.php       # Interface for feed fetching
-│   │   └── Sender.php             # Interface for email sending
+│   │   ├── ErrorReporter.php      # Error reporting hook (Sentry etc.)
+│   │   └── RateLimiter.php        # Confirmation throttle
 │   ├── Adapters/
 │   │   ├── FeedImporterLaminas.php # Laminas-feed implementation
 │   │   ├── ResponderHttp.php       # HTTP response builder
@@ -65,26 +64,28 @@ Define the high-level architecture, module layout, and data flow of the Simple N
 Subscription flow:
   User → public/v1/subscriptions/index.php
       → Subscriptions::add()
-          → Feeds::retrieve() → FeedImporter::fetch/fetchNew() → FeedsDAO
+          → Feeds::retrieve() → FeedImporterLaminas::fetch/fetchNew() → FeedsDAO
           → SubscriptionsDAO::create()
           → Newsletter::sendConfirmation()
               → Auth::hash() for token
-              → EmailTemplateFactory::createConfirmation()
-              → Sender::send() → SenderPHPMailer
+              → constructs SubscriptionConfirmation inline (confirmation link from URI_SELF)
+              → SenderPHPMailer::send()
 
 Delivery flow:
   cron → bin/send-newsletters.php
-      → Subscriptions::sendScheduled()
+      → NewsletterDelivery::sendScheduled()
           → Feeds::getScheduled()
           → For each feed with subscriptions:
-              → Feeds::retrieveWithPosts() → FeedImporter::fetchWithPosts()
+              → Feeds::retrieveWithPosts() → FeedImporterLaminas::fetchWithPosts()
               → Collect posts newer than the watermark (feed.last_sent_post_uri)
               → Newsletter::sendPostsToSubscribers() — one email per subscriber with all new posts
+                  → constructs Newsletter template inline (cancellation link from URI_SELF)
+                  → SenderPHPMailer::send()
               → Feeds::updateLastSentPost() — advance watermark to the newest sent post
 ```
 
 ## Security Considerations
 
-- Confirmation/cancellation tokens are HMAC hashes of the subscriber email.
+- Confirmation/cancellation tokens are HMAC-SHA256 hashes binding the action, feed URI, subscriber email, and a per-subscription nonce.
 - No passwords, no session management.
 - SQLite file permissions must be restricted.

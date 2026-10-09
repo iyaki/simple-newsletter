@@ -1,8 +1,9 @@
-FROM dunglas/frankenphp:1-php8.5 AS runtime
+FROM dunglas/frankenphp@sha256:2a9c6663f73ad1e401909634206bd25e13bed5b94d86eefa3b5ec64c985b4595 AS dependencies
+# ^ digest of dunglas/frankenphp:1-php8.5 at audit time (2026-10-09); bump
+#   deliberately, never by rebuilding.
 
-FROM runtime AS dependencies
-
-COPY --from=composer /usr/bin/composer /usr/bin/composer
+COPY --from=composer@sha256:af98f42dfff7c68ba8d53c2164fd9fde1087b7d449514baa38c418b1f6bc4bac /usr/bin/composer /usr/bin/composer
+# ^ digest of library/composer:2 at audit time (2026-10-09)
 
 RUN apt-get update \
 	&& apt-get install --assume-yes --quiet --no-install-recommends --purge \
@@ -43,7 +44,8 @@ RUN COMPOSER_ALLOW_SUPERUSER=1 /usr/bin/composer install \
 	--classmap-authoritative \
 	--no-dev
 
-FROM dunglas/frankenphp:1-php8.5-alpine AS production
+FROM dunglas/frankenphp@sha256:7e70af992787717312ba98c7ab555ae050be8de0c506fd6aa93b850b36e22285 AS production
+# ^ digest of dunglas/frankenphp:1-php8.5-alpine at audit time (2026-10-09)
 
 LABEL org.opencontainers.image.source=https://github.com/iyaki/simple-newsletter
 

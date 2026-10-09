@@ -31,6 +31,9 @@ services:
       EMAIL_FROM: noreply@example.com
       EMAIL_REPLY_TO: dev@example.com
       SENTRY_DSN: ""
+      # The e2e feed server runs on the host behind host.docker.internal (a
+      # private address); lift the feed egress policy for this fixture only.
+      NEWSLETTER_ALLOW_PRIVATE_FEEDS: "1"
     extra_hosts:
       - "host.docker.internal:${HOST_IP:-host-gateway}"
     volumes:

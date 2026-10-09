@@ -41,6 +41,7 @@ final readonly class Newsletter implements EmailInterface
     public function body(): string
     {
         $fontStack = "Rockwell,'Rockwell Nova','Roboto Slab','DejaVu Serif','Sitka Small',serif";
+        $esc = static fn (string $value): string => \htmlspecialchars($value, \ENT_QUOTES | \ENT_SUBSTITUTE, encoding: 'UTF-8');
 
         $blocks = [];
         foreach ($this->posts as $index => $post) {
@@ -49,7 +50,9 @@ final readonly class Newsletter implements EmailInterface
             }
             $utm = (\str_contains($post->uri, '?') ? '&' : '?') . 'utm_source=simple-newsletter.com&utm_medium=email'; // ponytail: ignores #fragment edge case
             $blocks[] = '<article>';
-            $blocks[] = '<h2 style="margin:0 0 .5em;font-size:1.3em"><a href="' . $post->uri . $utm . '">' . $post->title . '</a></h2>';
+            // Title and link are publisher-controlled and bypass the import-time
+            // content sanitizer, so they must be encoded for their HTML contexts.
+            $blocks[] = '<h2 style="margin:0 0 .5em;font-size:1.3em"><a href="' . $esc($post->uri . $utm) . '">' . $esc($post->title) . '</a></h2>';
             $blocks[] = $post->content;
             $blocks[] = '</article>';
         }
@@ -60,7 +63,7 @@ final readonly class Newsletter implements EmailInterface
             <div style="max-width:60ch;margin:0 auto;font-size:18px;line-height:1.5;font-family:{$fontStack}">
                 {$postsHtml}
             </div>
-            <p><a href="{$this->cancellationURI}">To cancel your subscription to this newsletter click here</a></p>
+            <p><a href="{$esc($this->cancellationURI)}">To cancel your subscription to this newsletter click here</a></p>
             HTML;
     }
 }

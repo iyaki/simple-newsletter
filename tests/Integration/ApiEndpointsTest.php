@@ -211,9 +211,37 @@ describe('RateLimiter', function (): void {
         }
 
         // 11th should throw
-        $limiter->check('127.0.0.2', 'test-endpoint-2');
-        expect(true)->toBeTrue();
-    })->throws(\SimpleNewsletter\Components\EndUserException::class, 'Too many requests');
+        $thrown = null;
+        try {
+            $limiter->check('127.0.0.2', 'test-endpoint-2');
+        } catch (\SimpleNewsletter\Components\EndUserException $exception) {
+            $thrown = $exception;
+        }
+
+        expect($thrown)->not->toBeNull()
+            ->and($thrown?->getMessage())->toContain('Too many requests');
+    });
+
+    /** @throws \PDOException */
+    it('globally purges expired rows from abandoned buckets', function (): void {
+        $db = create_test_db();
+        $limiter = new \SimpleNewsletter\Components\RateLimiter($db);
+
+        $stale = \time() - 3600;
+        $insert = $db->prepare('INSERT INTO rate_limits (ip, endpoint, window_start) VALUES (:ip, :endpoint, :window)');
+        \assert($insert instanceof \PDOStatement);
+        foreach (['10.0.0.1', '10.0.0.2', '10.0.0.3'] as $foreignIp) {
+            $insert->execute(['ip' => $foreignIp, 'endpoint' => 'abandoned', 'window' => $stale]);
+        }
+
+        $limiter->check('127.0.0.9', 'test-endpoint-9');
+
+        $select = $db->prepare('SELECT COUNT(*) FROM rate_limits WHERE endpoint = :endpoint');
+        \assert($select instanceof \PDOStatement);
+        $select->execute(['endpoint' => 'abandoned']);
+        $remaining = (int) $select->fetchColumn();
+        expect($remaining)->toBe(0);
+    });
 });
 
 // ─── Auth contract ─────────────────────────────────────────────────────────

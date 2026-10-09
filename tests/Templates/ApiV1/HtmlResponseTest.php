@@ -31,6 +31,25 @@ test('fromString with return includes redirect link in body', function (): void 
     expect($body)->toContain('https://example.com/back')->toContain('href=');
 });
 
+test('getBody HTML-encodes markup-bearing return URLs at the sink', function (): void {
+    $payload = 'http://example.com?next="><script>alert(1)</script>';
+    $body = HtmlResponse::fromString('Done', 'Success', $payload)->getBody();
+
+    expect($body)->toContain('href="http://example.com?next=&quot;')
+        ->and($body)->not->toContain('<script>alert(1)</script>');
+});
+
+test('getBody HTML-encodes markup-bearing titles and messages', function (): void {
+    $body = HtmlResponse::fromString(
+        'An email confirmation has been sent to "<script>alert(1)</script>"@attacker.example.',
+        'Please check <b>your</b> inbox.',
+    )->getBody();
+
+    expect($body)->toContain('&quot;&lt;script&gt;alert(1)&lt;/script&gt;&quot;@attacker.example.')
+        ->and($body)->not->toContain('<script>')
+        ->toContain('&lt;b&gt;your&lt;/b&gt;');
+});
+
 test('fromString with ok=false sets isOk to false', function (): void {
     $response = HtmlResponse::fromString('Error', 'Failed', null, false);
     expect($response->isOk())->toBeFalse();

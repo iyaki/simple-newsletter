@@ -23,12 +23,17 @@ final readonly class RateLimiter
             $now = \time();
             $windowStart = $now - self::WINDOW_SECONDS;
 
-            // Purge old entries for this IP+endpoint
+            // Global retention sweep: purge every expired row, not just this
+            // bucket's, so abandoned ip/endpoint buckets cannot grow the table
+            // forever. The only index is (ip, endpoint, window_start), so this
+            // sweep is a deliberate full scan; the sweep keeps the table at
+            // ~one window of rows, so an extra window_start index would only
+            // slow inserts.
             /** @var \PDOStatement $stmt */
             $stmt = $this->db->prepare(
-                'DELETE FROM rate_limits WHERE ip = :ip AND endpoint = :endpoint AND window_start < :window',
+                'DELETE FROM rate_limits WHERE window_start < :window',
             );
-            $stmt->execute(['ip' => $ip, 'endpoint' => $endpoint, 'window' => $windowStart]);
+            $stmt->execute(['window' => $windowStart]);
 
             // Count requests in current window
             /** @var \PDOStatement $stmt */

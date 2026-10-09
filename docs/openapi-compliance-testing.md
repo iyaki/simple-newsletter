@@ -8,25 +8,7 @@ This project now includes OpenAPI compliance testing infrastructure to validate 
 
 ## What's Implemented
 
-### 1. OpenAPI Validation Trait (`tests/E2e/OpenApiValidator.php`)
-
-A reusable Pest trait that provides:
-- **`loadOpenApiSpec()`**: Loads and caches the OpenAPI YAML spec
-- **`validateResponse()`**: Validates HTTP responses against the spec
-  - Checks status codes are defined
-  - Validates response headers (e.g., `X-Robots-Tag`)
-  - Validates JSON body schema structure
-  - Returns validation results with detailed errors
-
-### 2. HTTP Client Helpers (`tests/E2e/HttpClientHelpers.php`)
-
-Convenience methods for making HTTP requests in tests:
-- **`get()`**: Perform GET requests with query parameters
-- **`post()`**: Perform POST requests with JSON body
-- **`getContentSafe()`**: Get response body without throwing on error status
-- **`toArraySafe()`**: Parse JSON responses safely
-
-### 3. Compliance Test Suite (`tests/E2e/OpenApiComplianceTest.php`)
+### 1. Compliance Test Suite (`tests/E2e/OpenApiComplianceTest.php`)
 
 9 comprehensive tests covering:
 - ✅ Error response structure validation (400 responses)
@@ -64,7 +46,7 @@ it('returns valid error structure', function () {
     $contentType = $response->getHeaders()['content-type'][0];
     
     if (str_contains($contentType, 'application/json')) {
-        $body = self::toArraySafe($response);
+        $body = \json_decode($response->getContent(false), true);
         expect($body)->toHaveKey('title'); // Per OpenAPI JSONResponse schema
     }
 });
@@ -89,7 +71,7 @@ it('includes X-Robots-Tag header', function () {
 
 ### Symfony HttpClient 7.x Behavior
 
-Symfony HttpClient 7.x throws `ClientException` when accessing response body/content for 4xx/5xx status codes. The `getContentSafe()` and `toArraySafe()` methods handle this by catching exceptions and attempting to retrieve the content anyway.
+Symfony HttpClient 7.x throws `ClientException` from `getHeaders()`/`getContent()` for 4xx/5xx status codes. Pass `false` (`getHeaders(false)`, `getContent(false)`) to read error responses without throwing; `getStatusCode()` never throws on HTTP error statuses.
 
 ### Application Behavior vs OpenAPI Spec
 
@@ -121,8 +103,6 @@ These are application issues to fix, not test infrastructure problems.
 
 | File | Purpose |
 |------|---------|
-| `tests/E2e/OpenApiValidator.php` | OpenAPI spec loader and validator |
-| `tests/E2e/HttpClientHelpers.php` | HTTP client wrapper with safe methods |
 | `tests/E2e/OpenApiComplianceTest.php` | Compliance test suite |
 | `tests/E2e/bootstrap.php` | Test environment setup |
 | `specs/api-internal.yaml` | OpenAPI specification |

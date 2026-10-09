@@ -8,6 +8,8 @@ putenv('NEWSLETTER_DB_PATH=' . $testDbPath);
 putenv('SECRET_KEY=test-e2e-secret-key-32chars!');
 putenv('SERVER_NAME=http://localhost:8080');
 putenv('URI_SELF=http://localhost:8080');
+// The e2e feed server is a loopback fixture: lift the feed egress policy.
+putenv('NEWSLETTER_ALLOW_PRIVATE_FEEDS=1');
 // Disable Sentry for e2e tests
 putenv('SENTRY_DSN=');
 
@@ -42,46 +44,11 @@ if (! function_exists('init_test_database')) {
      * Initialize test database with fresh schema
      *
      * @param string $dbPath Path to the test database file
-     *
-     * @throws \PDOException
-     * @throws \RuntimeException
      */
     function init_test_database(string $dbPath): void
     {
-        if (\file_exists($dbPath)) {
-            // Database exists, clear data instead of recreating schema
-            $pdo = new \PDO("sqlite:{$dbPath}");
-            $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
-            try {
-                $pdo->exec('DELETE FROM rate_limits');
-            } catch (\PDOException) {
-                // rate_limits table might not exist yet - ignore
-            }
-            $pdo->exec('DELETE FROM subscriptions');
-            $pdo->exec('DELETE FROM feeds');
-            return;
-        }
-        // Database doesn't exist, create fresh with migrations
-        $pdo = new \PDO("sqlite:{$dbPath}");
-        $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
-
-        // Apply migrations in order for new database
-        $migrationsDir = __DIR__ . '/../../migrations';
-        $migrationFiles = [
-            '00-setup.sql',
-            '01-feeds.sql',
-            '02-subscriptions.sql',
-            '03-rate-limiting.sql',
-            '99-optimizations.sql',
-        ];
-
-        foreach ($migrationFiles as $file) {
-            $sql = \file_get_contents($migrationsDir . '/' . $file);
-            if ($sql === false) {
-                continue;
-            }
-            $pdo->exec($sql);
-        }
+        require_once __DIR__ . '/../migrations.php';
+        rebuild_sqlite_db($dbPath);
     }
 }
 
@@ -124,68 +91,4 @@ function http_get(
         'headers' => $headers,
     ]);
 }
-/**
- * Safely get status code without throwing on error status
- *
- * @throws \Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface
- */
-function get_status_safe(\Symfony\Contracts\HttpClient\ResponseInterface $response): int
-{
-    try {
-        return $response->getStatusCode();
-    } catch (\Throwable $e) {
-        // Return 0 on error for safe helper
-        return 0;
-    }
-}
 
-/**
- * Safely get headers without throwing on error status
- *
- * @return array<string, array<string>>
- *
- * @throws \Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface
- */
-function get_headers_safe(\Symfony\Contracts\HttpClient\ResponseInterface $response): array
-{
-    try {
-        return $response->getHeaders();
-    } catch (\Throwable) {
-        return [];
-    }
-}
-function get_content_safe(\Symfony\Contracts\HttpClient\ResponseInterface $response): string
-{
-    // Use getContent(false) so HTTP error statuses do not throw - the body
-    // is still drained into $this->content during initialization and can be
-    // read back even when Symfony's checkStatusCode() would normally reject
-    // it. Falling back to reflection here would race with the destructor
-    // and yield empty strings for buffered responses.
-    try {
-        return $response->getContent(false);
-    } catch (\Throwable) {
-        return '';
-    }
-}
-
-/**
- * Safely get response as array without throwing on error status
- *
- * @return array<string, mixed>
- *
- * @throws \Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface
- * @throws \Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface
- * @throws \Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface
- * @throws \Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface
- */
-function to_array_safe(\Symfony\Contracts\HttpClient\ResponseInterface $response): array
-{
-    $content = get_content_safe($response);
-    if (\strlen($content) === 0) {
-        return [];
-    }
-
-    /** @var array<string, mixed>|null $decoded */
-    $decoded = \json_decode($content, associative: true);
-    return \is_array($decoded) ? $decoded : [];
-}

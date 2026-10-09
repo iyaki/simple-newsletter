@@ -17,14 +17,30 @@ final class ResponderHttp
 
     private const string TYPE_JSON = 'application/json';
 
-    public function sendResponse(ResponseInterface $response): void
+
+    /**
+     * Emit a response. Without an explicit status code, non-ok responses are
+     * sent as 400s (end-user errors); pass a code (e.g. 500) for technical
+     * failures that must not be presented as the client's fault.
+     */
+    public function sendResponse(ResponseInterface $response, int $statusCode = 0): void
     {
         $headers = $response->getHeaders();
         foreach ($headers as $key => $value) {
             \header(\sprintf('%s: %s', $key, $value));
         }
 
-        if (! $response->isOk() && ! $response instanceof RedirectResponse) {
+        if ($statusCode !== 0) {
+            \header(
+                header: \sprintf(
+                    'HTTP/1.0 %d %s',
+                    $statusCode,
+                    $statusCode === 500 ? 'Internal Server Error' : 'Error',
+                ),
+                replace: true,
+                response_code: $statusCode,
+            );
+        } elseif (! $response->isOk() && ! $response instanceof RedirectResponse) {
             \header(header: 'HTTP/1.0 400 Bad Request', replace: true, response_code: 400);
         }
 

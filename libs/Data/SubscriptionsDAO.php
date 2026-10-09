@@ -10,7 +10,7 @@ final class SubscriptionsDAO
 {
     private string $TABLE = 'subscriptions';
 
-    private string $FIELDS_FULL = 'feed_uri, email, active';
+    private string $FIELDS_FULL = 'feed_uri, email, active, token_nonce, confirmation_sent_at';
 
     public function __construct(
         private readonly \PDO $db,
@@ -30,14 +30,14 @@ final class SubscriptionsDAO
                 'feed_uri' => $feedUri,
                 'email' => $email,
             ]);
-            /** @var array{feed_uri: string, email: string, active: string}|false $row */
+            /** @var array{feed_uri: string, email: string, active: string, token_nonce: string, confirmation_sent_at: string}|false $row */
             $row = $stmt->fetch(\PDO::FETCH_ASSOC);
 
             if ($row === false) {
                 return null;
             }
 
-            return $this->SubscriptionDTOFactory($row['feed_uri'], $row['email'], (int) $row['active']);
+            return $this->SubscriptionDTOFactory($row['feed_uri'], $row['email'], (int) $row['active'], $row['token_nonce'], (int) $row['confirmation_sent_at']);
         } catch (\PDOException $pdoException) {
             throw new EndUserException('A technical error occurred. Please try again later.', 0, $pdoException);
         }
@@ -96,13 +96,17 @@ final class SubscriptionsDAO
                 VALUES (
                     :feed_uri,
                     :email,
-                    :active
+                    :active,
+                    :token_nonce,
+                    :confirmation_sent_at
                 )
                 SQL);
             $stmt->execute([
                 'feed_uri' => $subscription->feedUri,
                 'email' => $subscription->email,
                 'active' => (int) $subscription->active,
+                'token_nonce' => $subscription->tokenNonce,
+                'confirmation_sent_at' => $subscription->confirmationSentAt,
             ]);
         } catch (\PDOException $pdoException) {
             throw new EndUserException('A technical error occurred. Please try again later.', 0, $pdoException);
@@ -127,15 +131,49 @@ final class SubscriptionsDAO
             $stmt->execute([
                 'feed_uri' => $feed->getUri(),
             ]);
-            /** @var array<array-key, array{feed_uri: string, email: string, active: string}> $result */
+            /** @var array<array-key, array{feed_uri: string, email: string, active: string, token_nonce: string, confirmation_sent_at: string}> $result */
             $result = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
             $subscriptions = [];
             foreach ($result as $row) {
-                $subscriptions[] = $this->SubscriptionDTOFactory($row['feed_uri'], $row['email'], (int) $row['active']);
+                $subscriptions[] = $this->SubscriptionDTOFactory($row['feed_uri'], $row['email'], (int) $row['active'], $row['token_nonce'], (int) $row['confirmation_sent_at']);
             }
 
             return $subscriptions;
+        } catch (\PDOException $pdoException) {
+            throw new EndUserException('A technical error occurred. Please try again later.', 0, $pdoException);
+        }
+    }
+
+    /**
+     * Atomically claims the confirmation-resend slot: succeeds only when the
+     * last confirmation is older than the interval (new rows, sent-at 0, are
+     * always eligible).
+     *
+     * @throws EndUserException
+     */
+    public function markConfirmationSent(Subscription $subscription, int $resendIntervalSeconds): bool
+    {
+        try {
+            $now = \time();
+            /** @var \PDOStatement $stmt */
+            $stmt = $this->db->prepare(<<<SQL
+                UPDATE {$this->TABLE}
+                SET
+                    confirmation_sent_at = :now
+                WHERE
+                    feed_uri = :feed_uri
+                AND email = :email
+                AND confirmation_sent_at <= :cutoff
+                SQL);
+            $stmt->execute([
+                'now' => $now,
+                'feed_uri' => $subscription->feedUri,
+                'email' => $subscription->email,
+                'cutoff' => $now - $resendIntervalSeconds,
+            ]);
+
+            return $stmt->rowCount() === 1;
         } catch (\PDOException $pdoException) {
             throw new EndUserException('A technical error occurred. Please try again later.', 0, $pdoException);
         }
@@ -145,7 +183,9 @@ final class SubscriptionsDAO
         string $feed_uri,
         string $email,
         int $active,
+        string $token_nonce = '',
+        int $confirmation_sent_at = 0,
     ): Subscription {
-        return new Subscription($feed_uri, $email, (bool) $active);
+        return new Subscription($feed_uri, $email, (bool) $active, $token_nonce, $confirmation_sent_at);
     }
 }

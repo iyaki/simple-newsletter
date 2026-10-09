@@ -29,24 +29,9 @@ function e2e_get_cancel(string $path, array $queryParams = []): ResponseInterfac
     ]);
 }
 
-/**
- * @throws \PDOException
- */
-function e2e_clean_test_database(): void
-{
-    $dbPath = \getenv('NEWSLETTER_DB_PATH');
-    if ($dbPath && \file_exists($dbPath)) {
-        $pdo = new \PDO("sqlite:{$dbPath}");
-        $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
-        $pdo->exec('DELETE FROM subscriptions');
-        $pdo->exec('DELETE FROM feeds');
-    }
-}
-
 beforeEach(
     /** @throws \PDOException */
     function (): void {
-        e2e_clean_test_database();
         init_test_database((string) \getenv('NEWSLETTER_DB_PATH'));
 
         // Create active subscription with feed
@@ -78,10 +63,13 @@ it(
      * @throws \PDOException
      */
     function (): void {
-        $token = hash_hmac(algo: 'sha256', data: 'test@example.com', key: (string) getenv('SECRET_KEY'));
+        // Token binding (audit fix): MAC = HMAC('cancel|feedUri|email|nonce', SECRET_KEY);
+        // this row was seeded without a nonce, so the nonce component is empty.
+        $feedUri = 'http://' . e2e_feed_host() . ':9995/valid.xml';
+        $token = hash_hmac(algo: 'sha256', data: 'cancel|' . $feedUri . '|test@example.com|', key: (string) getenv('SECRET_KEY'));
 
         $response = e2e_get_cancel('/v1/subscriptions/cancellation/', [
-            'uri' => 'http://' . e2e_feed_host() . ':9995/valid.xml',
+            'uri' => $feedUri,
             'email' => 'test@example.com',
             'token' => $token,
         ]);
