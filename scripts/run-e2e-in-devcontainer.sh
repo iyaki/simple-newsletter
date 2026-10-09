@@ -14,7 +14,7 @@ sleep 2
 # Initialize test database
 echo "1. Setting up test database..."
 export NEWSLETTER_DB_PATH="$PWD/data/test-e2e.db"
-rm -f "$NEWSLETTER_DB_PATH"
+rm -f "$NEWSLETTER_DB_PATH" "$NEWSLETTER_DB_PATH-wal" "$NEWSLETTER_DB_PATH-shm"
 php -r "
 \$dbPath = getenv('NEWSLETTER_DB_PATH');
 \$pdo = new PDO(\"sqlite:{\$dbPath}\");
@@ -171,8 +171,6 @@ echo "4. Starting test HTTP server on port 8082..."
 export SECRET_KEY='test-e2e-secret-key-32chars!'
 export SERVER_NAME='http://localhost:8082'
 export URI_SELF='http://localhost:8082'
-# The e2e feed server is a loopback fixture: lift the feed egress policy.
-export NEWSLETTER_ALLOW_PRIVATE_FEEDS='1'
 export SMTP_HOST='127.0.0.1'
 export SMTP_PORT='1025'
 export SMTP_ENCRYPTION=''

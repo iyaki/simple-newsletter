@@ -67,7 +67,8 @@ final readonly class Newsletter
         }
 
         // Whole-batch failure must not silently drop the digest: rethrow so
-        // the caller skips the watermark advance and retries next run.
+        // the caller quarantines this feed, skips the watermark advance, and
+        // the feed is retried at its next scheduled slot.
         if ($delivered === 0 && $subscriptions !== [] && $lastFailure !== null) {
             throw new EndUserException(
                 'Newsletter delivery failed for every recipient: ' . $lastFailure->getMessage(),

@@ -81,6 +81,53 @@ test('container uses empty string when URI_SELF not set', function (): void {
     expect($factory)->toBeInstanceOf(\SimpleNewsletter\Adapters\ResponderHttp::class);
 });
 
+test('delivery returns NewsletterDelivery instance', function (): void {
+    $container = new Container();
+    expect($container->delivery())->toBeInstanceOf(\SimpleNewsletter\Models\NewsletterDelivery::class);
+});
+
+test('auth weak reference reuses the live instance and recreates after GC', function (): void {
+    $prev = \getenv('SECRET_KEY');
+    \putenv('SECRET_KEY=weak-reference-test-secret');
+    reset_container_auth_cache();
+    $property = new \ReflectionProperty(Container::class, 'auth');
+
+    try {
+        $container = new Container();
+
+        $first = $container->subscriptions();
+        /** @var \WeakReference|null $weak */
+        $weak = $property->getValue(null);
+        \assert($weak instanceof \WeakReference, 'auth should be cached in a weak reference');
+        $authA = $weak->get();
+        \assert($authA instanceof \SimpleNewsletter\Components\Auth, 'cached auth should be live');
+
+        // Still referenced by $first: the next build must reuse the instance.
+        $second = $container->subscriptions();
+        expect($weak->get())->toBe($authA);
+
+        // Drop every strong reference: the weak reference dies and a fresh
+        // Auth is created on the next build (long-running-worker semantics).
+        unset($first, $second, $authA);
+        \gc_collect_cycles();
+        expect($weak->get())->toBeNull();
+
+        $third = $container->subscriptions();
+        /** @var \WeakReference|null $rebuilt */
+        $rebuilt = $property->getValue(null);
+        \assert($rebuilt instanceof \WeakReference, 'auth cache should be repopulated');
+        $authC = $rebuilt->get();
+        \assert($authC instanceof \SimpleNewsletter\Components\Auth, 'auth should be rebuilt');
+        expect($authC)->toBeInstanceOf(\SimpleNewsletter\Components\Auth::class);
+        unset($third, $authC, $rebuilt);
+    } finally {
+        reset_container_auth_cache();
+        if ($prev !== false) {
+            \putenv('SECRET_KEY=' . $prev);
+        }
+    }
+});
+
 function reset_container_auth_cache(): void
 {
     $auth = new \ReflectionProperty(Container::class, 'auth');
