@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SimpleNewsletter\Models;
 
 use SimpleNewsletter\Components\EndUserException;
+use SimpleNewsletter\Components\ErrorReporter;
 use SimpleNewsletter\Data\Feed;
 use SimpleNewsletter\Data\SubscriptionsDAO;
 use SimpleNewsletter\Data\Subscription;
@@ -35,8 +36,11 @@ final readonly class NewsletterDelivery
                 $this->deliverFeed($scheduledFeed);
             } catch (\Throwable $feedFailure) {
                 // ponytail: one broken feed must not suppress delivery of the
-                // other co-scheduled feeds; quarantine and keep going.
-                error_log(sprintf('Skipping feed %s: %s', $scheduledFeed->getUri(), $feedFailure->getMessage()));
+                // other co-scheduled feeds; quarantine, log + report, keep going.
+                ErrorReporter::report(
+                    \sprintf('Skipping feed %s: %s', $scheduledFeed->getUri(), $feedFailure->getMessage()),
+                    $feedFailure,
+                );
             }
         }
     }

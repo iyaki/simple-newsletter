@@ -6,6 +6,7 @@ namespace SimpleNewsletter\Models;
 
 use SimpleNewsletter\Components\Auth;
 use SimpleNewsletter\Components\EmailTemplateFactory;
+use SimpleNewsletter\Components\ErrorReporter;
 use SimpleNewsletter\Components\Sender;
 use SimpleNewsletter\Data\Feed;
 use SimpleNewsletter\Data\Post;
@@ -48,10 +49,13 @@ final readonly class Newsletter
                 ));
             } catch (\Throwable $sendFailure) {
                 // ponytail: one bad recipient must not skip the rest of the
-                // batch; the failed recipient loses this digest (logged), and
-                // the watermark advance after the loop avoids duplicate mail
-                // to the recipients who already received it.
-                error_log(sprintf('Delivery to %s failed: %s', $subscription->email, $sendFailure->getMessage()));
+                // batch; the failed recipient loses this digest (logged +
+                // reported), and the watermark advance after the loop avoids
+                // duplicate mail to the recipients who already received it.
+                ErrorReporter::report(
+                    \sprintf('Delivery to %s failed: %s', $subscription->email, $sendFailure->getMessage()),
+                    $sendFailure,
+                );
             }
         }
     }
