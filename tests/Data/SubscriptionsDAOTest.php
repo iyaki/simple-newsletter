@@ -25,17 +25,8 @@ beforeEach(function () use (&$dao, &$pdo): void {
     try {
         $db = new \PDO('sqlite::memory:');
         $db->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
-        $migrationFiles = \glob(__DIR__ . '/../../migrations/*.sql');
-        if ($migrationFiles === false) {
-            throw new \RuntimeException('Failed to read migration files');
-        }
-        foreach ($migrationFiles as $migration) {
-            $sql = \file_get_contents($migration);
-            if ($sql === false) {
-                continue;
-            }
-            $db->exec($sql);
-        }
+        require_once __DIR__ . '/../migrations.php';
+        apply_migrations($db);
         $dao = new SubscriptionsDAO($db);
         $pdo = $db;
         // Seed a feed (FK constraint)

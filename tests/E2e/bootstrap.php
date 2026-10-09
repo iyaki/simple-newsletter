@@ -44,42 +44,11 @@ if (! function_exists('init_test_database')) {
      * Initialize test database with fresh schema
      *
      * @param string $dbPath Path to the test database file
-     *
-     * @throws \PDOException
-     * @throws \RuntimeException
      */
     function init_test_database(string $dbPath): void
     {
-        if (\file_exists($dbPath)) {
-            // Reused files carry schema drift; always rebuild from migrations.
-            \unlink($dbPath);
-        }
-        // Stale -wal/-shm sidecars (unclean shutdown, pkill -9) must not be
-        // recovered into the fresh database (SQLite corruption hazard).
-        foreach (['-wal', '-shm'] as $suffix) {
-            if (\file_exists($dbPath . $suffix)) {
-                \unlink($dbPath . $suffix);
-            }
-        }
-        // Database doesn't exist, create fresh with migrations
-        $pdo = new \PDO("sqlite:{$dbPath}");
-        $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
-
-        // Apply migrations in order for new database
-        $migrationsDir = __DIR__ . '/../../migrations';
-        $migrationFiles = \glob($migrationsDir . '/*.sql');
-        if ($migrationFiles === false) {
-            $migrationFiles = [];
-        }
-        \sort($migrationFiles);
-
-        foreach ($migrationFiles as $file) {
-            $sql = \file_get_contents($file);
-            if ($sql === false) {
-                continue;
-            }
-            $pdo->exec($sql);
-        }
+        require_once __DIR__ . '/../migrations.php';
+        rebuild_sqlite_db($dbPath);
     }
 }
 

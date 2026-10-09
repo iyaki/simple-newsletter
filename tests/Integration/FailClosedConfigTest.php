@@ -21,21 +21,8 @@ beforeAll(function () use (&$failClosedServer): void {
     // Fresh schema so the rate limiter (which runs before the configuration
     // check) does not short-circuit with a missing-table technical error.
     $dbPath = \sys_get_temp_dir() . '/simple-newsletter-fail-closed.db';
-    foreach ([$dbPath, $dbPath . '-wal', $dbPath . '-shm'] as $file) {
-        if (\file_exists($file)) {
-            \unlink($file);
-        }
-    }
-    $pdo = new \PDO('sqlite:' . $dbPath);
-    $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
-    $files = \glob(__DIR__ . '/../../migrations/*.sql');
-    if ($files !== false) {
-        \sort($files);
-        foreach ($files as $file) {
-            $pdo->exec((string) \file_get_contents($file));
-        }
-    }
-    $pdo = null;
+    require_once __DIR__ . '/../migrations.php';
+    rebuild_sqlite_db($dbPath);
 
     $failClosedServer = new Process(
         [

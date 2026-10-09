@@ -47,18 +47,8 @@ fi
 # 2. Initialize fresh test database
 echo "=== 1. Initializing test database ==="
 export NEWSLETTER_DB_PATH="$APP_DIR/data/test-e2e.db"
-rm -f "$NEWSLETTER_DB_PATH" "$NEWSLETTER_DB_PATH-wal" "$NEWSLETTER_DB_PATH-shm"
-php -r '
-    $dbPath = getenv("NEWSLETTER_DB_PATH");
-    $pdo = new PDO("sqlite:" . $dbPath);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    $files = glob("migrations/*.sql");
-    sort($files);
-    foreach ($files as $file) {
-        $pdo->exec(file_get_contents($file));
-    }
-    echo "   ✓ Database initialized\n";
-'
+php scripts/e2e-db-init.php "$NEWSLETTER_DB_PATH"
+echo '   ✓ Database initialized'
 
 # 3. Start feed server (valid.xml + invalid.txt on port 9995)
 echo "=== 2. Starting feed server on :9995 ==="
@@ -66,21 +56,7 @@ FEED_DIR="/tmp/feedtest"
 rm -rf "$FEED_DIR"
 mkdir -p "$FEED_DIR"
 
-cat > "$FEED_DIR/valid.xml" << 'XMLEOF'
-<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0">
-<channel>
-<title>Test Blog</title>
-<link>https://example.com</link>
-<item>
-<title>First Post</title>
-<link>https://example.com/post1</link>
-</item>
-</channel>
-</rss>
-XMLEOF
-
-echo "not xml" > "$FEED_DIR/invalid.txt"
+cp tests/fixtures/valid.xml tests/fixtures/invalid.txt "$FEED_DIR"/
 
 php -S 0.0.0.0:9995 -t "$FEED_DIR" > /tmp/feed-server-prod.log 2>&1 &
 FEED_PID=$!

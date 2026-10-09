@@ -22,38 +22,10 @@ final class FeedTestServer
         $feedDir = '/tmp/feedtest';
         if (! \is_dir($feedDir)) {
             \mkdir($feedDir, 0777, true);
-            \file_put_contents($feedDir . '/valid.xml', <<<XML
-                <?xml version="1.0" encoding="UTF-8"?>
-                <rss version="2.0">
-                <channel>
-                <title>Test Blog</title>
-                <link>https://example.com</link>
-                <item>
-                <title>First Post</title>
-                <link>https://example.com/post1</link>
-                </item>
-                </channel>
-                </rss>
-                XML);
-            \file_put_contents(filename: $feedDir . '/invalid.txt', data: 'not xml');
         }
-        \file_put_contents(filename: $feedDir . '/hostile.xml', data: <<<XML
-            <?xml version="1.0" encoding="UTF-8"?>
-            <rss version="2.0">
-            <channel>
-            <title>Hostile Feed</title>
-            <link>javascript:alert(1)</link>
-            <item>
-            <title>Evil Post</title>
-            <link>javascript:alert(1)</link>
-            </item>
-            <item>
-            <title>Safe Post</title>
-            <link>https://example.com/safe-post</link>
-            </item>
-            </channel>
-            </rss>
-            XML);
+        foreach (\glob(__DIR__ . '/../fixtures/*') ?: [] as $fixture) {
+            \copy($fixture, $feedDir . '/' . \basename($fixture));
+        }
 
         $cmd = ['php', '-S', '0.0.0.0:' . FEED_TEST_SERVER_PORT, '-t', $feedDir];
         self::$server = new Process($cmd, null, ['PHP_CLI_SERVER_WORKERS' => '1'], null, null);
