@@ -69,6 +69,8 @@ no-protected-in-final = { enabled = true }
 # across files.
 cyclomatic-complexity = { exclude = ["libs/Adapters/PrivateAddressGuard.php", "libs/Adapters/BudgetedSocket.php", "libs/Adapters/FeedImporterLaminas.php"] }
 no-literal-password = { exclude = ["tests/*"]}
+# SmtpConfig is a flat config DTO by design; 8 named constructor params.
+excessive-parameter-list = { constructor-threshold = 8 }
 
 [analyzer]
 plugins = ["stdlib"]

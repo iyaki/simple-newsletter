@@ -6,9 +6,6 @@ use PHPMailer\PHPMailer\Exception as PHPMailerException;
 use PHPMailer\PHPMailer\PHPMailer;
 use SimpleNewsletter\Adapters\SenderPHPMailer;
 use SimpleNewsletter\Adapters\SmtpConfig;
-use SimpleNewsletter\Adapters\SmtpConnection;
-use SimpleNewsletter\Adapters\SmtpCredentials;
-use SimpleNewsletter\Adapters\SmtpSender;
 use SimpleNewsletter\Components\EndUserException;
 use SimpleNewsletter\Templates\Email\EmailInterface;
 
@@ -28,9 +25,12 @@ test(
         $mailer->shouldReceive('addReplyTo')->with('reply@example.com', 'The Developer')->once();
 
         $config = new SmtpConfig(
-            new SmtpConnection('smtp.example.com', 587, PHPMailer::ENCRYPTION_STARTTLS, false),
-            new SmtpCredentials('user', 'secret'),
-            new SmtpSender('from@example.com', 'reply@example.com'),
+            host: 'smtp.example.com',
+            port: 587,
+            user: 'user',
+            password: 'secret',
+            from: 'from@example.com',
+            replyTo: 'reply@example.com',
         );
 
         $sender = new SenderPHPMailer($config, $mailer);
@@ -56,9 +56,12 @@ test(
         $mailer->shouldReceive('addReplyTo')->once();
 
         $config = new SmtpConfig(
-            new SmtpConnection('smtp.example.com', 587, PHPMailer::ENCRYPTION_STARTTLS, false),
-            new SmtpCredentials('user', 'secret'),
-            new SmtpSender('from@example.com', 'reply@example.com'),
+            host: 'smtp.example.com',
+            port: 587,
+            user: 'user',
+            password: 'secret',
+            from: 'from@example.com',
+            replyTo: 'reply@example.com',
         );
 
         $sender = new SenderPHPMailer($config, $mailer);
@@ -82,9 +85,12 @@ test(
         $mailer->shouldReceive('addReplyTo')->once();
 
         $config = new SmtpConfig(
-            new SmtpConnection('smtp.example.com', 587, PHPMailer::ENCRYPTION_STARTTLS, false),
-            new SmtpCredentials('user', 'secret'),
-            new SmtpSender('from@example.com', 'reply@example.com'),
+            host: 'smtp.example.com',
+            port: 587,
+            user: 'user',
+            password: 'secret',
+            from: 'from@example.com',
+            replyTo: 'reply@example.com',
         );
 
         $sender = new SenderPHPMailer($config, $mailer);
@@ -117,9 +123,12 @@ test(
         $mailer->shouldReceive('addReplyTo')->once();
 
         $config = new SmtpConfig(
-            new SmtpConnection('smtp.example.com', 587, PHPMailer::ENCRYPTION_STARTTLS, false),
-            new SmtpCredentials('user', 'secret'),
-            new SmtpSender('from@example.com', 'reply@example.com'),
+            host: 'smtp.example.com',
+            port: 587,
+            user: 'user',
+            password: 'secret',
+            from: 'from@example.com',
+            replyTo: 'reply@example.com',
         );
 
         $sender = new SenderPHPMailer($config, $mailer);
