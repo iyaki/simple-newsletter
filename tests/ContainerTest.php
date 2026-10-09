@@ -171,13 +171,85 @@ test('SMTP_ENCRYPTION defaults to STARTTLS when not set', function (): void {
 test('SMTP_ALLOW_SELF_SIGNED defaults to false when not set', function (): void {
     $prev = $_ENV['SMTP_ALLOW_SELF_SIGNED'] ?? null;
     unset($_ENV['SMTP_ALLOW_SELF_SIGNED']);
-    
+
     $container = new Container();
     $sender = $container->responder();
     expect($sender)->toBeInstanceOf(\SimpleNewsletter\Adapters\ResponderHttp::class);
-    
+
     if ($prev !== null) {
         $_ENV['SMTP_ALLOW_SELF_SIGNED'] = $prev;
+    }
+});
+
+function reset_container_sender_cache(): void
+{
+    $sender = new \ReflectionProperty(Container::class, 'sender');
+    $sender->setValue(null, null);
+}
+
+/**
+ * @return array<string, array<string, bool>>
+ */
+function container_sender_smtp_options(): array
+{
+    $method = new \ReflectionMethod(Container::class, 'sender');
+    $sender = $method->invoke(new Container());
+    \assert($sender instanceof \SimpleNewsletter\Adapters\SenderPHPMailer);
+    $mailer = (new \ReflectionProperty($sender, 'mailer'))->getValue($sender);
+    \assert($mailer instanceof \PHPMailer\PHPMailer\PHPMailer);
+    $options = $mailer->SMTPOptions;
+    \assert(\is_array($options));
+
+    /** @var array<string, array<string, bool>> $options */
+    return $options;
+}
+
+test('SMTP_ALLOW_SELF_SIGNED=false keeps TLS peer verification enabled', function (): void {
+    $prev = \getenv('SMTP_ALLOW_SELF_SIGNED');
+    \putenv('SMTP_ALLOW_SELF_SIGNED=false');
+    reset_container_sender_cache();
+
+    try {
+        expect(container_sender_smtp_options())->toBe([]);
+    } finally {
+        if ($prev !== false) {
+            \putenv('SMTP_ALLOW_SELF_SIGNED=' . $prev);
+        }
+        reset_container_sender_cache();
+    }
+});
+
+test('SMTP_ALLOW_SELF_SIGNED=no and off keep TLS peer verification enabled', function (): void {
+    $prev = \getenv('SMTP_ALLOW_SELF_SIGNED');
+    try {
+        foreach (['no', 'off'] as $value) {
+            \putenv('SMTP_ALLOW_SELF_SIGNED=' . $value);
+            reset_container_sender_cache();
+            expect(container_sender_smtp_options())->toBe([]);
+        }
+    } finally {
+        if ($prev !== false) {
+            \putenv('SMTP_ALLOW_SELF_SIGNED=' . $prev);
+        }
+        reset_container_sender_cache();
+    }
+});
+
+test('SMTP_ALLOW_SELF_SIGNED=true disables TLS peer verification', function (): void {
+    $prev = \getenv('SMTP_ALLOW_SELF_SIGNED');
+    \putenv('SMTP_ALLOW_SELF_SIGNED=true');
+    reset_container_sender_cache();
+
+    try {
+        $options = container_sender_smtp_options()['ssl'] ?? [];
+        expect($options['verify_peer'] ?? null)->toBeFalse()
+            ->and($options['verify_peer_name'] ?? null)->toBeFalse()
+            ->and($options['allow_self_signed'] ?? null)->toBeTrue();
+    } finally {
+        if ($prev !== false) {
+            \putenv('SMTP_ALLOW_SELF_SIGNED=' . $prev);
+        }
+        reset_container_sender_cache();
     }
 });
 

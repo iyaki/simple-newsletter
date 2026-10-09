@@ -110,14 +110,19 @@ final class Container
             return $sender;
         }
 
+        $smtpAllowSelfSigned = \getenv('SMTP_ALLOW_SELF_SIGNED');
         $connection = new SmtpConnection(
             host: ($smtpHost = \getenv('SMTP_HOST')) !== false ? $smtpHost : 'localhost',
             port: (int) (($smtpPort = \getenv('SMTP_PORT')) !== false ? $smtpPort : 587),
             encryption: ($smtpEncryption = \getenv('SMTP_ENCRYPTION')) !== false
                 ? $smtpEncryption
                 : PHPMailer::ENCRYPTION_STARTTLS,
-            allowSelfSigned: (bool) (
-                ($smtpAllowSelfSigned = \getenv('SMTP_ALLOW_SELF_SIGNED')) !== false ? $smtpAllowSelfSigned : false
+            // Strict opt-in: only affirmative values may disable TLS peer verification,
+            // so documented-looking values like "false" keep verification enabled.
+            allowSelfSigned: \in_array(
+                \strtolower(\is_string($smtpAllowSelfSigned) ? $smtpAllowSelfSigned : ''),
+                ['1', 'true', 'yes', 'on'],
+                strict: true,
             ),
         );
         $credentials = new SmtpCredentials(
