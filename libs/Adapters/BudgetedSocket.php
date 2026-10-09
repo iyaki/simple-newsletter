@@ -8,9 +8,11 @@ use Laminas\Http\Client\Adapter\Exception\RuntimeException as AdapterRuntimeExce
 use Laminas\Http\Client\Adapter\Socket;
 
 /**
- * Socket adapter enforcing a total-duration budget per connection and a
- * response size budget via FeedFetchByteCapFilter, so a single feed fetch
- * can neither hold a worker indefinitely nor exhaust memory.
+ * Socket adapter enforcing a total-duration budget per connection, a
+ * response size budget via FeedFetchByteCapFilter, and a public-destination
+ * egress policy via PrivateAddressGuard, so a single feed fetch can neither
+ * hold a worker indefinitely, exhaust memory, nor reach internal targets
+ * (including across redirect hops).
  */
 final class BudgetedSocket extends Socket
 {
@@ -29,6 +31,12 @@ final class BudgetedSocket extends Socket
     #[\Override]
     public function connect($host, $port = 80, $secure = false): void
     {
+        if (\is_string($host) && ! PrivateAddressGuard::privateFeedsAllowed()
+            && ! PrivateAddressGuard::hostIsPublic($host)
+        ) {
+            throw new AdapterRuntimeException('Feed fetch refused: destination is not publicly routable.');
+        }
+
         if (! self::$filterRegistered) {
             \stream_filter_register(self::FILTER_NAME, FeedFetchByteCapFilter::class);
             self::$filterRegistered = true;

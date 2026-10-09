@@ -154,6 +154,8 @@ done
 export SECRET_KEY='test-e2e-secret-key-32chars!'
 export SERVER_NAME='http://localhost:8082'
 export URI_SELF='http://localhost:8082'
+# The e2e feed server is a loopback fixture: lift the feed egress policy.
+export NEWSLETTER_ALLOW_PRIVATE_FEEDS='1'
 export SMTP_HOST='127.0.0.1'
 export SMTP_PORT='1025'
 export SMTP_ENCRYPTION=''
@@ -167,6 +169,8 @@ echo "4. Starting test HTTP server on port 8082..."
 export SECRET_KEY='test-e2e-secret-key-32chars!'
 export SERVER_NAME='http://localhost:8082'
 export URI_SELF='http://localhost:8082'
+# The e2e feed server is a loopback fixture: lift the feed egress policy.
+export NEWSLETTER_ALLOW_PRIVATE_FEEDS='1'
 export SMTP_HOST='127.0.0.1'
 export SMTP_PORT='1025'
 export SMTP_ENCRYPTION=''

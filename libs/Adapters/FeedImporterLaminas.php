@@ -77,8 +77,13 @@ final readonly class FeedImporterLaminas implements FeedImporter
      */
     private function import(string $uri): FeedInterface
     {
-        // ponytail: one global client with a bounded adapter (10MB / 60s per
-        // connection) so a hostile origin cannot exhaust worker memory or time.
+        // Refuse non-public destinations before any network activity; the socket
+        // adapter enforces the same policy on every redirect hop.
+        PrivateAddressGuard::assertUriHostIsPublic($uri);
+
+        // ponytail: one global client with a bounded, egress-checked adapter
+        // (10MB / 60s per connection) so a hostile origin cannot exhaust worker
+        // memory or time, nor reach internal targets across redirects.
         Reader::setHttpClient(new \Laminas\Http\Client(options: ['adapter' => BudgetedSocket::class]));
 
         try {
@@ -106,6 +111,17 @@ final readonly class FeedImporterLaminas implements FeedImporter
                 0,
                 $feedException,
             );
+        } catch (\Laminas\Http\Client\Adapter\Exception\RuntimeException $adapterException) {
+            // Connection refused, timeout, budget breach, refused destination:
+            // collapse every transport failure into the generic load-failure so
+            // the response does not reveal internal target state.
+            throw new EndUserException(
+                'The feed could not be loaded. Please check the URL and try again.',
+                0,
+                $adapterException,
+            );
+        } catch (\Laminas\Http\Exception\InvalidArgumentException $uriException) {
+            throw new EndUserException('Invalid Feed URI', 0, $uriException);
         }
     }
 }
