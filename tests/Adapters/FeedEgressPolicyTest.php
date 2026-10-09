@@ -15,6 +15,7 @@ test('private address guard rejects loopback, link-local and RFC1918 hosts', fun
     expect(PrivateAddressGuard::hostIsPublic('192.168.1.1'))->toBeFalse();
     expect(PrivateAddressGuard::hostIsPublic('172.16.0.9'))->toBeFalse();
     expect(PrivateAddressGuard::hostIsPublic('::1'))->toBeFalse();
+    expect(PrivateAddressGuard::hostIsPublic('::ffff:127.0.0.1'))->toBeFalse();
     expect(PrivateAddressGuard::hostIsPublic('0.0.0.0'))->toBeFalse();
 });
 
@@ -68,6 +69,18 @@ test('private address guard accepts bracketed public IPv6 and rejects bracketed 
         ->toThrow(EndUserException::class, 'Invalid Feed URI');
     expect(fn () => PrivateAddressGuard::assertUriHostIsPublic('http://[::1]/feed.xml'))
         ->toThrow(EndUserException::class, 'Invalid Feed URI');
+});
+
+test('private address guard rejects IPv6 literals embedding private IPv4 (NAT64, 6to4)', function (): void {
+    // PHP's NO_PRIV/NO_RES flags do not cover these prefixes; both embed an
+    // IPv4 address in their low 32 bits that a translator would dial.
+    expect(PrivateAddressGuard::hostIsPublic('64:ff9b::7f00:1'))->toBeFalse();
+    expect(PrivateAddressGuard::hostIsPublic('[64:ff9b::7f00:1]'))->toBeFalse();
+    expect(PrivateAddressGuard::hostIsPublic('[2002:7f00:1::]'))->toBeFalse();
+
+    // Ordinary public IPv6 stays accepted.
+    expect(PrivateAddressGuard::hostIsPublic('2606:4700::1'))->toBeTrue();
+    expect(PrivateAddressGuard::hostIsPublic('2001:4860:4860::8888'))->toBeTrue();
 });
 
 test('private address guard rejects localhost via resolver records', function (): void {
