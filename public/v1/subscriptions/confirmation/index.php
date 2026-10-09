@@ -8,10 +8,8 @@ use PHPMailer\PHPMailer\Exception;
 use SimpleNewsletter\Components\EndUserException;
 
 /**
- * A fail-closed RuntimeException (missing SECRET_KEY) intentionally escapes
- * as a 500: the service must not serve with forgeable tokens.
- *
- * @throws \RuntimeException|\PDOException|Exception
+ * A fail-closed configuration error (missing SECRET_KEY) is rendered as a
+ * 500: the service must not serve with forgeable tokens.
  */
 (static function (): never {
     $c = new Container();
@@ -35,6 +33,10 @@ use SimpleNewsletter\Components\EndUserException;
     } catch (EndUserException $endUserException) {
         $responder->sendResponse($responseBuilder->fromEndUserException($endUserException));
     } catch (\PDOException|Exception $technicalException) {
+        \SimpleNewsletter\Components\ErrorReporter::report(
+            'Technical error: ' . $technicalException->getMessage(),
+            $technicalException,
+        );
         $responder->sendResponse($responseBuilder->fromEndUserException(new EndUserException(
             'A technical error occurred. Please try again later.',
             0,
@@ -47,8 +49,10 @@ use SimpleNewsletter\Components\EndUserException;
             'Configuration error: ' . $configurationException->getMessage(),
             $configurationException,
         );
-        \http_response_code(500);
-        echo 'A technical error occurred. Please try again later.';
+        $responder->sendResponse($responseBuilder->fromString(
+            'Error: Internal server error',
+            'A technical error occurred. Please try again later.',
+        ), 500);
     }
 
     exit();

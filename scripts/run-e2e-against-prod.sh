@@ -47,7 +47,7 @@ fi
 # 2. Initialize fresh test database
 echo "=== 1. Initializing test database ==="
 export NEWSLETTER_DB_PATH="$APP_DIR/data/test-e2e.db"
-rm -f "$NEWSLETTER_DB_PATH"
+rm -f "$NEWSLETTER_DB_PATH" "$NEWSLETTER_DB_PATH-wal" "$NEWSLETTER_DB_PATH-shm"
 php -r '
     $dbPath = getenv("NEWSLETTER_DB_PATH");
     $pdo = new PDO("sqlite:" . $dbPath);
@@ -221,8 +221,9 @@ else
         SMTP_BEFORE="${SMTP_BEFORE:-0}"
         # Run the cron inside the production container (the real delivery path).
         docker compose -f compose-e2e.yaml exec -T prod php /app/bin/send-newsletters.php >/tmp/cron-prod.log 2>&1
-        # The script swallows exceptions and always exits 0, so assert by effect:
-        # the SMTP mock must have logged a delivery to the subscriber.
+        # The script exits nonzero when the run aborts (config error, total
+        # failure), so also assert by effect: the SMTP mock must have logged
+        # a delivery to the subscriber.
         sleep 1
         if tail -n +"$((SMTP_BEFORE + 1))" /tmp/smtp-mock-prod.log 2>/dev/null | grep -q "To:.*$E2E_SUB_EMAIL"; then
             echo "   ✓ Newsletter delivered to SMTP mock"
