@@ -10,7 +10,7 @@ final class SubscriptionsDAO
 {
     private string $TABLE = 'subscriptions';
 
-    private string $FIELDS_FULL = 'feed_uri, email, active';
+    private string $FIELDS_FULL = 'feed_uri, email, active, token_nonce';
 
     public function __construct(
         private readonly \PDO $db,
@@ -30,14 +30,14 @@ final class SubscriptionsDAO
                 'feed_uri' => $feedUri,
                 'email' => $email,
             ]);
-            /** @var array{feed_uri: string, email: string, active: string}|false $row */
+            /** @var array{feed_uri: string, email: string, active: string, token_nonce: string}|false $row */
             $row = $stmt->fetch(\PDO::FETCH_ASSOC);
 
             if ($row === false) {
                 return null;
             }
 
-            return $this->SubscriptionDTOFactory($row['feed_uri'], $row['email'], (int) $row['active']);
+            return $this->SubscriptionDTOFactory($row['feed_uri'], $row['email'], (int) $row['active'], $row['token_nonce']);
         } catch (\PDOException $pdoException) {
             throw new EndUserException('A technical error occurred. Please try again later.', 0, $pdoException);
         }
@@ -96,13 +96,15 @@ final class SubscriptionsDAO
                 VALUES (
                     :feed_uri,
                     :email,
-                    :active
+                    :active,
+                    :token_nonce
                 )
                 SQL);
             $stmt->execute([
                 'feed_uri' => $subscription->feedUri,
                 'email' => $subscription->email,
                 'active' => (int) $subscription->active,
+                'token_nonce' => $subscription->tokenNonce,
             ]);
         } catch (\PDOException $pdoException) {
             throw new EndUserException('A technical error occurred. Please try again later.', 0, $pdoException);
@@ -127,12 +129,12 @@ final class SubscriptionsDAO
             $stmt->execute([
                 'feed_uri' => $feed->getUri(),
             ]);
-            /** @var array<array-key, array{feed_uri: string, email: string, active: string}> $result */
+            /** @var array<array-key, array{feed_uri: string, email: string, active: string, token_nonce: string}> $result */
             $result = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
             $subscriptions = [];
             foreach ($result as $row) {
-                $subscriptions[] = $this->SubscriptionDTOFactory($row['feed_uri'], $row['email'], (int) $row['active']);
+                $subscriptions[] = $this->SubscriptionDTOFactory($row['feed_uri'], $row['email'], (int) $row['active'], $row['token_nonce']);
             }
 
             return $subscriptions;
@@ -145,7 +147,8 @@ final class SubscriptionsDAO
         string $feed_uri,
         string $email,
         int $active,
+        string $token_nonce = '',
     ): Subscription {
-        return new Subscription($feed_uri, $email, (bool) $active);
+        return new Subscription($feed_uri, $email, (bool) $active, $token_nonce);
     }
 }

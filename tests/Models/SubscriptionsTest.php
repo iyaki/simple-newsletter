@@ -154,7 +154,7 @@ it('activates subscription on valid confirm token', function (): void {
     $token = 'valid-token';
     $subscription = new Subscription($feedUri, $email, false);
 
-    $auth->shouldReceive('verify')->once()->with($email, $token)->andReturn(true);
+    $auth->shouldReceive('verify')->once()->with('confirm|' . $feedUri . '|' . $email . '|', $token)->andReturn(true);
 
     $subscriptionsDAO->shouldReceive('find')->once()->with($feedUri, $email)->andReturn($subscription);
 
@@ -181,10 +181,10 @@ it('throws on invalid confirm token', function (): void {
 
     $feedUri = 'https://example.com/feed';
     $email = 'user@example.com';
+    $subscription = new Subscription($feedUri, $email, false);
 
-    $auth->shouldReceive('verify')->once()->with($email, 'bad-token')->andReturn(false);
-
-    $subscriptionsDAO->shouldNotReceive('find');
+    $subscriptionsDAO->shouldReceive('find')->once()->with($feedUri, $email)->andReturn($subscription);
+    $auth->shouldReceive('verify')->once()->with('confirm|' . $feedUri . '|' . $email . '|', 'bad-token')->andReturn(false);
     $subscriptionsDAO->shouldNotReceive('activate');
 
     $subs = new Subscriptions($subscriptionsDAO, $feeds, $newsletter, $auth);
@@ -209,9 +209,8 @@ it('throws when subscription not found in confirm', function (): void {
     $feedUri = 'https://example.com/feed';
     $email = 'user@example.com';
 
-    $auth->shouldReceive('verify')->once()->with($email, 'valid-token')->andReturn(true);
-
     $subscriptionsDAO->shouldReceive('find')->once()->with($feedUri, $email)->andReturn(null);
+    $auth->shouldNotReceive('verify');
 
     $subscriptionsDAO->shouldNotReceive('activate');
 
@@ -239,7 +238,7 @@ it('deletes subscription on valid cancel token', function (): void {
     $token = 'valid-token';
     $subscription = new Subscription($feedUri, $email, true);
 
-    $auth->shouldReceive('verify')->once()->with($email, $token)->andReturn(true);
+    $auth->shouldReceive('verify')->once()->with('cancel|' . $feedUri . '|' . $email . '|', $token)->andReturn(true);
 
     $subscriptionsDAO->shouldReceive('find')->once()->with($feedUri, $email)->andReturn($subscription);
 
@@ -266,11 +265,11 @@ it('throws on invalid cancel token', function (): void {
 
     $feedUri = 'https://example.com/feed';
     $email = 'user@example.com';
+    $subscription = new Subscription($feedUri, $email, true);
 
-    $auth->shouldReceive('verify')->once()->with($email, 'bad-token')->andReturn(false);
-
-    $subscriptionsDAO->shouldNotReceive('find');
-    $subscriptionsDAO->shouldNotReceive('deactivate');
+    $subscriptionsDAO->shouldReceive('find')->once()->with($feedUri, $email)->andReturn($subscription);
+    $auth->shouldReceive('verify')->once()->with('cancel|' . $feedUri . '|' . $email . '|', 'bad-token')->andReturn(false);
+    $subscriptionsDAO->shouldNotReceive('delete');
 
     $subs = new Subscriptions($subscriptionsDAO, $feeds, $newsletter, $auth);
 
@@ -294,9 +293,8 @@ it('throws when subscription not found in cancel', function (): void {
     $feedUri = 'https://example.com/feed';
     $email = 'user@example.com';
 
-    $auth->shouldReceive('verify')->once()->with($email, 'valid-token')->andReturn(true);
-
     $subscriptionsDAO->shouldReceive('find')->once()->with($feedUri, $email)->andReturn(null);
+    $auth->shouldNotReceive('verify');
 
     $subscriptionsDAO->shouldNotReceive('deactivate');
 
