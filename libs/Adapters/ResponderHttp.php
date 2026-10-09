@@ -17,12 +17,6 @@ final class ResponderHttp
 
     private const string TYPE_JSON = 'application/json';
 
-    /** @var array<int, string> */
-    private const array REASON_PHRASES = [
-        400 => 'Bad Request',
-        500 => 'Internal Server Error',
-    ];
-
 
     /**
      * Emit a response. Without an explicit status code, non-ok responses are
@@ -38,7 +32,11 @@ final class ResponderHttp
 
         if ($statusCode !== 0) {
             \header(
-                header: \sprintf('HTTP/1.0 %d %s', $statusCode, self::REASON_PHRASES[$statusCode] ?? 'Error'),
+                header: \sprintf(
+                    'HTTP/1.0 %d %s',
+                    $statusCode,
+                    $statusCode === 500 ? 'Internal Server Error' : 'Error',
+                ),
                 replace: true,
                 response_code: $statusCode,
             );

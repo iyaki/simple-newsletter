@@ -32,12 +32,10 @@ final class FeedFetchByteCapFilter extends \php_user_filter
         $deadline = (float) ($params['deadline'] ?? 0.0);
 
         if ($this->capped || ($deadline > 0.0 && \microtime(true) > $deadline)) {
-            if (! $this->capped) {
-                // Total-duration budget, evaluated on every bucket so an origin
-                // trickling bytes (each read inside the socket idle timeout)
-                // cannot outlive the connect-time budget.
-                $this->capped = true;
-            }
+            // Total-duration budget, evaluated on every bucket so an origin
+            // trickling bytes (each read inside the socket idle timeout)
+            // cannot outlive the connect-time budget.
+            $this->capped = true;
             // ponytail: swallow silently instead of PSFS_ERR_FATAL (which raises
             // warnings) and drain the input brigade — leftover buckets would
             // otherwise raise a stream-layer warning on the next read.
