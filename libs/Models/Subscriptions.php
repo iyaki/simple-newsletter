@@ -7,6 +7,7 @@ namespace SimpleNewsletter\Models;
 use Random\RandomException;
 use SimpleNewsletter\Components\Auth;
 use SimpleNewsletter\Components\EndUserException;
+use SimpleNewsletter\Data\Feed;
 use SimpleNewsletter\Data\Subscription;
 use SimpleNewsletter\Data\SubscriptionsDAO;
 
@@ -89,36 +90,48 @@ final readonly class Subscriptions
         $scheduledFeeds = $this->feeds->getScheduled($datetime);
 
         foreach ($scheduledFeeds as $scheduledFeed) {
-            $feed = $this->feeds->retrieveWithPosts($scheduledFeed);
-
-            // Posts arrive newest→oldest. Collect every post newer than the
-            // watermark (lastSentPostUri); stop at it, since it and everything
-            // after were already sent.
-            /** @var list<\SimpleNewsletter\Data\Post> $newPosts */
-            $newPosts = [];
-            foreach ($feed->posts as $post) {
-                if ($post->uri === $feed->lastSentPostUri) {
-                    break;
-                }
-                $newPosts[] = $post;
+            try {
+                $this->deliverFeed($scheduledFeed);
+            } catch (\Throwable $feedFailure) {
+                // ponytail: one broken feed must not suppress delivery of the
+                // other co-scheduled feeds; quarantine and keep going.
+                error_log(sprintf('Skipping feed %s: %s', $scheduledFeed->getUri(), $feedFailure->getMessage()));
             }
-
-            if ($newPosts === []) {
-                continue;
-            }
-
-            // First delivery (no watermark): seed with only the newest post
-            // instead of mailing the entire historical backlog.
-            if ($feed->lastSentPostUri === null) {
-                $newPosts = [$newPosts[0]];
-            }
-
-            /** @var list<Subscription> $activeSubscriptions */
-            $activeSubscriptions = $this->subscriptionsDAO->findActiveSubscriptionsFor($feed);
-            $this->newsletter->sendPostsToSubscribers($feed, $newPosts, ...$activeSubscriptions);
-
-            // $newPosts is newest-first; advance the watermark to the newest sent.
-            $this->feeds->updateLastSentPost($feed, $newPosts[0]);
         }
+    }
+
+    /** @throws EndUserException|\Random\RandomException */
+    private function deliverFeed(Feed $scheduledFeed): void
+    {
+        $feed = $this->feeds->retrieveWithPosts($scheduledFeed);
+
+        // Posts arrive newest→oldest. Collect every post newer than the
+        // watermark (lastSentPostUri); stop at it, since it and everything
+        // after were already sent.
+        /** @var list<\SimpleNewsletter\Data\Post> $newPosts */
+        $newPosts = [];
+        foreach ($feed->posts as $post) {
+            if ($post->uri === $feed->lastSentPostUri) {
+                break;
+            }
+            $newPosts[] = $post;
+        }
+
+        if ($newPosts === []) {
+            return;
+        }
+
+        // First delivery (no watermark): seed with only the newest post
+        // instead of mailing the entire historical backlog.
+        if ($feed->lastSentPostUri === null) {
+            $newPosts = [$newPosts[0]];
+        }
+
+        /** @var list<Subscription> $activeSubscriptions */
+        $activeSubscriptions = $this->subscriptionsDAO->findActiveSubscriptionsFor($feed);
+        $this->newsletter->sendPostsToSubscribers($feed, $newPosts, ...$activeSubscriptions);
+
+        // $newPosts is newest-first; advance the watermark to the newest sent.
+        $this->feeds->updateLastSentPost($feed, $newPosts[0]);
     }
 }

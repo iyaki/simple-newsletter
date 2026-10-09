@@ -585,4 +585,46 @@ it('sendScheduled sends all new posts in one email', function (): void {
     $subs->sendScheduled($datetime);
 });
 
+/**
+ * Regression: a feed whose fetch fails (dead origin, 404, malformed XML) must
+ * not abort the batch - later co-scheduled feeds still get delivered.
+ *
+ * @throws \Random\RandomException
+ */
+it('sendScheduled keeps delivering later feeds when one feed fetch fails', function (): void {
+    /** @var SubscriptionsDAO&\Mockery\MockInterface $subscriptionsDAO */
+    $subscriptionsDAO = \Mockery::mock(SubscriptionsDAO::class);
+    /** @var Feeds&\Mockery\MockInterface $feeds */
+    $feeds = \Mockery::mock(Feeds::class);
+    /** @var Newsletter&\Mockery\MockInterface $newsletter */
+    $newsletter = \Mockery::mock(Newsletter::class);
+    /** @var Auth&\Mockery\MockInterface $auth */
+    $auth = \Mockery::mock(Auth::class);
 
+    $datetime = new DateTimeImmutable();
+
+    $deadFeed = new Feed(new FeedMetadata('https://dead.example.com/feed', 'Dead Feed', 'https://dead.example.com', $datetime));
+    $healthyFeed = new Feed(new FeedMetadata('https://good.example.com/feed', 'Good Feed', 'https://good.example.com', $datetime));
+
+    $post = new Post('https://good.example.com/post1', 'Post 1', 'Content 1');
+    $feedWithPosts = new Feed(
+        new FeedMetadata('https://good.example.com/feed', 'Good Feed', 'https://good.example.com', $datetime),
+        lastSentPostUri: null,
+        posts: [$post],
+    );
+    $subscriber = new Subscription('https://good.example.com/feed', 'user@example.com', true);
+
+    $feeds->shouldReceive('getScheduled')->once()->with($datetime)->andReturn([$deadFeed, $healthyFeed]);
+    $feeds->shouldReceive('retrieveWithPosts')->once()->with($deadFeed)
+        ->andThrow(new EndUserException('The feed could not be loaded. Please check the URL and try again.'));
+    $feeds->shouldReceive('retrieveWithPosts')->once()->with($healthyFeed)->andReturn($feedWithPosts);
+    $subscriptionsDAO->shouldReceive('findActiveSubscriptionsFor')->once()->with($feedWithPosts)->andReturn([$subscriber]);
+    $newsletter->shouldReceive('sendPostsToSubscribers')->once()->with($feedWithPosts, [$post], $subscriber);
+    $feeds->shouldReceive('updateLastSentPost')->once()->with($feedWithPosts, $post);
+
+    $subs = new Subscriptions($subscriptionsDAO, $feeds, $newsletter, $auth);
+
+    $subs->sendScheduled($datetime);
+
+    expect(true)->toBeTrue();
+});
