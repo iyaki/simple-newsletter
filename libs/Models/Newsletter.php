@@ -19,16 +19,6 @@ final readonly class Newsletter
         private Auth $auth,
     ) {}
 
-    /**
-     * The MAC input binds the action, the feed and the per-subscription nonce,
-     * mirroring Subscriptions::tokenKey so links authorize exactly one action
-     * on one subscription.
-     */
-    private function tokenKey(string $action, Feed $feed, Subscription $subscription): string
-    {
-        return $action . '|' . $feed->getUri() . '|' . $subscription->email . '|' . $subscription->tokenNonce;
-    }
-
     public function sendConfirmation(
         Feed $feed,
         Subscription $subscription,
@@ -36,7 +26,7 @@ final readonly class Newsletter
         $this->sender->send($this->emailTemplateFactory->createConfirmation(
             $subscription,
             $feed,
-            $this->auth->hash($this->tokenKey('confirm', $feed, $subscription)),
+            $this->auth->hash($this->auth->tokenKey('confirm', $feed->getUri(), $subscription->email, $subscription->tokenNonce)),
         ));
     }
 
@@ -54,7 +44,7 @@ final readonly class Newsletter
                     $subscription,
                     $feed,
                     $posts,
-                    $this->auth->hash($this->tokenKey('cancel', $feed, $subscription)),
+                    $this->auth->hash($this->auth->tokenKey('cancel', $feed->getUri(), $subscription->email, $subscription->tokenNonce)),
                 ));
             } catch (\Throwable $sendFailure) {
                 // ponytail: one bad recipient must not skip the rest of the

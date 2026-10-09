@@ -37,6 +37,7 @@ test('sendConfirmation calls sender with template from EmailTemplateFactory', fu
         'https://example.com/confirm?token=generated-token',
     );
 
+    $auth->shouldReceive('tokenKey')->with('confirm', 'https://example.com/feed', 'user@example.com', '')->once()->andReturn('confirm|https://example.com/feed|user@example.com|');
     $auth->shouldReceive('hash')->with('confirm|https://example.com/feed|user@example.com|')->once()->andReturn($token);
 
     $emailTemplateFactory
@@ -68,6 +69,7 @@ test('sendConfirmation uses the action-scoped token key as MAC input', function 
 
     $expectedToken = 'hash-of-email';
 
+    $auth->shouldReceive('tokenKey')->with('confirm', 'https://example.com/feed', 'user@example.com', '')->once()->andReturn('confirm|https://example.com/feed|user@example.com|');
     $auth->shouldReceive('hash')->with('confirm|https://example.com/feed|user@example.com|')->once()->andReturn($expectedToken);
 
     $emailTemplateFactory
@@ -103,6 +105,7 @@ test('sendPostsToSubscribers calls sender for each subscription', function (): v
     $template1 = new NewsletterTemplate($sub1, $feed, [$post], 'https://example.com/cancel/user1');
     $template2 = new NewsletterTemplate($sub2, $feed, [$post], 'https://example.com/cancel/user2');
 
+    $auth->shouldReceive('tokenKey')->twice()->andReturn('key1', 'key2');
     $auth->shouldReceive('hash')->twice()->andReturn('token1', 'token2');
 
     $emailTemplateFactory
@@ -138,6 +141,7 @@ test('sendPostsToSubscribers creates correct template per subscription', functio
 
     $template = new NewsletterTemplate($sub, $feed, [$post], 'https://example.com/cancel/alice');
 
+    $auth->shouldReceive('tokenKey')->andReturn('token-key');
     $auth->shouldReceive('hash')->andReturn('token-for-alice');
 
     $emailTemplateFactory
@@ -172,6 +176,7 @@ test('sendPostsToSubscribers continues after a recipient send failure', function
     $template2 = new NewsletterTemplate($sub2, $feed, [$post], 'cancel2');
     $template3 = new NewsletterTemplate($sub3, $feed, [$post], 'cancel3');
 
+    $auth->shouldReceive('tokenKey')->times(3)->andReturn('key1', 'key2', 'key3');
     $auth->shouldReceive('hash')->times(3)->andReturn('token1', 'token2', 'token3');
     $emailTemplateFactory->shouldReceive('createNewsletter')->once()->with($sub1, $feed, [$post], 'token1')->andReturn($template1);
     $emailTemplateFactory->shouldReceive('createNewsletter')->once()->with($sub2, $feed, [$post], 'token2')->andReturn($template2);

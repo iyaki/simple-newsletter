@@ -10,7 +10,7 @@ final class SubscriptionsDAO
 {
     private string $TABLE = 'subscriptions';
 
-    private string $FIELDS_FULL = 'feed_uri, email, active, token_nonce';
+    private string $FIELDS_FULL = 'feed_uri, email, active, token_nonce, confirmation_sent_at';
 
     public function __construct(
         private readonly \PDO $db,
@@ -30,14 +30,14 @@ final class SubscriptionsDAO
                 'feed_uri' => $feedUri,
                 'email' => $email,
             ]);
-            /** @var array{feed_uri: string, email: string, active: string, token_nonce: string}|false $row */
+            /** @var array{feed_uri: string, email: string, active: string, token_nonce: string, confirmation_sent_at: string}|false $row */
             $row = $stmt->fetch(\PDO::FETCH_ASSOC);
 
             if ($row === false) {
                 return null;
             }
 
-            return $this->SubscriptionDTOFactory($row['feed_uri'], $row['email'], (int) $row['active'], $row['token_nonce']);
+            return $this->SubscriptionDTOFactory($row['feed_uri'], $row['email'], (int) $row['active'], $row['token_nonce'], (int) $row['confirmation_sent_at']);
         } catch (\PDOException $pdoException) {
             throw new EndUserException('A technical error occurred. Please try again later.', 0, $pdoException);
         }
@@ -97,7 +97,8 @@ final class SubscriptionsDAO
                     :feed_uri,
                     :email,
                     :active,
-                    :token_nonce
+                    :token_nonce,
+                    :confirmation_sent_at
                 )
                 SQL);
             $stmt->execute([
@@ -105,6 +106,7 @@ final class SubscriptionsDAO
                 'email' => $subscription->email,
                 'active' => (int) $subscription->active,
                 'token_nonce' => $subscription->tokenNonce,
+                'confirmation_sent_at' => $subscription->confirmationSentAt,
             ]);
         } catch (\PDOException $pdoException) {
             throw new EndUserException('A technical error occurred. Please try again later.', 0, $pdoException);
@@ -129,15 +131,38 @@ final class SubscriptionsDAO
             $stmt->execute([
                 'feed_uri' => $feed->getUri(),
             ]);
-            /** @var array<array-key, array{feed_uri: string, email: string, active: string, token_nonce: string}> $result */
+            /** @var array<array-key, array{feed_uri: string, email: string, active: string, token_nonce: string, confirmation_sent_at: string}> $result */
             $result = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
             $subscriptions = [];
             foreach ($result as $row) {
-                $subscriptions[] = $this->SubscriptionDTOFactory($row['feed_uri'], $row['email'], (int) $row['active'], $row['token_nonce']);
+                $subscriptions[] = $this->SubscriptionDTOFactory($row['feed_uri'], $row['email'], (int) $row['active'], $row['token_nonce'], (int) $row['confirmation_sent_at']);
             }
 
             return $subscriptions;
+        } catch (\PDOException $pdoException) {
+            throw new EndUserException('A technical error occurred. Please try again later.', 0, $pdoException);
+        }
+    }
+
+    /** @throws EndUserException */
+    public function markConfirmationSent(Subscription $subscription): void
+    {
+        try {
+            /** @var \PDOStatement $stmt */
+            $stmt = $this->db->prepare(<<<SQL
+                UPDATE {$this->TABLE}
+                SET
+                    confirmation_sent_at = :sent_at
+                WHERE
+                    feed_uri = :feed_uri
+                AND email = :email
+                SQL);
+            $stmt->execute([
+                'sent_at' => \time(),
+                'feed_uri' => $subscription->feedUri,
+                'email' => $subscription->email,
+            ]);
         } catch (\PDOException $pdoException) {
             throw new EndUserException('A technical error occurred. Please try again later.', 0, $pdoException);
         }
@@ -148,7 +173,8 @@ final class SubscriptionsDAO
         string $email,
         int $active,
         string $token_nonce = '',
+        int $confirmation_sent_at = 0,
     ): Subscription {
-        return new Subscription($feed_uri, $email, (bool) $active, $token_nonce);
+        return new Subscription($feed_uri, $email, (bool) $active, $token_nonce, $confirmation_sent_at);
     }
 }
