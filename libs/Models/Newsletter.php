@@ -39,12 +39,20 @@ final readonly class Newsletter
         Subscription ...$subscriptions,
     ): void {
         foreach ($subscriptions as $subscription) {
-            $this->sender->send($this->emailTemplateFactory->createNewsletter(
-                $subscription,
-                $feed,
-                $posts,
-                $this->auth->hash($subscription->email),
-            ));
+            try {
+                $this->sender->send($this->emailTemplateFactory->createNewsletter(
+                    $subscription,
+                    $feed,
+                    $posts,
+                    $this->auth->hash($subscription->email),
+                ));
+            } catch (\Throwable $sendFailure) {
+                // ponytail: one bad recipient must not skip the rest of the
+                // batch; the failed recipient loses this digest (logged), and
+                // the watermark advance after the loop avoids duplicate mail
+                // to the recipients who already received it.
+                error_log(sprintf('Delivery to %s failed: %s', $subscription->email, $sendFailure->getMessage()));
+            }
         }
     }
 }
