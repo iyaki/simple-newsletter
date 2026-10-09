@@ -74,7 +74,7 @@ Subscription flow:
 
 Delivery flow:
   cron → bin/send-newsletters.php
-      → Subscriptions::sendScheduled()
+      → NewsletterDelivery::sendScheduled()
           → Feeds::getScheduled()
           → For each feed with subscriptions:
               → Feeds::retrieveWithPosts() → FeedImporter::fetchWithPosts()
@@ -85,6 +85,6 @@ Delivery flow:
 
 ## Security Considerations
 
-- Confirmation/cancellation tokens are HMAC hashes of the subscriber email.
+- Confirmation/cancellation tokens are HMAC-SHA256 hashes binding the action, feed URI, subscriber email, and a per-subscription nonce.
 - No passwords, no session management.
 - SQLite file permissions must be restricted.
