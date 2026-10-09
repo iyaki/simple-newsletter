@@ -46,7 +46,7 @@ final readonly class Subscriptions
                 throw new EndUserException('You are already subscribed to this feed.');
             }
         } else {
-            $subscription = new Subscription($feedUri, $email);
+            $subscription = new Subscription($feedUri, $email, tokenNonce: $this->newTokenNonce());
             $this->subscriptionsDAO->new($subscription);
         }
 
@@ -56,14 +56,14 @@ final readonly class Subscriptions
     /** @throws EndUserException */
     public function confirm(string $feedUri, string $email, #[\SensitiveParameter] string $token): void
     {
-        if (! $this->auth->verify($email, $token)) {
-            throw new EndUserException('Invalid token. Please check your confirmation link and try again.');
-        }
-
         $subscription = $this->subscriptionsDAO->find($feedUri, $email);
 
         if (! $subscription instanceof Subscription) {
             throw new EndUserException('Subscription not found. The link may be invalid or expired.');
+        }
+
+        if (! $this->auth->verify($this->tokenKey('confirm', $feedUri, $email, $subscription->tokenNonce), $token)) {
+            throw new EndUserException('Invalid token. Please check your confirmation link and try again.');
         }
 
         $this->subscriptionsDAO->activate($subscription);
@@ -72,16 +72,32 @@ final readonly class Subscriptions
     /** @throws EndUserException */
     public function cancel(string $feedUri, string $email, #[\SensitiveParameter] string $token): void
     {
-        if (! $this->auth->verify($email, $token)) {
-            throw new EndUserException('Invalid token. Please check your cancellation link and try again.');
-        }
-
         $subscription = $this->subscriptionsDAO->find($feedUri, $email);
         if (! $subscription instanceof Subscription) {
             throw new EndUserException('Subscription not found');
         }
 
+        if (! $this->auth->verify($this->tokenKey('cancel', $feedUri, $email, $subscription->tokenNonce), $token)) {
+            throw new EndUserException('Invalid token. Please check your cancellation link and try again.');
+        }
+
         $this->subscriptionsDAO->delete($subscription);
+    }
+
+    /**
+     * The MAC input binds the action, the feed and the per-subscription nonce,
+     * so one leaked link cannot act on another feed, trigger the opposite
+     * action, or be replayed against rows created after it leaked.
+     */
+    private function tokenKey(string $action, string $feedUri, string $email, string $nonce): string
+    {
+        return $action . '|' . $feedUri . '|' . $email . '|' . $nonce;
+    }
+
+    /** @throws RandomException */
+    private function newTokenNonce(): string
+    {
+        return \bin2hex(\random_bytes(16));
     }
 
     /** @throws EndUserException */

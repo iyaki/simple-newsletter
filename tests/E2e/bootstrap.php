@@ -69,16 +69,14 @@ if (! function_exists('init_test_database')) {
 
         // Apply migrations in order for new database
         $migrationsDir = __DIR__ . '/../../migrations';
-        $migrationFiles = [
-            '00-setup.sql',
-            '01-feeds.sql',
-            '02-subscriptions.sql',
-            '03-rate-limiting.sql',
-            '99-optimizations.sql',
-        ];
+        $migrationFiles = \glob($migrationsDir . '/*.sql');
+        if ($migrationFiles === false) {
+            $migrationFiles = [];
+        }
+        \sort($migrationFiles);
 
         foreach ($migrationFiles as $file) {
-            $sql = \file_get_contents($migrationsDir . '/' . $file);
+            $sql = \file_get_contents($file);
             if ($sql === false) {
                 continue;
             }

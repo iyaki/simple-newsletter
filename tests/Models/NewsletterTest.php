@@ -37,7 +37,7 @@ test('sendConfirmation calls sender with template from EmailTemplateFactory', fu
         'https://example.com/confirm?token=generated-token',
     );
 
-    $auth->shouldReceive('hash')->with('user@example.com')->once()->andReturn($token);
+    $auth->shouldReceive('hash')->with('confirm|https://example.com/feed|user@example.com|')->once()->andReturn($token);
 
     $emailTemplateFactory
         ->shouldReceive('createConfirmation')
@@ -54,7 +54,7 @@ test('sendConfirmation calls sender with template from EmailTemplateFactory', fu
 /**
  * @throws AssertionFailedError
  */
-test('sendConfirmation uses auth hash of subscription email as token', function (): void {
+test('sendConfirmation uses the action-scoped token key as MAC input', function (): void {
     /** @var Sender&\Mockery\MockInterface $sender */
     $sender = \Mockery::mock(Sender::class);
     /** @var EmailTemplateFactory&\Mockery\MockInterface $emailTemplateFactory */
@@ -68,7 +68,7 @@ test('sendConfirmation uses auth hash of subscription email as token', function 
 
     $expectedToken = 'hash-of-email';
 
-    $auth->shouldReceive('hash')->with('user@example.com')->once()->andReturn($expectedToken);
+    $auth->shouldReceive('hash')->with('confirm|https://example.com/feed|user@example.com|')->once()->andReturn($expectedToken);
 
     $emailTemplateFactory
         ->shouldReceive('createConfirmation')

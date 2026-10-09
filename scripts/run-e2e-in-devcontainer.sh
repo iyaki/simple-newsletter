@@ -19,8 +19,10 @@ php -r "
 \$dbPath = getenv('NEWSLETTER_DB_PATH');
 \$pdo = new PDO(\"sqlite:{\$dbPath}\");
 \$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-foreach (['00-setup.sql', '01-feeds.sql', '02-subscriptions.sql', '03-rate-limiting.sql', '99-optimizations.sql'] as \$file) {
-    \$pdo->exec(file_get_contents('$PWD/migrations/' . \$file));
+\$files = glob('$PWD/migrations/*.sql');
+sort(\$files);
+foreach (\$files as \$file) {
+    \$pdo->exec(file_get_contents(\$file));
 }
 echo '   ✓ Database initialized\n';
 "
