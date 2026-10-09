@@ -10,9 +10,6 @@ use SimpleNewsletter\Adapters\FeedImporterLaminas;
 use SimpleNewsletter\Adapters\ResponderHttp;
 use SimpleNewsletter\Adapters\SenderPHPMailer;
 use SimpleNewsletter\Adapters\SmtpConfig;
-use SimpleNewsletter\Adapters\SmtpConnection;
-use SimpleNewsletter\Adapters\SmtpCredentials;
-use SimpleNewsletter\Adapters\SmtpSender;
 use SimpleNewsletter\Components\Auth;
 use SimpleNewsletter\Components\EmailTemplateFactory;
 use SimpleNewsletter\Components\RateLimiter;
@@ -120,29 +117,24 @@ final class Container
         }
 
         $smtpAllowSelfSigned = \getenv('SMTP_ALLOW_SELF_SIGNED');
-        $connection = new SmtpConnection(
+        // Strict opt-in: only affirmative values may disable TLS peer verification,
+        // so documented-looking values like "false" keep verification enabled.
+        $config = new SmtpConfig(
             host: ($smtpHost = \getenv('SMTP_HOST')) !== false ? $smtpHost : 'localhost',
             port: (int) (($smtpPort = \getenv('SMTP_PORT')) !== false ? $smtpPort : 587),
+            user: ($smtpUser = \getenv('SMTP_USER')) !== false ? $smtpUser : '',
+            password: ($smtpPassword = \getenv('SMTP_PASSWORD')) !== false ? $smtpPassword : '',
+            from: ($emailFrom = \getenv('EMAIL_FROM')) !== false ? $emailFrom : 'noreply@example.com',
+            replyTo: ($emailReplyTo = \getenv('EMAIL_REPLY_TO')) !== false ? $emailReplyTo : 'noreply@example.com',
             encryption: ($smtpEncryption = \getenv('SMTP_ENCRYPTION')) !== false
                 ? $smtpEncryption
                 : PHPMailer::ENCRYPTION_STARTTLS,
-            // Strict opt-in: only affirmative values may disable TLS peer verification,
-            // so documented-looking values like "false" keep verification enabled.
             allowSelfSigned: \in_array(
                 \strtolower(\is_string($smtpAllowSelfSigned) ? $smtpAllowSelfSigned : ''),
                 ['1', 'true', 'yes', 'on'],
                 strict: true,
             ),
         );
-        $credentials = new SmtpCredentials(
-            user: ($smtpUser = \getenv('SMTP_USER')) !== false ? $smtpUser : '',
-            password: ($smtpPassword = \getenv('SMTP_PASSWORD')) !== false ? $smtpPassword : '',
-        );
-        $senderConfig = new SmtpSender(
-            from: ($emailFrom = \getenv('EMAIL_FROM')) !== false ? $emailFrom : 'noreply@example.com',
-            replyTo: ($emailReplyTo = \getenv('EMAIL_REPLY_TO')) !== false ? $emailReplyTo : 'noreply@example.com',
-        );
-        $config = new SmtpConfig($connection, $credentials, $senderConfig);
         $sender = new SenderPHPMailer($config);
         self::$sender = \WeakReference::create($sender);
 

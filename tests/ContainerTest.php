@@ -176,58 +176,6 @@ test('container throws when SECRET_KEY is empty', function (): void {
         ->and($thrown?->getMessage())->toContain('SECRET_KEY');
 });
 
-test('SmtpConnection uses localhost when SMTP_HOST not set', function (): void {
-    $prev = $_ENV['SMTP_HOST'] ?? null;
-    unset($_ENV['SMTP_HOST']);
-    
-    $container = new Container();
-    $sender = $container->responder();
-    expect($sender)->toBeInstanceOf(\SimpleNewsletter\Adapters\ResponderHttp::class);
-    
-    if ($prev !== null) {
-        $_ENV['SMTP_HOST'] = $prev;
-    }
-});
-
-test('SmtpConnection uses port 587 when SMTP_PORT not set', function (): void {
-    $prev = $_ENV['SMTP_PORT'] ?? null;
-    unset($_ENV['SMTP_PORT']);
-    
-    $container = new Container();
-    $sender = $container->responder();
-    expect($sender)->toBeInstanceOf(\SimpleNewsletter\Adapters\ResponderHttp::class);
-    
-    if ($prev !== null) {
-        $_ENV['SMTP_PORT'] = $prev;
-    }
-});
-
-test('SMTP_ENCRYPTION defaults to STARTTLS when not set', function (): void {
-    $prev = $_ENV['SMTP_ENCRYPTION'] ?? null;
-    unset($_ENV['SMTP_ENCRYPTION']);
-    
-    $container = new Container();
-    $sender = $container->responder();
-    expect($sender)->toBeInstanceOf(\SimpleNewsletter\Adapters\ResponderHttp::class);
-    
-    if ($prev !== null) {
-        $_ENV['SMTP_ENCRYPTION'] = $prev;
-    }
-});
-
-test('SMTP_ALLOW_SELF_SIGNED defaults to false when not set', function (): void {
-    $prev = $_ENV['SMTP_ALLOW_SELF_SIGNED'] ?? null;
-    unset($_ENV['SMTP_ALLOW_SELF_SIGNED']);
-
-    $container = new Container();
-    $sender = $container->responder();
-    expect($sender)->toBeInstanceOf(\SimpleNewsletter\Adapters\ResponderHttp::class);
-
-    if ($prev !== null) {
-        $_ENV['SMTP_ALLOW_SELF_SIGNED'] = $prev;
-    }
-});
-
 function reset_container_sender_cache(): void
 {
     $sender = new \ReflectionProperty(Container::class, 'sender');
@@ -298,30 +246,4 @@ test('SMTP_ALLOW_SELF_SIGNED=true disables TLS peer verification', function (): 
         }
         reset_container_sender_cache();
     }
-});
-
-test('SmtpCredentials use empty strings when env not set', function (): void {
-    $prevUser = $_ENV['SMTP_USER'] ?? null;
-    $prevPass = $_ENV['SMTP_PASSWORD'] ?? null;
-    unset($_ENV['SMTP_USER'], $_ENV['SMTP_PASSWORD']);
-    
-    $container = new Container();
-    $sender = $container->responder();
-    expect($sender)->toBeInstanceOf(\SimpleNewsletter\Adapters\ResponderHttp::class);
-    
-    if ($prevUser !== null) $_ENV['SMTP_USER'] = $prevUser;
-    if ($prevPass !== null) $_ENV['SMTP_PASSWORD'] = $prevPass;
-});
-
-test('SmtpSender uses default addresses when env not set', function (): void {
-    $prevFrom = $_ENV['EMAIL_FROM'] ?? null;
-    $prevTo = $_ENV['EMAIL_REPLY_TO'] ?? null;
-    unset($_ENV['EMAIL_FROM'], $_ENV['EMAIL_REPLY_TO']);
-    
-    $container = new Container();
-    $sender = $container->responder();
-    expect($sender)->toBeInstanceOf(\SimpleNewsletter\Adapters\ResponderHttp::class);
-    
-    if ($prevFrom !== null) $_ENV['EMAIL_FROM'] = $prevFrom;
-    if ($prevTo !== null) $_ENV['EMAIL_REPLY_TO'] = $prevTo;
 });
