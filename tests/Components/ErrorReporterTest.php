@@ -6,21 +6,21 @@ use SimpleNewsletter\Components\ErrorReporter;
 
 covers(SimpleNewsletter\Components\ErrorReporter::class);
 
-function capture_report_output(): string
-{
+test('report writes the message to the server log', function (): void {
+    $previousErrorLogIni = \ini_get('error_log');
     $logFile = \tempnam(\sys_get_temp_dir(), 'errrep-');
     \assert(\is_string($logFile));
-    \ini_set('error_log', $logFile);
 
-    return $logFile;
-}
+    try {
+        \ini_set('error_log', $logFile);
 
-test('report writes the message to the server log', function (): void {
-    $logFile = capture_report_output();
+        ErrorReporter::report('delivery to user@example.com failed');
 
-    ErrorReporter::report('delivery to user@example.com failed');
-
-    expect(\file_get_contents($logFile))->toContain('delivery to user@example.com failed');
+        expect(\file_get_contents($logFile))->toContain('delivery to user@example.com failed');
+    } finally {
+        \ini_set('error_log', \is_string($previousErrorLogIni) ? $previousErrorLogIni : '');
+        \unlink($logFile);
+    }
 });
 
 test('report forwards the caught error to Sentry when a DSN is configured', function (): void {

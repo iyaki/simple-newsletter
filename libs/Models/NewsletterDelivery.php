@@ -26,7 +26,7 @@ final readonly class NewsletterDelivery
         private Newsletter $newsletter,
     ) {}
 
-    /** @throws EndUserException */
+    /** @throws EndUserException when the scheduled-feed query itself fails */
     public function sendScheduled(\DateTimeImmutable $datetime): void
     {
         $scheduledFeeds = $this->feeds->getScheduled($datetime);

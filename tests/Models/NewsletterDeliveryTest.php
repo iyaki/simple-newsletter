@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use SimpleNewsletter\Components\Auth;
 use SimpleNewsletter\Components\EndUserException;
 use SimpleNewsletter\Data\Feed;
 use SimpleNewsletter\Data\FeedMetadata;
@@ -12,13 +11,6 @@ use SimpleNewsletter\Data\SubscriptionsDAO;
 use SimpleNewsletter\Models\Feeds;
 use SimpleNewsletter\Models\Newsletter;
 use SimpleNewsletter\Models\NewsletterDelivery;
-
-/**
- * @throws \Random\RandomException
- */
-beforeEach(function (): void {
-    \Mockery::close();
-});
 
 /**
  * @throws EndUserException
@@ -31,8 +23,6 @@ it('sendScheduled gets scheduled feeds, fetches posts, and sends to subscribers'
     $feeds = \Mockery::mock(Feeds::class);
     /** @var Newsletter&\Mockery\MockInterface $newsletter */
     $newsletter = \Mockery::mock(Newsletter::class);
-    /** @var Auth&\Mockery\MockInterface $auth */
-    $auth = \Mockery::mock(Auth::class);
 
     $datetime = new DateTimeImmutable();
     $feedUri = 'https://example.com/feed';
@@ -79,8 +69,6 @@ it('sendScheduled skips already-sent posts', function (): void {
     $feeds = \Mockery::mock(Feeds::class);
     /** @var Newsletter&\Mockery\MockInterface $newsletter */
     $newsletter = \Mockery::mock(Newsletter::class);
-    /** @var Auth&\Mockery\MockInterface $auth */
-    $auth = \Mockery::mock(Auth::class);
 
     $datetime = new DateTimeImmutable();
     $feedUri = 'https://example.com/feed';
@@ -123,8 +111,6 @@ it('sendScheduled does not resend older posts once the newest is sent', function
     $feeds = \Mockery::mock(Feeds::class);
     /** @var Newsletter&\Mockery\MockInterface $newsletter */
     $newsletter = \Mockery::mock(Newsletter::class);
-    /** @var Auth&\Mockery\MockInterface $auth */
-    $auth = \Mockery::mock(Auth::class);
 
     $datetime = new DateTimeImmutable();
     $feedUri = 'https://example.com/feed';
@@ -165,8 +151,6 @@ it('sendScheduled handles multiple scheduled feeds', function (): void {
     $feeds = \Mockery::mock(Feeds::class);
     /** @var Newsletter&\Mockery\MockInterface $newsletter */
     $newsletter = \Mockery::mock(Newsletter::class);
-    /** @var Auth&\Mockery\MockInterface $auth */
-    $auth = \Mockery::mock(Auth::class);
 
     $datetime = new DateTimeImmutable();
 
@@ -211,39 +195,21 @@ it('sendScheduled handles multiple scheduled feeds', function (): void {
 
     $newsletter
         ->shouldReceive('sendPostsToSubscribers')
-        ->times(2)
-        ->andReturnUsing(function (Feed $feed, array $posts, Subscription ...$subs) use (
-            $feedWithPosts1,
-            $feedWithPosts2,
-            $post1,
-            $post2,
-            $sub1,
-            $sub2,
-        ): void {
-            if ($feed === $feedWithPosts1 && $posts === [$post1] && $subs === [$sub1]) {
-                return;
-            }
-            if ($feed === $feedWithPosts2 && $posts === [$post2] && $subs === [$sub2]) {
-                return;
-            }
-        });
+        ->once()
+        ->with($feedWithPosts1, [$post1], $sub1);
+    $newsletter
+        ->shouldReceive('sendPostsToSubscribers')
+        ->once()
+        ->with($feedWithPosts2, [$post2], $sub2);
 
     $feeds
         ->shouldReceive('updateLastSentPost')
-        ->times(2)
-        ->andReturnUsing(function (Feed $feed, Post $post) use (
-            $feedWithPosts1,
-            $feedWithPosts2,
-            $post1,
-            $post2,
-        ): void {
-            if ($feed === $feedWithPosts1 && $post === $post1) {
-                return;
-            }
-            if ($feed === $feedWithPosts2 && $post === $post2) {
-                return;
-            }
-        });
+        ->once()
+        ->with($feedWithPosts1, $post1);
+    $feeds
+        ->shouldReceive('updateLastSentPost')
+        ->once()
+        ->with($feedWithPosts2, $post2);
 
     $delivery = new NewsletterDelivery($subscriptionsDAO, $feeds, $newsletter);
 
@@ -264,8 +230,6 @@ it('sendScheduled sends all new posts in one email', function (): void {
     $feeds = \Mockery::mock(Feeds::class);
     /** @var Newsletter&\Mockery\MockInterface $newsletter */
     $newsletter = \Mockery::mock(Newsletter::class);
-    /** @var Auth&\Mockery\MockInterface $auth */
-    $auth = \Mockery::mock(Auth::class);
 
     $datetime = new DateTimeImmutable();
     $feedUri = 'https://example.com/feed';
@@ -313,8 +277,6 @@ it('sendScheduled keeps delivering later feeds when one feed fetch fails', funct
     $feeds = \Mockery::mock(Feeds::class);
     /** @var Newsletter&\Mockery\MockInterface $newsletter */
     $newsletter = \Mockery::mock(Newsletter::class);
-    /** @var Auth&\Mockery\MockInterface $auth */
-    $auth = \Mockery::mock(Auth::class);
 
     $datetime = new DateTimeImmutable();
 
@@ -358,8 +320,6 @@ it('sendScheduled sends only the newest post when the watermark is missing from 
     $feeds = \Mockery::mock(Feeds::class);
     /** @var Newsletter&\Mockery\MockInterface $newsletter */
     $newsletter = \Mockery::mock(Newsletter::class);
-    /** @var Auth&\Mockery\MockInterface $auth */
-    $auth = \Mockery::mock(Auth::class);
 
     $datetime = new DateTimeImmutable();
     $feedUri = 'https://example.com/feed';
@@ -387,4 +347,60 @@ it('sendScheduled sends only the newest post when the watermark is missing from 
     $delivery = new NewsletterDelivery($subscriptionsDAO, $feeds, $newsletter);
 
     $delivery->sendScheduled($datetime);
+});
+
+/**
+ * Regression: when the whole recipient batch for a feed fails (all SMTP
+ * sends error), the watermark must NOT advance - the digest is retried on
+ * the next run - while co-scheduled feeds still deliver.
+ *
+ * @throws \Random\RandomException
+ */
+it('sendScheduled does not advance the watermark when delivery throws and still delivers other feeds', function (): void {
+    /** @var SubscriptionsDAO&\Mockery\MockInterface $subscriptionsDAO */
+    $subscriptionsDAO = \Mockery::mock(SubscriptionsDAO::class);
+    /** @var Feeds&\Mockery\MockInterface $feeds */
+    $feeds = \Mockery::mock(Feeds::class);
+    /** @var Newsletter&\Mockery\MockInterface $newsletter */
+    $newsletter = \Mockery::mock(Newsletter::class);
+
+    $datetime = new DateTimeImmutable();
+
+    $scheduled1 = new Feed(new FeedMetadata('https://example.com/feed1', 'Feed 1', 'https://example.com', $datetime));
+    $scheduled2 = new Feed(new FeedMetadata('https://example.com/feed2', 'Feed 2', 'https://example.com', $datetime));
+
+    $post1 = new Post('https://example.com/post1', 'Post 1', 'Content 1');
+    $post2 = new Post('https://example.com/post2', 'Post 2', 'Content 2');
+
+    $feedWithPosts1 = new Feed(
+        new FeedMetadata('https://example.com/feed1', 'Feed 1', 'https://example.com', $datetime),
+        posts: [$post1],
+    );
+    $feedWithPosts2 = new Feed(
+        new FeedMetadata('https://example.com/feed2', 'Feed 2', 'https://example.com', $datetime),
+        posts: [$post2],
+    );
+
+    $sub1 = new Subscription('https://example.com/feed1', 'user1@example.com', true);
+    $sub2 = new Subscription('https://example.com/feed2', 'user2@example.com', true);
+
+    $feeds->shouldReceive('getScheduled')->once()->with($datetime)->andReturn([$scheduled1, $scheduled2]);
+    $feeds->shouldReceive('retrieveWithPosts')->once()->with($scheduled1)->andReturn($feedWithPosts1);
+    $feeds->shouldReceive('retrieveWithPosts')->once()->with($scheduled2)->andReturn($feedWithPosts2);
+
+    $subscriptionsDAO->shouldReceive('findActiveSubscriptionsFor')->once()->with($feedWithPosts1)->andReturn([$sub1]);
+    $subscriptionsDAO->shouldReceive('findActiveSubscriptionsFor')->once()->with($feedWithPosts2)->andReturn([$sub2]);
+
+    $newsletter->shouldReceive('sendPostsToSubscribers')->once()->with($feedWithPosts1, [$post1], $sub1)
+        ->andThrow(new EndUserException('SMTP relay unavailable'));
+    $newsletter->shouldReceive('sendPostsToSubscribers')->once()->with($feedWithPosts2, [$post2], $sub2);
+
+    // feed1's watermark stays put; feed2's advances normally.
+    $feeds->shouldReceive('updateLastSentPost')->once()->with($feedWithPosts2, $post2);
+
+    $delivery = new NewsletterDelivery($subscriptionsDAO, $feeds, $newsletter);
+
+    $delivery->sendScheduled($datetime);
+
+    expect(true)->toBeTrue();
 });

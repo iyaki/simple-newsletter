@@ -6,6 +6,7 @@ namespace SimpleNewsletter\Models;
 
 use SimpleNewsletter\Components\Auth;
 use SimpleNewsletter\Components\EmailTemplateFactory;
+use SimpleNewsletter\Components\EndUserException;
 use SimpleNewsletter\Components\ErrorReporter;
 use SimpleNewsletter\Components\Sender;
 use SimpleNewsletter\Data\Feed;
@@ -32,6 +33,7 @@ final readonly class Newsletter
     }
 
     /**
+     * @throws EndUserException when delivery fails for every recipient
      * @param non-empty-list<Post> $posts
      */
     public function sendPostsToSubscribers(
@@ -39,6 +41,9 @@ final readonly class Newsletter
         array $posts,
         Subscription ...$subscriptions,
     ): void {
+        $delivered = 0;
+        $lastFailure = null;
+
         foreach ($subscriptions as $subscription) {
             try {
                 $this->sender->send($this->emailTemplateFactory->createNewsletter(
@@ -47,16 +52,28 @@ final readonly class Newsletter
                     $posts,
                     $this->auth->hash($this->auth->tokenKey('cancel', $feed->getUri(), $subscription->email, $subscription->tokenNonce)),
                 ));
+                $delivered++;
             } catch (\Throwable $sendFailure) {
                 // ponytail: one bad recipient must not skip the rest of the
                 // batch; the failed recipient loses this digest (logged +
                 // reported), and the watermark advance after the loop avoids
                 // duplicate mail to the recipients who already received it.
+                $lastFailure = $sendFailure;
                 ErrorReporter::report(
-                    \sprintf('Delivery to %s failed: %s', $subscription->email, $sendFailure->getMessage()),
+                    \sprintf('Delivery to subscriber of %s failed: %s', $feed->getUri(), $sendFailure->getMessage()),
                     $sendFailure,
                 );
             }
+        }
+
+        // Whole-batch failure must not silently drop the digest: rethrow so
+        // the caller skips the watermark advance and retries next run.
+        if ($delivered === 0 && $subscriptions !== [] && $lastFailure !== null) {
+            throw new EndUserException(
+                'Newsletter delivery failed for every recipient: ' . $lastFailure->getMessage(),
+                0,
+                $lastFailure,
+            );
         }
     }
 }

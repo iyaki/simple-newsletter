@@ -99,7 +99,7 @@ it('calls feeds->retrieve and newsletter->sendConfirmation on valid input', func
             \Mockery::on(fn (Subscription $sub): bool => $sub->feedUri === $feedUri && $sub->email === $email),
         );
 
-    $subscriptionsDAO->shouldReceive('markConfirmationSent')->once();
+    $subscriptionsDAO->shouldReceive('markConfirmationSent')->once()->andReturn(true);
 
     $subs = new Subscriptions($subscriptionsDAO, $feeds, $newsletter, $auth);
 
@@ -126,7 +126,7 @@ test('add suppresses the confirmation email for a recently notified pending subs
     $feeds->shouldReceive('retrieve')->once()->with($feedUri)->andReturn($feed);
     $subscriptionsDAO->shouldReceive('find')->once()->with($feedUri, $email)->andReturn($pending);
     $newsletter->shouldNotReceive('sendConfirmation');
-    $subscriptionsDAO->shouldNotReceive('markConfirmationSent');
+    $subscriptionsDAO->shouldReceive('markConfirmationSent')->once()->andReturn(false);
     $subscriptionsDAO->shouldNotReceive('new');
 
     $subs = new Subscriptions($subscriptionsDAO, $feeds, $newsletter, $auth);
@@ -156,7 +156,7 @@ test('add resends the confirmation email once the throttle interval has passed',
     $feeds->shouldReceive('retrieve')->once()->with($feedUri)->andReturn($feed);
     $subscriptionsDAO->shouldReceive('find')->once()->with($feedUri, $email)->andReturn($stale);
     $newsletter->shouldReceive('sendConfirmation')->once()->with($feed, $stale);
-    $subscriptionsDAO->shouldReceive('markConfirmationSent')->once()->with($stale);
+    $subscriptionsDAO->shouldReceive('markConfirmationSent')->once()->with($stale, 3600)->andReturn(true);
     $subscriptionsDAO->shouldNotReceive('new');
 
     $subs = new Subscriptions($subscriptionsDAO, $feeds, $newsletter, $auth);
@@ -341,7 +341,7 @@ it('throws on invalid cancel token', function (): void {
     $subs = new Subscriptions($subscriptionsDAO, $feeds, $newsletter, $auth);
 
     $subs->cancel($feedUri, $email, 'bad-token');
-})->throws(EndUserException::class, 'Invalid token');
+})->throws(EndUserException::class, 'no longer valid; use the unsubscribe link');
 
 /**
  * @throws EndUserException

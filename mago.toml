@@ -64,6 +64,9 @@ disallowed-functions = { functions = [
     'popen'
 ] }
 no-protected-in-final = { enabled = true }
+# Security egress policy: the fail-closed address-validation checklist is
+# inherently branchy; splitting it would scatter the policy across files.
+cyclomatic-complexity = { exclude = ["libs/Adapters/PrivateAddressGuard.php", "libs/Adapters/BudgetedSocket.php"] }
 no-literal-password = { exclude = ["tests/*"]}
 
 [analyzer]
@@ -71,8 +74,12 @@ plugins = ["stdlib"]
 
 ignore = [
 	{ code = "non-existent-function", in = "tests/E2e/**" },
-	{ code = "non-existent-method", in = "tests/**" },
-	{ code = "mixed-method-access", in = "tests/**" },
+	{ code = "mixed-method-access", in = "tests/Adapters/FeedImporterLaminasTest.php" },
+	{ code = "mixed-method-access", in = "tests/Adapters/ResponderHttpTest.php" },
+	{ code = "mixed-method-access", in = "tests/Models/NewsletterTest.php" },
+	{ code = "mixed-method-access", in = "tests/Data/FeedsDAOTest.php" },
+	{ code = "mixed-method-access", in = "tests/Integration/BootSmokeTest.php" },
+	{ code = "mixed-method-access", in = "tests/Models/SubscriptionsTest.php" },
 	{ code = "non-existent-method", pattern = "Mockery", in = "tests/*" },
 	{ code = "non-documented-method", pattern = "Mockery", in = "tests/*" },
 	{ code = "mixed-method-access", pattern = "Mockery", in = "tests/*" },

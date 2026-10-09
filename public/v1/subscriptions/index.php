@@ -51,6 +51,15 @@ try {
     ));
 } catch (EndUserException $endUserException) {
     $responder->sendResponse($responseBuilder->fromEndUserException($endUserException, $return));
+} catch (\RuntimeException $configurationException) {
+    // Fail closed: a misconfigured deployment (e.g. missing SECRET_KEY)
+    // must not fall back to serving with forgeable tokens.
+    \SimpleNewsletter\Components\ErrorReporter::report(
+        'Configuration error: ' . $configurationException->getMessage(),
+        $configurationException,
+    );
+    \http_response_code(500);
+    echo 'A technical error occurred. Please try again later.';
 }
 
 exit();
