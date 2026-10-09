@@ -29,24 +29,9 @@ function e2e_get_cancel(string $path, array $queryParams = []): ResponseInterfac
     ]);
 }
 
-/**
- * @throws \PDOException
- */
-function e2e_clean_test_database(): void
-{
-    $dbPath = \getenv('NEWSLETTER_DB_PATH');
-    if ($dbPath && \file_exists($dbPath)) {
-        $pdo = new \PDO("sqlite:{$dbPath}");
-        $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
-        $pdo->exec('DELETE FROM subscriptions');
-        $pdo->exec('DELETE FROM feeds');
-    }
-}
-
 beforeEach(
     /** @throws \PDOException */
     function (): void {
-        e2e_clean_test_database();
         init_test_database((string) \getenv('NEWSLETTER_DB_PATH'));
 
         // Create active subscription with feed

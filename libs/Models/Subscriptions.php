@@ -51,6 +51,9 @@ final readonly class Subscriptions
         // failed send the slot stays claimed for one interval (bounded
         // email-bombing surface over instant retry).
         if (! $this->subscriptionsDAO->markConfirmationSent($subscription, self::RESEND_INTERVAL_SECONDS)) {
+            // Deliberately silent: the endpoint reports "confirmation sent"
+            // for every request, so responses cannot reveal whether a resend
+            // happened or the throttle suppressed it (anti-enumeration).
             return;
         }
 

@@ -12,13 +12,16 @@ use SimpleNewsletter\Data\SubscriptionsDAO;
 /** @var SubscriptionsDAO|null $dao */
 $dao = null;
 
+/** @var \PDO|null $pdo */
+$pdo = null;
+
 /**
  * @throws \SimpleNewsletter\Components\EndUserException
  * @throws \Random\RandomException
  * @throws \PDOException
  * @throws \RuntimeException
  */
-beforeEach(function () use (&$dao): void {
+beforeEach(function () use (&$dao, &$pdo): void {
     try {
         $db = new \PDO('sqlite::memory:');
         $db->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
@@ -34,6 +37,7 @@ beforeEach(function () use (&$dao): void {
             $db->exec($sql);
         }
         $dao = new SubscriptionsDAO($db);
+        $pdo = $db;
         // Seed a feed (FK constraint)
         $feedsDao = new FeedsDAO($db);
         $metadata = new FeedMetadata(
@@ -138,6 +142,31 @@ test('findActiveSubscriptionsFor returns empty array for feed with no active sub
     // No subscriptions added for this feed
     $results = $dao->findActiveSubscriptionsFor($feed);
     expect($results)->toBeEmpty();
+});
+
+/**
+ * @throws \SimpleNewsletter\Components\EndUserException
+ * @throws \Random\RandomException
+ */
+test('markConfirmationSent claims the resend slot once per interval', function () use (&$dao, &$pdo): void {
+    \assert($dao instanceof SubscriptionsDAO, 'dao should be initialized');
+    $subscription = new Subscription('https://example.com/feed', 'throttle@example.com');
+    $dao->new($subscription);
+
+    // New rows carry sent-at 0: the first claim always succeeds.
+    expect($dao->markConfirmationSent($subscription, 3600))->toBeTrue();
+
+    // A second claim inside the window is rejected (email-bombing throttle).
+    expect($dao->markConfirmationSent($subscription, 3600))->toBeFalse();
+
+    // Backdate the last send past the cutoff: the slot is claimable again.
+    \assert($pdo instanceof \PDO, 'pdo should be initialized');
+    /** @var \PDOStatement|false $backdate */
+    $backdate = $pdo->prepare('UPDATE subscriptions SET confirmation_sent_at = ? WHERE feed_uri = ? AND email = ?');
+    \assert($backdate instanceof \PDOStatement, 'backdate statement should prepare');
+    $backdate->execute([\time() - 3600, 'https://example.com/feed', 'throttle@example.com']);
+
+    expect($dao->markConfirmationSent($subscription, 3600))->toBeTrue();
 });
 
 

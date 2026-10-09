@@ -54,6 +54,13 @@ if (! function_exists('init_test_database')) {
             // Reused files carry schema drift; always rebuild from migrations.
             \unlink($dbPath);
         }
+        // Stale -wal/-shm sidecars (unclean shutdown, pkill -9) must not be
+        // recovered into the fresh database (SQLite corruption hazard).
+        foreach (['-wal', '-shm'] as $suffix) {
+            if (\file_exists($dbPath . $suffix)) {
+                \unlink($dbPath . $suffix);
+            }
+        }
         // Database doesn't exist, create fresh with migrations
         $pdo = new \PDO("sqlite:{$dbPath}");
         $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
