@@ -21,7 +21,7 @@ namespace SimpleNewsletter;
 
         $datetime = new \DateTimeImmutable();
 
-        $c->subscriptions()->sendScheduled($datetime);
+        $c->delivery()->sendScheduled($datetime);
 
         echo $datetime->format('Y-m-d H:i:s') . PHP_EOL;
     } catch (\Throwable $throwable) {

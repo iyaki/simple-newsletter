@@ -20,6 +20,7 @@ use SimpleNewsletter\Data\FeedsDAO;
 use SimpleNewsletter\Data\SubscriptionsDAO;
 use SimpleNewsletter\Models\Feeds;
 use SimpleNewsletter\Models\Newsletter;
+use SimpleNewsletter\Models\NewsletterDelivery;
 use SimpleNewsletter\Models\Subscriptions;
 
 /**
@@ -59,6 +60,14 @@ final class Container
     public function responder(): ResponderHttp
     {
         return new ResponderHttp();
+    }
+
+    /**
+     * @throws \PDOException|Exception|\RuntimeException
+     */
+    public function delivery(): NewsletterDelivery
+    {
+        return new NewsletterDelivery(new SubscriptionsDAO($this->database()), $this->feeds(), $this->newsletter());
     }
 
     /**
