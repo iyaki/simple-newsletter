@@ -47,14 +47,14 @@ final readonly class Subscriptions
             throw new EndUserException('You are already subscribed to this feed.');
         }
 
-        // ponytail: a pending row may not trigger unlimited confirmation
-        // mail (email bombing); one confirmation per interval is enough.
-        if (\time() - $subscription->confirmationSentAt < self::RESEND_INTERVAL_SECONDS) {
+        // ponytail: claim the resend slot atomically BEFORE sending; on a
+        // failed send the slot stays claimed for one interval (bounded
+        // email-bombing surface over instant retry).
+        if (! $this->subscriptionsDAO->markConfirmationSent($subscription, self::RESEND_INTERVAL_SECONDS)) {
             return;
         }
 
         $this->newsletter->sendConfirmation($feed, $subscription);
-        $this->subscriptionsDAO->markConfirmationSent($subscription);
     }
 
     /** @throws EndUserException|RandomException */
@@ -93,7 +93,7 @@ final readonly class Subscriptions
 
         $key = $this->auth->tokenKey('cancel', $feedUri, $email, $subscription->tokenNonce);
         if (! $this->auth->verify($key, $token)) {
-            throw new EndUserException('Invalid token. Please check your cancellation link and try again.');
+            throw new EndUserException('Invalid token. Links from newsletters sent before a recent security update are no longer valid; use the unsubscribe link in the next newsletter.');
         }
 
         $this->subscriptionsDAO->delete($subscription);

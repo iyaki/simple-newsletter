@@ -145,24 +145,35 @@ final class SubscriptionsDAO
         }
     }
 
-    /** @throws EndUserException */
-    public function markConfirmationSent(Subscription $subscription): void
+    /**
+     * Atomically claims the confirmation-resend slot: succeeds only when the
+     * last confirmation is older than the interval (new rows, sent-at 0, are
+     * always eligible).
+     *
+     * @throws EndUserException
+     */
+    public function markConfirmationSent(Subscription $subscription, int $resendIntervalSeconds): bool
     {
         try {
+            $now = \time();
             /** @var \PDOStatement $stmt */
             $stmt = $this->db->prepare(<<<SQL
                 UPDATE {$this->TABLE}
                 SET
-                    confirmation_sent_at = :sent_at
+                    confirmation_sent_at = :now
                 WHERE
                     feed_uri = :feed_uri
                 AND email = :email
+                AND confirmation_sent_at <= :cutoff
                 SQL);
             $stmt->execute([
-                'sent_at' => \time(),
+                'now' => $now,
                 'feed_uri' => $subscription->feedUri,
                 'email' => $subscription->email,
+                'cutoff' => $now - $resendIntervalSeconds,
             ]);
+
+            return $stmt->rowCount() === 1;
         } catch (\PDOException $pdoException) {
             throw new EndUserException('A technical error occurred. Please try again later.', 0, $pdoException);
         }

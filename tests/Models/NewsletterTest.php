@@ -192,4 +192,110 @@ test('sendPostsToSubscribers continues after a recipient send failure', function
     expect(true)->toBeTrue();
 });
 
+test('sendPostsToSubscribers reports failures without subscriber PII', function (): void {
+    $previousErrorLog = \ini_get('error_log');
+    $logFile = \tempnam(\sys_get_temp_dir(), 'newsletter-');
+    \assert(\is_string($logFile));
+    \ini_set('error_log', $logFile);
+
+    try {
+        /** @var Sender&\Mockery\MockInterface $sender */
+        $sender = \Mockery::mock(Sender::class);
+        /** @var EmailTemplateFactory&\Mockery\MockInterface $emailTemplateFactory */
+        $emailTemplateFactory = \Mockery::mock(EmailTemplateFactory::class);
+        /** @var Auth&\Mockery\MockInterface $auth */
+        $auth = \Mockery::mock(Auth::class);
+
+        $now = new DateTimeImmutable();
+        $feed = new Feed(new FeedMetadata('https://example.com/feed', 'Test Feed', 'https://example.com', $now));
+        $post = new Post('https://example.com/post1', 'Post 1', 'Content 1');
+
+        $sub1 = new Subscription('https://example.com/feed', 'user1@example.com');
+        $sub2 = new Subscription('https://example.com/feed', 'user2@example.com');
+
+        $template1 = new NewsletterTemplate($sub1, $feed, [$post], 'cancel1');
+        $template2 = new NewsletterTemplate($sub2, $feed, [$post], 'cancel2');
+
+        $auth->shouldReceive('tokenKey')->times(2)->andReturn('key1', 'key2');
+        $auth->shouldReceive('hash')->times(2)->andReturn('token1', 'token2');
+        $emailTemplateFactory->shouldReceive('createNewsletter')->once()->with($sub1, $feed, [$post], 'token1')->andReturn($template1);
+        $emailTemplateFactory->shouldReceive('createNewsletter')->once()->with($sub2, $feed, [$post], 'token2')->andReturn($template2);
+
+        $sender->shouldReceive('send')->with($template1)->once()->andThrow(new EndUserException('SMTP relay unavailable'));
+        $sender->shouldReceive('send')->with($template2)->once();
+
+        $newsletter = new Newsletter($sender, $emailTemplateFactory, $auth);
+        $newsletter->sendPostsToSubscribers($feed, [$post], $sub1, $sub2);
+
+        $log = \file_get_contents($logFile);
+        \assert(\is_string($log));
+        expect(\substr_count($log, 'Delivery to subscriber of https://example.com/feed failed: SMTP relay unavailable'))->toBe(1)
+            ->and($log)->not->toContain('user1@example.com');
+    } finally {
+        \ini_set('error_log', \is_string($previousErrorLog) ? $previousErrorLog : '');
+        \unlink($logFile);
+    }
+});
+
+test('sendPostsToSubscribers rethrows when every recipient send fails', function (): void {
+    /** @var Sender&\Mockery\MockInterface $sender */
+    $sender = \Mockery::mock(Sender::class);
+    /** @var EmailTemplateFactory&\Mockery\MockInterface $emailTemplateFactory */
+    $emailTemplateFactory = \Mockery::mock(EmailTemplateFactory::class);
+    /** @var Auth&\Mockery\MockInterface $auth */
+    $auth = \Mockery::mock(Auth::class);
+
+    $now = new DateTimeImmutable();
+    $feed = new Feed(new FeedMetadata('https://example.com/feed', 'Test Feed', 'https://example.com', $now));
+    $post = new Post('https://example.com/post1', 'Post 1', 'Content 1');
+
+    $sub1 = new Subscription('https://example.com/feed', 'user1@example.com');
+    $sub2 = new Subscription('https://example.com/feed', 'user2@example.com');
+
+    $template1 = new NewsletterTemplate($sub1, $feed, [$post], 'cancel1');
+    $template2 = new NewsletterTemplate($sub2, $feed, [$post], 'cancel2');
+
+    $auth->shouldReceive('tokenKey')->times(2)->andReturn('key1', 'key2');
+    $auth->shouldReceive('hash')->times(2)->andReturn('token1', 'token2');
+    $emailTemplateFactory->shouldReceive('createNewsletter')->once()->with($sub1, $feed, [$post], 'token1')->andReturn($template1);
+    $emailTemplateFactory->shouldReceive('createNewsletter')->once()->with($sub2, $feed, [$post], 'token2')->andReturn($template2);
+
+    $sender->shouldReceive('send')->with($template1)->once()->andThrow(new EndUserException('SMTP relay unavailable'));
+    $sender->shouldReceive('send')->with($template2)->once()->andThrow(new EndUserException('Connection refused'));
+
+    $newsletter = new Newsletter($sender, $emailTemplateFactory, $auth);
+    $newsletter->sendPostsToSubscribers($feed, [$post], $sub1, $sub2);
+})->throws(EndUserException::class, 'Connection refused');
+
+test('sendPostsToSubscribers returns normally on partial failure', function (): void {
+    /** @var Sender&\Mockery\MockInterface $sender */
+    $sender = \Mockery::mock(Sender::class);
+    /** @var EmailTemplateFactory&\Mockery\MockInterface $emailTemplateFactory */
+    $emailTemplateFactory = \Mockery::mock(EmailTemplateFactory::class);
+    /** @var Auth&\Mockery\MockInterface $auth */
+    $auth = \Mockery::mock(Auth::class);
+
+    $now = new DateTimeImmutable();
+    $feed = new Feed(new FeedMetadata('https://example.com/feed', 'Test Feed', 'https://example.com', $now));
+    $post = new Post('https://example.com/post1', 'Post 1', 'Content 1');
+
+    $sub1 = new Subscription('https://example.com/feed', 'user1@example.com');
+    $sub2 = new Subscription('https://example.com/feed', 'user2@example.com');
+
+    $template1 = new NewsletterTemplate($sub1, $feed, [$post], 'cancel1');
+    $template2 = new NewsletterTemplate($sub2, $feed, [$post], 'cancel2');
+
+    $auth->shouldReceive('tokenKey')->times(2)->andReturn('key1', 'key2');
+    $auth->shouldReceive('hash')->times(2)->andReturn('token1', 'token2');
+    $emailTemplateFactory->shouldReceive('createNewsletter')->once()->with($sub1, $feed, [$post], 'token1')->andReturn($template1);
+    $emailTemplateFactory->shouldReceive('createNewsletter')->once()->with($sub2, $feed, [$post], 'token2')->andReturn($template2);
+
+    $sender->shouldReceive('send')->with($template1)->once()->andThrow(new EndUserException('SMTP relay unavailable'));
+    $sender->shouldReceive('send')->with($template2)->once();
+
+    $newsletter = new Newsletter($sender, $emailTemplateFactory, $auth);
+    $newsletter->sendPostsToSubscribers($feed, [$post], $sub1, $sub2);
+
+    expect(true)->toBeTrue();
+});
 

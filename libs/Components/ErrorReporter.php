@@ -13,7 +13,7 @@ final class ErrorReporter
 {
     public static function report(string $message, ?\Throwable $error = null): void
     {
-        error_log($message);
+        \error_log($message);
 
         if ($error !== null) {
             \Sentry\captureException($error);

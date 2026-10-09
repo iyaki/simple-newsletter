@@ -25,7 +25,10 @@ final readonly class RateLimiter
 
             // Global retention sweep: purge every expired row, not just this
             // bucket's, so abandoned ip/endpoint buckets cannot grow the table
-            // forever (covered by idx_rate_limits_lookup).
+            // forever. The only index is (ip, endpoint, window_start), so this
+            // sweep is a deliberate full scan; the sweep keeps the table at
+            // ~one window of rows, so an extra window_start index would only
+            // slow inserts.
             /** @var \PDOStatement $stmt */
             $stmt = $this->db->prepare(
                 'DELETE FROM rate_limits WHERE window_start < :window',
