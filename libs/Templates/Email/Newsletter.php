@@ -63,7 +63,7 @@ final readonly class Newsletter implements EmailInterface
             <div style="max-width:60ch;margin:0 auto;font-size:18px;line-height:1.5;font-family:{$fontStack}">
                 {$postsHtml}
             </div>
-            <p><a href="{$this->cancellationURI}">To cancel your subscription to this newsletter click here</a></p>
+            <p><a href="{$esc($this->cancellationURI)}">To cancel your subscription to this newsletter click here</a></p>
             HTML;
     }
 }
