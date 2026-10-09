@@ -110,8 +110,10 @@ final readonly class Subscriptions
         // after were already sent.
         /** @var list<\SimpleNewsletter\Data\Post> $newPosts */
         $newPosts = [];
+        $watermarkFound = false;
         foreach ($feed->posts as $post) {
             if ($post->uri === $feed->lastSentPostUri) {
+                $watermarkFound = true;
                 break;
             }
             $newPosts[] = $post;
@@ -121,9 +123,11 @@ final readonly class Subscriptions
             return;
         }
 
-        // First delivery (no watermark): seed with only the newest post
-        // instead of mailing the entire historical backlog.
-        if ($feed->lastSentPostUri === null) {
+        // Fail safe to newest-only when the delivery state is unknown: first
+        // delivery (no watermark yet) and a watermark that vanished from the
+        // publisher-controlled document (rolling window overflow or deliberate
+        // drop) must not replay the historical backlog as one digest.
+        if ($feed->lastSentPostUri === null || ! $watermarkFound) {
             $newPosts = [$newPosts[0]];
         }
 
