@@ -9,17 +9,15 @@ use Laminas\Feed\Reader\Exception\RuntimeException as FeedException;
 use Laminas\Feed\Reader\Feed\FeedInterface;
 use Laminas\Feed\Reader\Reader;
 use SimpleNewsletter\Components\EndUserException;
-use SimpleNewsletter\Components\FeedImporter;
 use SimpleNewsletter\Data\Feed;
 use SimpleNewsletter\Data\FeedMetadata;
 use SimpleNewsletter\Data\Post;
 use Symfony\Component\HtmlSanitizer\HtmlSanitizer;
 use Symfony\Component\HtmlSanitizer\HtmlSanitizerConfig;
 
-final readonly class FeedImporterLaminas implements FeedImporter
+final readonly class FeedImporterLaminas
 {
     /** @throws EndUserException */
-    #[\Override]
     public function fetchNew(string $uri): Feed
     {
         $sourceFeed = $this->import($uri);
@@ -33,7 +31,6 @@ final readonly class FeedImporterLaminas implements FeedImporter
     }
 
     /** @throws EndUserException */
-    #[\Override]
     public function fetch(Feed $feed): Feed
     {
         $sourceFeed = $this->import($feed->getUri());
@@ -47,7 +44,6 @@ final readonly class FeedImporterLaminas implements FeedImporter
     }
 
     /** @throws EndUserException */
-    #[\Override]
     public function fetchWithPosts(Feed $feed): Feed
     {
         $sourceFeed = $this->import($feed->getUri());
