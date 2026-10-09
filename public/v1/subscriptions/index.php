@@ -3,9 +3,12 @@
 declare(strict_types=1);
 
 namespace SimpleNewsletter;
-use SimpleNewsletter\Components\EndUserException;
-$c = new Container();
 
+use PHPMailer\PHPMailer\Exception;
+use SimpleNewsletter\Components\EndUserException;
+use SimpleNewsletter\Components\ErrorReporter;
+
+$c = new Container();
 $responder = $c->responder();
 
 header('X-Robots-Tag: noindex, nofollow');
@@ -51,15 +54,29 @@ try {
     ));
 } catch (EndUserException $endUserException) {
     $responder->sendResponse($responseBuilder->fromEndUserException($endUserException, $return));
+} catch (\PDOException|Exception $technicalException) {
+    // Database/SMTP failures are operational, not configuration problems;
+    // keep them out of the fail-closed branch below so triage is not misled.
+    ErrorReporter::report(
+        'Technical error: ' . $technicalException->getMessage(),
+        $technicalException,
+    );
+    $responder->sendResponse($responseBuilder->fromEndUserException(new EndUserException(
+        'A technical error occurred. Please try again later.',
+        0,
+        $technicalException,
+    )));
 } catch (\RuntimeException $configurationException) {
     // Fail closed: a misconfigured deployment (e.g. missing SECRET_KEY)
     // must not fall back to serving with forgeable tokens.
-    \SimpleNewsletter\Components\ErrorReporter::report(
+    ErrorReporter::report(
         'Configuration error: ' . $configurationException->getMessage(),
         $configurationException,
     );
-    \http_response_code(500);
-    echo 'A technical error occurred. Please try again later.';
+    $responder->sendResponse($responseBuilder->fromString(
+        'Error: Internal server error',
+        'A technical error occurred. Please try again later.',
+    ), 500);
 }
 
 exit();
