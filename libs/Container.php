@@ -43,7 +43,9 @@ final class Container
         return new Feeds(new FeedsDAO($this->database()), new FeedImporterLaminas());
     }
 
-    /** @throws \PDOException|Exception */
+    /**
+     * @throws \PDOException|Exception|\RuntimeException
+     */
     public function subscriptions(): Subscriptions
     {
         return new Subscriptions(
@@ -59,7 +61,9 @@ final class Container
         return new ResponderHttp();
     }
 
-    /** @throws Exception */
+    /**
+     * @throws Exception|\RuntimeException
+     */
     private function newsletter(): Newsletter
     {
         return new Newsletter($this->sender(), $this->emailTemplateFactory(), $this->auth());
@@ -77,6 +81,9 @@ final class Container
         return new EmailTemplateFactory(\is_string($uriSelf) ? $uriSelf : '');
     }
 
+    /**
+     * @throws \RuntimeException when SECRET_KEY is missing or empty
+     */
     private function auth(): Auth
     {
         $auth = self::$auth?->get();
@@ -85,7 +92,11 @@ final class Container
         }
 
         $secretKey = \getenv('SECRET_KEY');
-        $auth = new Auth(\is_string($secretKey) ? $secretKey : '');
+        if (! \is_string($secretKey) || $secretKey === '') {
+            // Fail closed: an empty HMAC secret makes consent tokens publicly computable.
+            throw new \RuntimeException('SECRET_KEY environment variable must be set to a non-empty secret (openssl rand -hex 32).');
+        }
+        $auth = new Auth($secretKey);
         self::$auth = \WeakReference::create($auth);
 
         return $auth;
