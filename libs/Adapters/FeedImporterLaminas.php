@@ -77,6 +77,10 @@ final readonly class FeedImporterLaminas implements FeedImporter
      */
     private function import(string $uri): FeedInterface
     {
+        // ponytail: one global client with a bounded adapter (10MB / 60s per
+        // connection) so a hostile origin cannot exhaust worker memory or time.
+        Reader::setHttpClient(new \Laminas\Http\Client(options: ['adapter' => BudgetedSocket::class]));
+
         try {
             return Reader::import($uri);
         } catch (FeedException $feedException) {
