@@ -37,6 +37,11 @@
 			"source": "${localEnv:HOME}/.omp",
 			"target": "/root/.omp",
 			"type": "bind"
+		},
+		{
+			"source": "${localEnv:HOME}/.agents",
+			"target": "/root/.agents",
+			"type": "bind"
 		}
 	],
 	"containerEnv": {
