@@ -4,23 +4,23 @@ declare(strict_types=1);
 
 namespace Tests\Adapters;
 
-use Laminas\Feed\Reader\Entry\EntryInterface;
-use Laminas\Feed\Reader\Feed\FeedInterface;
 use SimpleNewsletter\Adapters\FeedImporterLaminas;
 use SimpleNewsletter\Components\EndUserException;
 use SimpleNewsletter\Data\Feed;
 use SimpleNewsletter\Data\FeedMetadata;
-use Tests\Adapters\FeedTestServer;
 
 const FEED_TEST_PORT = 9995;
 const FEED_TEST_BASE = 'http://127.0.0.1:' . FEED_TEST_PORT;
 
 beforeAll(function (): void {
+    // The loopback fixture is not publicly routable; lift the egress policy for tests.
+    \putenv(\SimpleNewsletter\Adapters\PrivateAddressGuard::ALLOW_ENV . '=1');
     FeedTestServer::start();
 });
 
 afterAll(function (): void {
     FeedTestServer::stop();
+    \putenv(\SimpleNewsletter\Adapters\PrivateAddressGuard::ALLOW_ENV);
 });
 
 test('fetchNew uses real import for valid feed', function (): void {

@@ -8,6 +8,8 @@ putenv('NEWSLETTER_DB_PATH=' . $testDbPath);
 putenv('SECRET_KEY=test-e2e-secret-key-32chars!');
 putenv('SERVER_NAME=http://localhost:8080');
 putenv('URI_SELF=http://localhost:8080');
+// The e2e feed server is a loopback fixture: lift the feed egress policy.
+putenv('NEWSLETTER_ALLOW_PRIVATE_FEEDS=1');
 // Disable Sentry for e2e tests
 putenv('SENTRY_DSN=');
 
