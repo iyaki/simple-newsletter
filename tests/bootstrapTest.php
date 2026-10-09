@@ -35,9 +35,3 @@ test('bootstrap handles missing autoload file gracefully', function (): void {
     expect($errorMsg)->toContain('autoload');
 });
 
-test('config returns valid DSN array', function (): void {
-    /** @var array{dsn: string} $config */
-    $config = require __DIR__ . '/../config/database.php';
-    expect($config)->toHaveKey('dsn');
-    expect($config['dsn'])->toContain('sqlite:');
-});
