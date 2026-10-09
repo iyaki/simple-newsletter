@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace SimpleNewsletter\Models;
 
+use SimpleNewsletter\Adapters\SenderPHPMailer;
 use SimpleNewsletter\Components\Auth;
 use SimpleNewsletter\Components\EmailTemplateFactory;
 use SimpleNewsletter\Components\EndUserException;
 use SimpleNewsletter\Components\ErrorReporter;
-use SimpleNewsletter\Components\Sender;
 use SimpleNewsletter\Data\Feed;
 use SimpleNewsletter\Data\Post;
 use SimpleNewsletter\Data\Subscription;
@@ -16,11 +16,14 @@ use SimpleNewsletter\Data\Subscription;
 final readonly class Newsletter
 {
     public function __construct(
-        private Sender $sender,
+        private SenderPHPMailer $sender,
         private EmailTemplateFactory $emailTemplateFactory,
         private Auth $auth,
     ) {}
 
+    /**
+     * @throws EndUserException when the confirmation email cannot be sent
+     */
     public function sendConfirmation(
         Feed $feed,
         Subscription $subscription,

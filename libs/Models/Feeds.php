@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace SimpleNewsletter\Models;
 
 use Random\RandomException;
+use SimpleNewsletter\Adapters\FeedImporterLaminas;
 use SimpleNewsletter\Components\EndUserException;
-use SimpleNewsletter\Components\FeedImporter;
 use SimpleNewsletter\Data\Feed;
 use SimpleNewsletter\Data\FeedMetadata;
 use SimpleNewsletter\Data\FeedsDAO;
@@ -16,7 +16,7 @@ final readonly class Feeds
 {
     public function __construct(
         private FeedsDAO $feedsDAO,
-        private FeedImporter $feedImporter,
+        private FeedImporterLaminas $feedImporter,
     ) {}
 
     /**

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 use PHPUnit\Framework\AssertionFailedError;
 use SimpleNewsletter\Components\Auth;
+use SimpleNewsletter\Adapters\SenderPHPMailer;
 use SimpleNewsletter\Components\EmailTemplateFactory;
 use SimpleNewsletter\Components\EndUserException;
-use SimpleNewsletter\Components\Sender;
 use SimpleNewsletter\Data\Feed;
 use SimpleNewsletter\Data\FeedMetadata;
 use SimpleNewsletter\Data\Post;
@@ -19,8 +19,8 @@ use SimpleNewsletter\Templates\Email\SubscriptionConfirmation;
  * @throws \InvalidArgumentException
  */
 test('sendConfirmation calls sender with template from EmailTemplateFactory', function (): void {
-    /** @var Sender&\Mockery\MockInterface $sender */
-    $sender = \Mockery::mock(Sender::class);
+    /** @var SenderPHPMailer&\Mockery\MockInterface $sender */
+    $sender = \Mockery::mock(SenderPHPMailer::class);
     /** @var EmailTemplateFactory&\Mockery\MockInterface $emailTemplateFactory */
     $emailTemplateFactory = \Mockery::mock(EmailTemplateFactory::class);
     /** @var Auth&\Mockery\MockInterface $auth */
@@ -56,8 +56,8 @@ test('sendConfirmation calls sender with template from EmailTemplateFactory', fu
  * @throws AssertionFailedError
  */
 test('sendConfirmation uses the action-scoped token key as MAC input', function (): void {
-    /** @var Sender&\Mockery\MockInterface $sender */
-    $sender = \Mockery::mock(Sender::class);
+    /** @var SenderPHPMailer&\Mockery\MockInterface $sender */
+    $sender = \Mockery::mock(SenderPHPMailer::class);
     /** @var EmailTemplateFactory&\Mockery\MockInterface $emailTemplateFactory */
     $emailTemplateFactory = \Mockery::mock(EmailTemplateFactory::class);
     /** @var Auth&\Mockery\MockInterface $auth */
@@ -88,8 +88,8 @@ test('sendConfirmation uses the action-scoped token key as MAC input', function 
  * @throws \InvalidArgumentException
  */
 test('sendPostsToSubscribers calls sender for each subscription', function (): void {
-    /** @var Sender&\Mockery\MockInterface $sender */
-    $sender = \Mockery::mock(Sender::class);
+    /** @var SenderPHPMailer&\Mockery\MockInterface $sender */
+    $sender = \Mockery::mock(SenderPHPMailer::class);
     /** @var EmailTemplateFactory&\Mockery\MockInterface $emailTemplateFactory */
     $emailTemplateFactory = \Mockery::mock(EmailTemplateFactory::class);
     /** @var Auth&\Mockery\MockInterface $auth */
@@ -126,8 +126,8 @@ test('sendPostsToSubscribers calls sender for each subscription', function (): v
     $newsletter->sendPostsToSubscribers($feed, [$post], $sub1, $sub2);
 });
 test('sendPostsToSubscribers creates correct template per subscription', function (): void {
-    /** @var Sender&\Mockery\MockInterface $sender */
-    $sender = \Mockery::mock(Sender::class);
+    /** @var SenderPHPMailer&\Mockery\MockInterface $sender */
+    $sender = \Mockery::mock(SenderPHPMailer::class);
     /** @var EmailTemplateFactory&\Mockery\MockInterface $emailTemplateFactory */
     $emailTemplateFactory = \Mockery::mock(EmailTemplateFactory::class);
     /** @var Auth&\Mockery\MockInterface $auth */
@@ -157,8 +157,8 @@ test('sendPostsToSubscribers creates correct template per subscription', functio
 });
 
 test('sendPostsToSubscribers continues after a recipient send failure', function (): void {
-    /** @var Sender&\Mockery\MockInterface $sender */
-    $sender = \Mockery::mock(Sender::class);
+    /** @var SenderPHPMailer&\Mockery\MockInterface $sender */
+    $sender = \Mockery::mock(SenderPHPMailer::class);
     /** @var EmailTemplateFactory&\Mockery\MockInterface $emailTemplateFactory */
     $emailTemplateFactory = \Mockery::mock(EmailTemplateFactory::class);
     /** @var Auth&\Mockery\MockInterface $auth */
@@ -199,8 +199,8 @@ test('sendPostsToSubscribers reports failures without subscriber PII', function 
     \ini_set('error_log', $logFile);
 
     try {
-        /** @var Sender&\Mockery\MockInterface $sender */
-        $sender = \Mockery::mock(Sender::class);
+        /** @var SenderPHPMailer&\Mockery\MockInterface $sender */
+        $sender = \Mockery::mock(SenderPHPMailer::class);
         /** @var EmailTemplateFactory&\Mockery\MockInterface $emailTemplateFactory */
         $emailTemplateFactory = \Mockery::mock(EmailTemplateFactory::class);
         /** @var Auth&\Mockery\MockInterface $auth */
@@ -238,8 +238,8 @@ test('sendPostsToSubscribers reports failures without subscriber PII', function 
 });
 
 test('sendPostsToSubscribers rethrows when every recipient send fails', function (): void {
-    /** @var Sender&\Mockery\MockInterface $sender */
-    $sender = \Mockery::mock(Sender::class);
+    /** @var SenderPHPMailer&\Mockery\MockInterface $sender */
+    $sender = \Mockery::mock(SenderPHPMailer::class);
     /** @var EmailTemplateFactory&\Mockery\MockInterface $emailTemplateFactory */
     $emailTemplateFactory = \Mockery::mock(EmailTemplateFactory::class);
     /** @var Auth&\Mockery\MockInterface $auth */
@@ -268,8 +268,8 @@ test('sendPostsToSubscribers rethrows when every recipient send fails', function
 })->throws(EndUserException::class, 'Connection refused');
 
 test('sendPostsToSubscribers returns normally on partial failure', function (): void {
-    /** @var Sender&\Mockery\MockInterface $sender */
-    $sender = \Mockery::mock(Sender::class);
+    /** @var SenderPHPMailer&\Mockery\MockInterface $sender */
+    $sender = \Mockery::mock(SenderPHPMailer::class);
     /** @var EmailTemplateFactory&\Mockery\MockInterface $emailTemplateFactory */
     $emailTemplateFactory = \Mockery::mock(EmailTemplateFactory::class);
     /** @var Auth&\Mockery\MockInterface $auth */

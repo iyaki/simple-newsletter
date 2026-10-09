@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use SimpleNewsletter\Components\FeedImporter;
+use SimpleNewsletter\Adapters\FeedImporterLaminas;
 use SimpleNewsletter\Data\Feed;
 use SimpleNewsletter\Data\FeedMetadata;
 use SimpleNewsletter\Data\FeedsDAO;
@@ -17,8 +17,8 @@ test(
      */ function (): void {
         /** @var FeedsDAO&\Mockery\MockInterface $feedsDAO */
         $feedsDAO = \Mockery::mock(FeedsDAO::class);
-        /** @var FeedImporter&\Mockery\MockInterface $feedImporter */
-        $feedImporter = \Mockery::mock(FeedImporter::class);
+        /** @var FeedImporterLaminas&\Mockery\MockInterface $feedImporter */
+        $feedImporter = \Mockery::mock(FeedImporterLaminas::class);
 
         $now = new DateTimeImmutable();
         $metadata = new FeedMetadata('https://example.com/feed', 'Test Feed', 'https://example.com', $now);
@@ -51,8 +51,8 @@ test(
      */ function (): void {
         /** @var FeedsDAO&\Mockery\MockInterface $feedsDAO */
         $feedsDAO = \Mockery::mock(FeedsDAO::class);
-        /** @var FeedImporter&\Mockery\MockInterface $feedImporter */
-        $feedImporter = \Mockery::mock(FeedImporter::class);
+        /** @var FeedImporterLaminas&\Mockery\MockInterface $feedImporter */
+        $feedImporter = \Mockery::mock(FeedImporterLaminas::class);
 
         $oldDate = new DateTimeImmutable();
         $oldDate = $oldDate->sub(new DateInterval('P2D'));
@@ -87,8 +87,8 @@ test(
      */ function (): void {
         /** @var FeedsDAO&\Mockery\MockInterface $feedsDAO */
         $feedsDAO = \Mockery::mock(FeedsDAO::class);
-        /** @var FeedImporter&\Mockery\MockInterface $feedImporter */
-        $feedImporter = \Mockery::mock(FeedImporter::class);
+        /** @var FeedImporterLaminas&\Mockery\MockInterface $feedImporter */
+        $feedImporter = \Mockery::mock(FeedImporterLaminas::class);
 
         $uri = 'https://example.com/feed';
         $now = new DateTimeImmutable();
@@ -118,8 +118,8 @@ test(
      */ function (): void {
         /** @var FeedsDAO&\Mockery\MockInterface $feedsDAO */
         $feedsDAO = \Mockery::mock(FeedsDAO::class);
-        /** @var FeedImporter&\Mockery\MockInterface $feedImporter */
-        $feedImporter = \Mockery::mock(FeedImporter::class);
+        /** @var FeedImporterLaminas&\Mockery\MockInterface $feedImporter */
+        $feedImporter = \Mockery::mock(FeedImporterLaminas::class);
 
         $datetime = new DateTimeImmutable();
         $metadata1 = new FeedMetadata('https://example.com/feed1', 'Feed 1', 'https://example.com', $datetime);
@@ -147,8 +147,8 @@ test(
      */ function (): void {
         /** @var FeedsDAO&\Mockery\MockInterface $feedsDAO */
         $feedsDAO = \Mockery::mock(FeedsDAO::class);
-        /** @var FeedImporter&\Mockery\MockInterface $feedImporter */
-        $feedImporter = \Mockery::mock(FeedImporter::class);
+        /** @var FeedImporterLaminas&\Mockery\MockInterface $feedImporter */
+        $feedImporter = \Mockery::mock(FeedImporterLaminas::class);
 
         $now = new DateTimeImmutable();
         $metadata = new FeedMetadata('https://example.com/feed', 'Test', 'https://example.com', $now);
@@ -175,8 +175,8 @@ test(
      */ function (): void {
         /** @var FeedsDAO&\Mockery\MockInterface $feedsDAO */
         $feedsDAO = \Mockery::mock(FeedsDAO::class);
-        /** @var FeedImporter&\Mockery\MockInterface $feedImporter */
-        $feedImporter = \Mockery::mock(FeedImporter::class);
+        /** @var FeedImporterLaminas&\Mockery\MockInterface $feedImporter */
+        $feedImporter = \Mockery::mock(FeedImporterLaminas::class);
 
         $now = new DateTimeImmutable();
         $metadata = new FeedMetadata('https://example.com/feed', 'Test Feed', 'https://example.com', $now);

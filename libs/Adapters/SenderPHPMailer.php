@@ -6,15 +6,14 @@ namespace SimpleNewsletter\Adapters;
 
 use PHPMailer\PHPMailer\PHPMailer;
 use SimpleNewsletter\Components\EndUserException;
-use SimpleNewsletter\Components\Sender;
 use SimpleNewsletter\Templates\Email\EmailInterface;
 
 /**
- * PHPMailer implementation of the Sender interface.
+ * PHPMailer implementation for sending email templates.
  *
  * Configures SMTP relay with PHPMailer, handles UTF-8 encoding and base64 transfer.
  */
-final readonly class SenderPHPMailer implements Sender
+final readonly class SenderPHPMailer
 {
     private PHPMailer $mailer;
 
@@ -55,7 +54,6 @@ final readonly class SenderPHPMailer implements Sender
     /**
      * @throws EndUserException
      */
-    #[\Override]
     public function send(EmailInterface $template): void
     {
         try {
