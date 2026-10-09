@@ -7,6 +7,12 @@ namespace SimpleNewsletter;
 use PHPMailer\PHPMailer\Exception;
 use SimpleNewsletter\Components\EndUserException;
 
+/**
+ * A fail-closed RuntimeException (missing SECRET_KEY) intentionally escapes
+ * as a 500: the service must not serve with forgeable tokens.
+ *
+ * @throws \RuntimeException|\PDOException|Exception
+ */
 (static function (): never {
     $c = new Container();
     $responder = $c->responder();
@@ -34,6 +40,12 @@ use SimpleNewsletter\Components\EndUserException;
             0,
             $technicalException,
         )));
+    } catch (\RuntimeException $configurationException) {
+        // Fail closed: a misconfigured deployment (e.g. missing SECRET_KEY)
+        // must not fall back to serving with forgeable tokens.
+        error_log('Configuration error: ' . $configurationException->getMessage());
+        \http_response_code(500);
+        echo 'A technical error occurred. Please try again later.';
     }
 
     exit();
