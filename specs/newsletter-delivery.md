@@ -14,7 +14,7 @@ Schedule and send email newsletters containing new posts from subscribed feeds t
 
 ```
 bin/send-newsletters.php (CLI entrypoint, called via cron)
-    → Subscriptions::sendScheduled()
+    → NewsletterDelivery::sendScheduled() (wired via Container::delivery())
         → Feeds::getScheduled() — feeds with confirmed subscribers
         → For each feed:
             → Feeds::retrieveWithPosts() — fetch posts

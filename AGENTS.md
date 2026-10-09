@@ -28,7 +28,7 @@ Container.php (manual DI)      ← top-level wiring
 
 **Subscription** (double-opt-in): HTTP handler → `Subscriptions::add()` → `Feeds::retrieve()` (fetch/cache feed) → `SubscriptionsDAO::new()` → `Newsletter::sendConfirmation()` (Auth::hash → EmailTemplateFactory → Sender::send)
 
-**Delivery** (hourly cron): `bin/send-newsletters.php` → `Subscriptions::sendScheduled()` → `Feeds::getScheduled()` → `FeedImporter::fetchWithPosts()` → `Newsletter::sendPostToSubscribers()` per subscriber → `Feeds::updateLastSentPost()`
+**Delivery** (hourly cron): `bin/send-newsletters.php` → `Container::delivery()` → `NewsletterDelivery::sendScheduled()` → `Feeds::getScheduled()` → `FeedImporter::fetchWithPosts()` → `Newsletter::sendPostsToSubscribers()` per subscriber → `Feeds::updateLastSentPost()`
 
 ### Interface/Implementation Split
 
