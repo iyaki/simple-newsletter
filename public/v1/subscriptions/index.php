@@ -53,6 +53,14 @@ try {
         $return,
     ));
 } catch (EndUserException $endUserException) {
+    if ($endUserException->isTechnical()) {
+        // DB-layer failures (RateLimiter/DAOs) wrap the PDOException into the
+        // generic user-facing message; without this they never reach Sentry.
+        ErrorReporter::report(
+            'Technical error: ' . $endUserException->getPrevious()?->getMessage(),
+            $endUserException,
+        );
+    }
     $responder->sendResponse($responseBuilder->fromEndUserException($endUserException, $return));
 } catch (\PDOException|Exception $technicalException) {
     // Database/SMTP failures are operational, not configuration problems;
