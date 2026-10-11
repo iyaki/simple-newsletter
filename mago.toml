@@ -76,9 +76,10 @@ excessive-parameter-list = { constructor-threshold = 8 }
 plugins = ["stdlib"]
 
 ignore = [
-	{ code = "non-existent-function", in = "tests/E2e/**" },
+	{ code = "non-existent-function", in = "tests/**" },
 	{ code = "mixed-method-access", in = "tests/Adapters/FeedImporterLaminasTest.php" },
 	{ code = "mixed-method-access", in = "tests/Integration/FailClosedConfigTest.php" },
+	{ code = "mixed-method-access", in = "tests/Integration/TechnicalErrorReportingTest.php" },
 	{ code = "mixed-method-access", in = "tests/Adapters/ResponderHttpTest.php" },
 	{ code = "mixed-method-access", in = "tests/Models/NewsletterTest.php" },
 	{ code = "mixed-method-access", in = "tests/Data/FeedsDAOTest.php" },

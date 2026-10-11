@@ -31,6 +31,14 @@ use SimpleNewsletter\Components\EndUserException;
 
         $responder->sendResponse($responseBuilder->fromString('Subscription confirmed', ''));
     } catch (EndUserException $endUserException) {
+        if ($endUserException->isTechnical()) {
+            // DB-layer failures (RateLimiter/DAOs) wrap the PDOException into the
+            // generic user-facing message; without this they never reach Sentry.
+            \SimpleNewsletter\Components\ErrorReporter::report(
+                'Technical error: ' . $endUserException->getPrevious()?->getMessage(),
+                $endUserException,
+            );
+        }
         $responder->sendResponse($responseBuilder->fromEndUserException($endUserException));
     } catch (\PDOException|Exception $technicalException) {
         \SimpleNewsletter\Components\ErrorReporter::report(
