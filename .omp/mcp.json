@@ -1,0 +1,19 @@
+{
+  "$schema": "https://raw.githubusercontent.com/can1357/oh-my-pi/main/packages/coding-agent/src/config/mcp-schema.json",
+  "mcpServers": {
+    "sentry": {
+      "type": "http",
+      "url": "https://mcp.sentry.dev/mcp",
+      "auth": {
+        "type": "oauth",
+        "credentialId": "mcp_oauth:profile:default:https://mcp.sentry.dev/mcp",
+        "tokenUrl": "https://mcp.sentry.dev/oauth/token",
+        "clientId": "KTg3IlJrOXD4DtP8",
+        "resource": "https://mcp.sentry.dev/mcp"
+      },
+      "oauth": {
+        "clientId": "KTg3IlJrOXD4DtP8"
+      }
+    }
+  }
+}
