@@ -122,7 +122,7 @@ final class FeedsDAO
      * @return Feed[]
      * @throws EndUserException
      */
-    public function getScheduled(\DateTimeImmutable $datetime): array
+    public function getScheduled(\DateTimeImmutable $datetime, int $quarantineThreshold, int $retryBefore): array
     {
         try {
             $stmt = $this->db->prepare(<<<SQL
@@ -133,6 +133,11 @@ final class FeedsDAO
                 WHERE
                     trigger_hour = :trigger_hour
                 AND s.active = 1
+                AND (
+                    f.consecutive_failures < :quarantine_threshold
+                    OR f.last_fetch_attempt IS NULL
+                    OR f.last_fetch_attempt <= :retry_before
+                )
                 SQL);
             if ($stmt === false) {
                 throw new EndUserException('A technical error occurred. Please try again later.');
@@ -140,6 +145,8 @@ final class FeedsDAO
 
             $stmt->execute([
                 'trigger_hour' => (int) $datetime->format('H'),
+                'quarantine_threshold' => $quarantineThreshold,
+                'retry_before' => $retryBefore,
             ]);
 
             /** @var array<array{uri: string, title: string, link: string, last_update: string, last_sent_post_uri: ?string}> $results */
@@ -157,6 +164,72 @@ final class FeedsDAO
             }
 
             return $feeds;
+        } catch (\PDOException $pdoException) {
+            throw new EndUserException('A technical error occurred. Please try again later.', 0, $pdoException);
+        }
+    }
+
+    /**
+     * Count one failed delivery fetch and return the new consecutive count.
+     *
+     * @throws EndUserException
+     */
+    public function recordFailedFetch(string $uri, \DateTimeImmutable $now): int
+    {
+        try {
+            $stmt = $this->db->prepare(<<<SQL
+                UPDATE {$this->TABLE}
+                SET
+                    consecutive_failures = consecutive_failures + 1,
+                    last_fetch_attempt = :attempted_at
+                WHERE uri = :uri
+                SQL);
+            if ($stmt === false) {
+                throw new EndUserException('A technical error occurred. Please try again later.');
+            }
+
+            $stmt->execute([
+                'uri' => $uri,
+                'attempted_at' => $now->getTimestamp(),
+            ]);
+
+            $stmt = $this->db->prepare(
+                \sprintf('SELECT consecutive_failures FROM %s WHERE uri = :uri', $this->TABLE),
+            );
+            if ($stmt === false) {
+                throw new EndUserException('A technical error occurred. Please try again later.');
+            }
+
+            $stmt->execute(['uri' => $uri]);
+
+            $count = $stmt->fetchColumn();
+
+            return \is_numeric($count) ? (int) $count : 0;
+        } catch (\PDOException $pdoException) {
+            throw new EndUserException('A technical error occurred. Please try again later.', 0, $pdoException);
+        }
+    }
+
+    /**
+     * Clear the failure counter after a successful fetch.
+     *
+     * @throws EndUserException
+     */
+    public function resetFetchFailures(string $uri): void
+    {
+        try {
+            $stmt = $this->db->prepare(<<<SQL
+                UPDATE {$this->TABLE}
+                SET
+                    consecutive_failures = 0,
+                    last_fetch_attempt = NULL
+                WHERE uri = :uri AND consecutive_failures > 0
+                SQL);
+            if ($stmt === false) {
+                throw new EndUserException('A technical error occurred. Please try again later.');
+            }
+
+            $stmt->execute(['uri' => $uri]);
         } catch (\PDOException $pdoException) {
             throw new EndUserException('A technical error occurred. Please try again later.', 0, $pdoException);
         }

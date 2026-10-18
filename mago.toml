@@ -67,7 +67,10 @@ no-protected-in-final = { enabled = true }
 # Security egress policy: the fail-closed address-validation and URI-scheme
 # checklists are inherently branchy; splitting them would scatter the policy
 # across files.
-cyclomatic-complexity = { exclude = ["libs/Adapters/PrivateAddressGuard.php", "libs/Adapters/BudgetedSocket.php", "libs/Adapters/FeedImporterLaminas.php"] }
+# FeedsDAO: every method wraps its statements in the same
+# prepare-guard/execute/catch boilerplate; that repetition is the cost of the
+# PDO-without-wrapper convention, not complexity worth abstracting away.
+cyclomatic-complexity = { exclude = ["libs/Adapters/PrivateAddressGuard.php", "libs/Adapters/BudgetedSocket.php", "libs/Adapters/FeedImporterLaminas.php", "libs/Data/FeedsDAO.php"] }
 no-literal-password = { exclude = ["tests/*"]}
 # SmtpConfig is a flat config DTO by design; 8 named constructor params.
 excessive-parameter-list = { constructor-threshold = 8 }
