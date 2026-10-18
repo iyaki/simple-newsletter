@@ -152,4 +152,63 @@ test(
     },
 );
 
+test(
+    'a failed send drops the SMTP connection and clears state for the next recipient',
+    /** @throws PHPMailerException|EndUserException */ function (): void {
+        /** @var PHPMailer&\Mockery\MockInterface $mailer */
+        $mailer = \Mockery::mock(PHPMailer::class);
+
+        // Constructor expectations
+        $mailer->shouldReceive('isSMTP')->once();
+        $mailer->shouldReceive('setFrom')->once();
+        $mailer->shouldReceive('addReplyTo')->once();
+
+        $config = new SmtpConfig(
+            host: 'smtp.example.com',
+            port: 587,
+            user: 'user',
+            password: 'secret',
+            from: 'from@example.com',
+            replyTo: 'reply@example.com',
+        );
+
+        $sender = new SenderPHPMailer($config, $mailer);
+
+        /** @var EmailInterface&\Mockery\MockInterface $email */
+        $email = \Mockery::mock(EmailInterface::class);
+        $email->shouldReceive('recipient')->twice()->andReturn('first@example.com', 'second@example.com');
+        $email->shouldReceive('subject')->twice()->andReturn('Test Subject');
+        $email->shouldReceive('body')->twice()->andReturn('<p>Body content</p>');
+
+        $mailer->shouldReceive('addAddress')->with('first@example.com')->once();
+        $mailer->shouldReceive('addAddress')->with('second@example.com')->once();
+        $mailer->shouldReceive('isHTML')->twice();
+        // First send fails (recipient rejected), second send succeeds.
+        $recipientsFailed = new PHPMailerException('SMTP Error: The following recipients failed: first@example.com');
+        $sendCalls = 0;
+        $mailer->shouldReceive('send')->twice()->andReturnUsing(function () use (&$sendCalls, $recipientsFailed): void {
+            if (++$sendCalls === 1) {
+                throw $recipientsFailed;
+            }
+        });
+        // Failure path must drop the poisoned keepalive connection...
+        $mailer->shouldReceive('smtpClose')->once();
+        // ...and the finally block must clean up on both the failed and the
+        // successful send, so no recipient from a previous send leaks in.
+        $mailer->shouldReceive('clearAllRecipients')->twice();
+        $mailer->shouldReceive('clearAttachments')->twice();
+
+        $caught = null;
+        try {
+            $sender->send($email);
+        } catch (EndUserException $exception) {
+            $caught = $exception;
+        }
+        expect($caught)->toBeInstanceOf(EndUserException::class);
+
+        // Second send must run against a clean mailer, carrying only its own recipient.
+        $sender->send($email);
+    },
+);
+
 

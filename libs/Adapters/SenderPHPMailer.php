@@ -65,17 +65,23 @@ final readonly class SenderPHPMailer
             $this->mailer->Body = $template->body();
 
             $this->mailer->send();
-
-            $this->mailer->clearAllRecipients();
-            $this->mailer->clearAttachments();
-            $this->mailer->Subject = '';
-            $this->mailer->Body = '';
         } catch (\Exception $exception) {
+            // ponytail: a rejected recipient must not poison the cached
+            // keepalive sender — the failed transaction stays open (no
+            // DATA/RSET) and the address stays attached, so every later send
+            // re-attempts it and fails too. Drop the connection; the next
+            // send reconnects transparently.
+            $this->mailer->smtpClose();
             throw new EndUserException(
                 'We could not send the confirmation email. Please check your email address or contact support.',
                 0,
                 $exception,
             );
+        } finally {
+            $this->mailer->clearAllRecipients();
+            $this->mailer->clearAttachments();
+            $this->mailer->Subject = '';
+            $this->mailer->Body = '';
         }
     }
 }
