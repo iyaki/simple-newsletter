@@ -294,6 +294,7 @@ it('sendScheduled keeps delivering later feeds when one feed fetch fails', funct
     $feeds->shouldReceive('getScheduled')->once()->with($datetime)->andReturn([$deadFeed, $healthyFeed]);
     $feeds->shouldReceive('retrieveWithPosts')->once()->with($deadFeed)
         ->andThrow(new EndUserException('The feed could not be loaded. Please check the URL and try again.'));
+    $feeds->shouldReceive('recordFailedFetch')->once()->with($deadFeed)->andReturn(1);
     $feeds->shouldReceive('retrieveWithPosts')->once()->with($healthyFeed)->andReturn($feedWithPosts);
     $subscriptionsDAO->shouldReceive('findActiveSubscriptionsFor')->once()->with($feedWithPosts)->andReturn([$subscriber]);
     $newsletter->shouldReceive('sendPostsToSubscribers')->once()->with($feedWithPosts, [$post], $subscriber);
@@ -403,4 +404,108 @@ it('sendScheduled does not advance the watermark when delivery throws and still 
     $delivery->sendScheduled($datetime);
 
     expect(true)->toBeTrue();
+});
+
+function with_captured_error_log(callable $test): string
+{
+    $previousErrorLogIni = \ini_get('error_log');
+    $logFile = \tempnam(\sys_get_temp_dir(), 'delivery-');
+    \assert(\is_string($logFile));
+    \ini_set('error_log', $logFile);
+
+    try {
+        $test();
+
+        $log = \file_get_contents($logFile);
+
+        return \is_string($log) ? $log : '';
+    } finally {
+        \ini_set('error_log', \is_string($previousErrorLogIni) ? $previousErrorLogIni : '');
+        \unlink($logFile);
+    }
+}
+
+/**
+ * @throws \Random\RandomException
+ */
+it('logs the first fetch failure as an expected condition, not an operational error', function (): void {
+    /** @var Feeds&\Mockery\MockInterface $feeds */
+    $feeds = \Mockery::mock(Feeds::class);
+    /** @var SubscriptionsDAO&\Mockery\MockInterface $subscriptionsDAO */
+    $subscriptionsDAO = \Mockery::mock(SubscriptionsDAO::class);
+    /** @var Newsletter&\Mockery\MockInterface $newsletter */
+    $newsletter = \Mockery::mock(Newsletter::class);
+
+    $datetime = new DateTimeImmutable();
+    $scheduledFeed = new Feed(new FeedMetadata('https://example.com/feed', 'Feed', 'https://example.com', $datetime));
+
+    $feeds->shouldReceive('getScheduled')->once()->with($datetime)->andReturn([$scheduledFeed]);
+    $feeds->shouldReceive('retrieveWithPosts')->once()->with($scheduledFeed)
+        ->andThrow(new EndUserException("DOMDocument cannot parse XML: Couldn't find end of Start Tag"));
+    $feeds->shouldReceive('recordFailedFetch')->once()->with($scheduledFeed)->andReturn(1);
+    $newsletter->shouldNotReceive('sendPostsToSubscribers');
+    $feeds->shouldNotReceive('updateLastSentPost');
+
+    $log = with_captured_error_log(function () use ($subscriptionsDAO, $feeds, $newsletter, $datetime): void {
+        (new NewsletterDelivery($subscriptionsDAO, $feeds, $newsletter))->sendScheduled($datetime);
+    });
+
+    expect($log)->toContain('failed to fetch or parse')
+        ->and($log)->toContain('https://example.com/feed')
+        ->and($log)->not->toContain('Skipping feed');
+});
+
+/**
+ * @throws \Random\RandomException
+ */
+it('stays silent on repeat fetch failures below the quarantine threshold', function (): void {
+    /** @var Feeds&\Mockery\MockInterface $feeds */
+    $feeds = \Mockery::mock(Feeds::class);
+    /** @var SubscriptionsDAO&\Mockery\MockInterface $subscriptionsDAO */
+    $subscriptionsDAO = \Mockery::mock(SubscriptionsDAO::class);
+    /** @var Newsletter&\Mockery\MockInterface $newsletter */
+    $newsletter = \Mockery::mock(Newsletter::class);
+
+    $datetime = new DateTimeImmutable();
+    $scheduledFeed = new Feed(new FeedMetadata('https://example.com/feed', 'Feed', 'https://example.com', $datetime));
+
+    $feeds->shouldReceive('getScheduled')->once()->with($datetime)->andReturn([$scheduledFeed]);
+    $feeds->shouldReceive('retrieveWithPosts')->once()->with($scheduledFeed)
+        ->andThrow(new EndUserException('This doesn\'t appear to be a valid RSS or Atom feed.'));
+    $feeds->shouldReceive('recordFailedFetch')->once()->with($scheduledFeed)->andReturn(17);
+    $newsletter->shouldNotReceive('sendPostsToSubscribers');
+
+    $log = with_captured_error_log(function () use ($subscriptionsDAO, $feeds, $newsletter, $datetime): void {
+        (new NewsletterDelivery($subscriptionsDAO, $feeds, $newsletter))->sendScheduled($datetime);
+    });
+
+    expect($log)->toEqual('');
+});
+
+/**
+ * @throws \Random\RandomException
+ */
+it('escalates exactly once at the quarantine threshold', function (): void {
+    /** @var Feeds&\Mockery\MockInterface $feeds */
+    $feeds = \Mockery::mock(Feeds::class);
+    /** @var SubscriptionsDAO&\Mockery\MockInterface $subscriptionsDAO */
+    $subscriptionsDAO = \Mockery::mock(SubscriptionsDAO::class);
+    /** @var Newsletter&\Mockery\MockInterface $newsletter */
+    $newsletter = \Mockery::mock(Newsletter::class);
+
+    $datetime = new DateTimeImmutable();
+    $scheduledFeed = new Feed(new FeedMetadata('https://example.com/feed', 'Feed', 'https://example.com', $datetime));
+
+    $feeds->shouldReceive('getScheduled')->once()->with($datetime)->andReturn([$scheduledFeed]);
+    $feeds->shouldReceive('retrieveWithPosts')->once()->with($scheduledFeed)
+        ->andThrow(new EndUserException('The feed could not be loaded.'));
+    $feeds->shouldReceive('recordFailedFetch')->once()->with($scheduledFeed)->andReturn(Feeds::QUARANTINE_THRESHOLD);
+    $newsletter->shouldNotReceive('sendPostsToSubscribers');
+
+    $log = with_captured_error_log(function () use ($subscriptionsDAO, $feeds, $newsletter, $datetime): void {
+        (new NewsletterDelivery($subscriptionsDAO, $feeds, $newsletter))->sendScheduled($datetime);
+    });
+
+    expect($log)->toContain('quarantined')
+        ->and($log)->toContain('retrying daily');
 });

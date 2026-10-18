@@ -14,6 +14,15 @@ use SimpleNewsletter\Data\Post;
 
 final readonly class Feeds
 {
+    /**
+     * Consecutive delivery fetch/parse failures after which a feed is
+     * quarantined: skipped for a day between retry probes, so a permanently
+     * broken feed costs one escalation instead of hourly error noise.
+     */
+    public const int QUARANTINE_THRESHOLD = 24;
+
+    private const int QUARANTINE_RETRY_INTERVAL = 86_400;
+
     public function __construct(
         private FeedsDAO $feedsDAO,
         private FeedImporterLaminas $feedImporter,
@@ -50,13 +59,30 @@ final readonly class Feeds
      */
     public function getScheduled(\DateTimeImmutable $datetime): array
     {
-        return $this->feedsDAO->getScheduled($datetime);
+        return $this->feedsDAO->getScheduled(
+            $datetime,
+            self::QUARANTINE_THRESHOLD,
+            $datetime->getTimestamp() - self::QUARANTINE_RETRY_INTERVAL,
+        );
     }
 
     /** @throws EndUserException */
     public function retrieveWithPosts(Feed $feed): Feed
     {
-        return $this->feedImporter->fetchWithPosts($feed);
+        $feed = $this->feedImporter->fetchWithPosts($feed);
+        $this->feedsDAO->resetFetchFailures($feed->getUri());
+
+        return $feed;
+    }
+
+    /**
+     * Count one failed delivery fetch; the return is the new consecutive count.
+     *
+     * @throws EndUserException
+     */
+    public function recordFailedFetch(Feed $feed): int
+    {
+        return $this->feedsDAO->recordFailedFetch($feed->getUri(), new \DateTimeImmutable());
     }
 
     /** @throws EndUserException */

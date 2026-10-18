@@ -136,7 +136,11 @@ test(
 
         expect($result)->toBe($expectedFeeds);
         expect($result)->toHaveCount(2);
-        $feedsDAO->shouldHaveReceived('getScheduled', [$datetime]);
+        $feedsDAO->shouldHaveReceived('getScheduled', [
+            $datetime,
+            Feeds::QUARANTINE_THRESHOLD,
+            $datetime->getTimestamp() - 86_400,
+        ]);
     },
 );
 
@@ -159,6 +163,7 @@ test(
         $feedWithPosts = new Feed($metadata, null, $posts);
 
         $feedImporter->shouldReceive('fetchWithPosts')->andReturn($feedWithPosts);
+        $feedsDAO->shouldReceive('resetFetchFailures')->once()->with('https://example.com/feed');
 
         $feeds = new Feeds($feedsDAO, $feedImporter);
         $result = $feeds->retrieveWithPosts($feed);

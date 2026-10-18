@@ -35,8 +35,10 @@ final readonly class NewsletterDelivery
             try {
                 $this->deliverFeed($scheduledFeed);
             } catch (\Throwable $feedFailure) {
-                // ponytail: one broken feed must not suppress delivery of the
-                // other co-scheduled feeds; quarantine, log + report, keep going.
+                // Fetch/parse failures never reach here (handled inside
+                // deliverFeed): these are operational failures — SMTP batch
+                // aborts, DAO errors. ponytail: one broken feed must not
+                // suppress delivery of the other co-scheduled feeds.
                 ErrorReporter::report(
                     \sprintf('Skipping feed %s: %s', $scheduledFeed->getUri(), $feedFailure->getMessage()),
                     $feedFailure,
@@ -48,7 +50,13 @@ final readonly class NewsletterDelivery
     /** @throws EndUserException */
     private function deliverFeed(Feed $scheduledFeed): void
     {
-        $feed = $this->feeds->retrieveWithPosts($scheduledFeed);
+        try {
+            $feed = $this->feeds->retrieveWithPosts($scheduledFeed);
+        } catch (\Throwable $fetchFailure) {
+            $this->recordFetchFailure($scheduledFeed, $fetchFailure);
+
+            return;
+        }
 
         $newPosts = $this->collectNewPosts($feed);
 
@@ -62,6 +70,35 @@ final readonly class NewsletterDelivery
 
         // $newPosts is newest-first; advance the watermark to the newest sent.
         $this->feeds->updateLastSentPost($feed, $newPosts[0]);
+    }
+
+    /**
+     * Fetch/parse failures are external conditions (site moved, broken XML,
+     * redirect to a private host), not app bugs: warning on the first
+     * failure, one error at the quarantine threshold, silence after — the
+     * daily retry probe stays invisible until the feed works again.
+     *
+     * @throws EndUserException when the failure counter itself cannot be written
+     */
+    private function recordFetchFailure(Feed $scheduledFeed, \Throwable $fetchFailure): void
+    {
+        $consecutiveFailures = $this->feeds->recordFailedFetch($scheduledFeed);
+
+        if ($consecutiveFailures === 1) {
+            ErrorReporter::expected(
+                \sprintf('Feed %s failed to fetch or parse; retrying hourly: %s', $scheduledFeed->getUri(), $fetchFailure->getMessage()),
+                $fetchFailure,
+            );
+        } elseif ($consecutiveFailures === Feeds::QUARANTINE_THRESHOLD) {
+            ErrorReporter::report(
+                \sprintf(
+                    'Feed %s failed %d consecutive fetches; quarantined — retrying daily until it succeeds',
+                    $scheduledFeed->getUri(),
+                    $consecutiveFailures,
+                ),
+                $fetchFailure,
+            );
+        }
     }
 
     /**

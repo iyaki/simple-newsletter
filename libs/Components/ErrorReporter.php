@@ -23,4 +23,26 @@ final class ErrorReporter
 
         \Sentry\captureMessage($message, \Sentry\Severity::warning());
     }
+
+    /**
+     * For handled failures that are by design (external/user conditions the
+     * app already copes with): same visibility, but warning-level in Sentry
+     * so the error stream stays reserved for things needing action.
+     */
+    public static function expected(string $message, ?\Throwable $error = null): void
+    {
+        \error_log($message);
+
+        \Sentry\withScope(static function (\Sentry\State\Scope $scope) use ($message, $error): void {
+            $scope->setLevel(\Sentry\Severity::warning());
+
+            if ($error !== null) {
+                \Sentry\captureException($error);
+
+                return;
+            }
+
+            \Sentry\captureMessage($message);
+        });
+    }
 }

@@ -71,3 +71,39 @@ test('report without an error logs a warning-level message event', function (): 
 
     \Sentry\init(['dsn' => null]);
 });
+
+test('expected forwards the caught error to Sentry as a warning-level event', function (): void {
+    if (! \function_exists('\Sentry\init')) {
+        $this->markTestSkipped('sentry/sentry is not installed');
+    }
+
+    $previousErrorLogIni = \ini_get('error_log');
+    $logFile = \tempnam(\sys_get_temp_dir(), 'errrep-');
+    \assert(\is_string($logFile));
+    \ini_set('error_log', $logFile);
+
+    $events = [];
+    \Sentry\init([
+        'dsn' => 'https://public@sentry.example.com/1',
+        'before_send' => static function (\Sentry\Event $event) use (&$events): ?\Sentry\Event {
+            $events[] = $event;
+
+            return null;
+        },
+    ]);
+
+    try {
+        $error = new \RuntimeException('DOMDocument cannot parse XML');
+        ErrorReporter::expected('Feed https://example.com/feed failed to fetch or parse', $error);
+
+        $event = $events[0] ?? null;
+        expect($event)->not->toBeNull()
+            ->and($event?->getLevel()?->__toString())->toBe('warning')
+            ->and($event?->getExceptions()[0]?->getValue())->toBe('DOMDocument cannot parse XML')
+            ->and(\file_get_contents($logFile))->toContain('failed to fetch or parse');
+    } finally {
+        \ini_set('error_log', \is_string($previousErrorLogIni) ? $previousErrorLogIni : '');
+        \unlink($logFile);
+        \Sentry\init(['dsn' => null]);
+    }
+});
