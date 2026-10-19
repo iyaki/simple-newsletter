@@ -15,4 +15,19 @@ final class EndUserException extends \Exception
     {
         return $this->getPrevious() instanceof \PDOException;
     }
+
+    /**
+     * The most specific message in the wrapped chain: the technical reason
+     * this user-facing exception was raised. For operator-facing reports
+     * (cron logs, Sentry) — HTTP responses keep showing the sanitized text.
+     */
+    public function reason(): string
+    {
+        $deepest = $this;
+        while (($previous = $deepest->getPrevious()) instanceof \Throwable) {
+            $deepest = $previous;
+        }
+
+        return $deepest->getMessage();
+    }
 }

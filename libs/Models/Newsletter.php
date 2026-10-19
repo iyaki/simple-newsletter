@@ -78,7 +78,11 @@ final readonly class Newsletter
                 // duplicate mail to the recipients who already received it.
                 $lastFailure = $sendFailure;
                 ErrorReporter::report(
-                    \sprintf('Delivery to subscriber of %s failed: %s', $feed->getUri(), $sendFailure->getMessage()),
+                    \sprintf(
+                        'Delivery to subscriber of %s failed: %s',
+                        $feed->getUri(),
+                        $sendFailure instanceof EndUserException ? $sendFailure->reason() : $sendFailure->getMessage(),
+                    ),
                     $sendFailure,
                 );
             }
@@ -86,10 +90,13 @@ final readonly class Newsletter
 
         // Whole-batch failure must not silently drop the digest: rethrow so
         // the caller quarantines this feed, skips the watermark advance, and
-        // the feed is retried at its next scheduled slot.
+        // the feed is retried at its next scheduled slot. The message carries
+        // the technical reason — this exception never reaches end users, only
+        // cron logs and Sentry.
         if ($delivered === 0 && $subscriptions !== [] && $lastFailure !== null) {
             throw new EndUserException(
-                'Newsletter delivery failed for every recipient: ' . $lastFailure->getMessage(),
+                'Newsletter delivery failed for every recipient: '
+                . ($lastFailure instanceof EndUserException ? $lastFailure->reason() : $lastFailure->getMessage()),
                 0,
                 $lastFailure,
             );

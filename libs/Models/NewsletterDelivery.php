@@ -40,7 +40,11 @@ final readonly class NewsletterDelivery
                 // aborts, DAO errors. ponytail: one broken feed must not
                 // suppress delivery of the other co-scheduled feeds.
                 ErrorReporter::report(
-                    \sprintf('Skipping feed %s: %s', $scheduledFeed->getUri(), $feedFailure->getMessage()),
+                    \sprintf(
+                        'Skipping feed %s: %s',
+                        $scheduledFeed->getUri(),
+                        $feedFailure instanceof EndUserException ? $feedFailure->reason() : $feedFailure->getMessage(),
+                    ),
                     $feedFailure,
                 );
             }

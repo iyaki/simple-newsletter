@@ -247,6 +247,80 @@ test('sendPostsToSubscribers rethrows when every recipient send fails', function
     $newsletter->sendPostsToSubscribers($feed, [$post], $sub1, $sub2);
 })->throws(EndUserException::class, 'Connection refused');
 
+test('whole-batch failure message carries the technical root cause', function (): void {
+    $calls = 0;
+    /** @var SenderPHPMailer&\Mockery\MockInterface $sender */
+    $sender = \Mockery::mock(SenderPHPMailer::class);
+    $sender->shouldReceive('send')->once()->andReturnUsing(function (): void {
+        throw new EndUserException(
+            'We could not send the confirmation email.',
+            0,
+            new \RuntimeException('SMTP Error: The following recipients failed: user@example.com: High load, try again later'),
+        );
+    });
+    /** @var Auth&\Mockery\MockInterface $auth */
+    $auth = \Mockery::mock(Auth::class);
+
+    $now = new DateTimeImmutable();
+    $feed = new Feed(new FeedMetadata('https://example.com/feed', 'Test Feed', 'https://example.com', $now));
+    $post = new Post('https://example.com/post1', 'Post 1', 'Content 1');
+    $subscriber = new Subscription('https://example.com/feed', 'user@example.com');
+
+    $auth->shouldReceive('tokenKey')->once()->andReturn('key1');
+    $auth->shouldReceive('hash')->once()->andReturn('token1');
+
+    $newsletter = new Newsletter($sender, 'https://example.com', $auth);
+    $newsletter->sendPostsToSubscribers($feed, [$post], $subscriber);
+})->throws(
+    EndUserException::class,
+    'Newsletter delivery failed for every recipient: SMTP Error: The following recipients failed: user@example.com: High load, try again later',
+);
+
+test('per-recipient failure report carries the technical root cause when wrapped', function (): void {
+    $previousErrorLog = \ini_get('error_log');
+    $logFile = \tempnam(\sys_get_temp_dir(), 'newsletter-');
+    \assert(\is_string($logFile));
+    \ini_set('error_log', $logFile);
+
+    try {
+        $calls = 0;
+        /** @var SenderPHPMailer&\Mockery\MockInterface $sender */
+        $sender = \Mockery::mock(SenderPHPMailer::class);
+        $sender->shouldReceive('send')->twice()->andReturnUsing(function () use (&$calls): void {
+            $calls++;
+            if ($calls === 1) {
+                throw new EndUserException(
+                    'We could not send the confirmation email.',
+                    0,
+                    new \RuntimeException('SMTP Error: The following recipients failed: user1@example.com: High load, try again later'),
+                );
+            }
+        });
+        /** @var Auth&\Mockery\MockInterface $auth */
+        $auth = \Mockery::mock(Auth::class);
+
+        $now = new DateTimeImmutable();
+        $feed = new Feed(new FeedMetadata('https://example.com/feed', 'Test Feed', 'https://example.com', $now));
+        $post = new Post('https://example.com/post1', 'Post 1', 'Content 1');
+        $sub1 = new Subscription('https://example.com/feed', 'user1@example.com');
+        $sub2 = new Subscription('https://example.com/feed', 'user2@example.com');
+
+        $auth->shouldReceive('tokenKey')->twice()->andReturn('key1', 'key2');
+        $auth->shouldReceive('hash')->twice()->andReturn('token1', 'token2');
+
+        $newsletter = new Newsletter($sender, 'https://example.com', $auth);
+        $newsletter->sendPostsToSubscribers($feed, [$post], $sub1, $sub2);
+
+        $log = \file_get_contents($logFile);
+        \assert(\is_string($log));
+        expect($log)->toContain('Delivery to subscriber of https://example.com/feed failed: SMTP Error: The following recipients failed: user1@example.com: High load, try again later')
+            ->and(\substr_count($log, 'Delivery to subscriber of https://example.com/feed failed:'))->toBe(1);
+    } finally {
+        \ini_set('error_log', \is_string($previousErrorLog) ? $previousErrorLog : '');
+        \unlink($logFile);
+    }
+});
+
 test('sendPostsToSubscribers returns normally on partial failure', function (): void {
     /** @var list<NewsletterTemplate> $captured */
     $captured = [];
