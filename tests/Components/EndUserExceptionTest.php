@@ -21,7 +21,7 @@ test('reason falls back to the own message without a chain', function (): void {
 });
 
 test('isTechnical only fires for wrapped PDO failures', function (): void {
-    expect(new EndUserException('Invalid Feed URI')->isTechnical())->toBeFalse()
-        ->and(new EndUserException('A technical error occurred.', 0, new \RuntimeException('x'))->isTechnical())->toBeFalse()
-        ->and(new EndUserException('A technical error occurred.', 0, new \PDOException('lost connection'))->isTechnical())->toBeTrue();
+    expect((new EndUserException('Invalid Feed URI'))->isTechnical())->toBeFalse()
+        ->and((new EndUserException('A technical error occurred.', 0, new \RuntimeException('x')))->isTechnical())->toBeFalse()
+        ->and((new EndUserException('A technical error occurred.', 0, new \PDOException('lost connection')))->isTechnical())->toBeTrue();
 });
