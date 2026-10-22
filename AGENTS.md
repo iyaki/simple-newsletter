@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-**Simple Newsletter** converts Atom/RSS feeds into email newsletters via a double-opt-in subscription flow. Built with FrankenPHP (PHP 8.3 + Caddy, single binary), SQLite, and no framework. Followers subscribe to a feed URI, confirm their email, and receive hourly newsletters when new posts are published. No user accounts, no reader UI — just pull-to-email.
+**Simple Newsletter** converts Atom/RSS feeds into email newsletters via a double-opt-in subscription flow. Built with FrankenPHP (PHP 8.5 + Caddy, single binary), SQLite, and no framework. Followers subscribe to a feed URI, confirm their email, and receive hourly newsletters when new posts are published. No user accounts, no reader UI — just pull-to-email.
 
 The project follows **Spec-Driven Development (SDD)**: every feature has a corresponding spec in `specs/`. Read specs before implementing.
 
@@ -164,13 +164,14 @@ Manual DI via `final class Container` (no framework, no container-interop). Publ
 
 ## Runtime/Tooling Preferences
 
-- **Runtime**: PHP 8.3+ via FrankenPHP (Caddy embedded)
+- **Runtime**: PHP 8.3+ via FrankenPHP (Caddy embedded; prod/dev images are php8.5)
 - **Package manager**: Composer
 - **Dev tooling**: `intelephense` (PHP language server) via npm (in package.json)
 - **Database**: SQLite3 via PDO (in-memory for tests)
 - **Container**: Docker with multi-stage builds (devcontainer for VS Code)
 - **CI**: Dependabot for monthly dependency updates
-- **No framework**, no static analysis, no build step for PHP
+- **No framework**, no build step for PHP
+- **Static analysis / lint**: Mago (lint + analyze) and PHPStan; Rector for automated refactors
 
 ## Testing & QA
 

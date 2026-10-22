@@ -15,13 +15,17 @@ Define all configuration parameters, environment variables, and deployment setti
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
 | `SERVER_NAME` | No | `http://localhost:8080` | FrankenPHP server name/bind |
+| `URI_SELF` | Yes | — | Canonical base URL (confirmation/cancellation/unsubscribe links) |
+| `SECRET_KEY` | Yes | — | HMAC secret for token generation (`openssl rand -hex 32`) |
 | `SENTRY_DSN` | No | — | Sentry error tracking DSN |
-| `SMTP_HOST` | No | — | SMTP server hostname |
-| `SMTP_PORT` | No | — | SMTP server port |
+| `SMTP_HOST` | No | `localhost` | SMTP server hostname |
+| `SMTP_PORT` | No | `587` | SMTP server port |
 | `SMTP_USER` | No | — | SMTP username |
-| `SMTP_PASS` | No | — | SMTP password |
-| `SMTP_FROM` | No | — | From email address for newsletters |
-| `AUTH_KEY` | No | — | HMAC secret key for token generation |
+| `SMTP_PASSWORD` | No | — | SMTP password |
+| `SMTP_ENCRYPTION` | No | `tls` (STARTTLS) | tls/ssl |
+| `SMTP_ALLOW_SELF_SIGNED` | No | disabled | Accept self-signed TLS certs (strict opt-in) |
+| `EMAIL_FROM` | No | `noreply@example.com` | From email address for newsletters |
+| `EMAIL_REPLY_TO` | No | `noreply@example.com` | Reply-To address |
 
 ### Configuration files
 
@@ -47,6 +51,6 @@ The SQLite database lives at `data/database.sqlite3`, determined by `config/data
 ## Security Considerations
 
 - SMTP credentials are read from environment variables, never hardcoded.
-- `AUTH_KEY` should be a long random string for HMAC signing.
+- `SECRET_KEY` should be a long random string for HMAC signing.
 - SQLite database file should have restricted file permissions (0600).
 - `.env` is in `.gitignore` and should never be committed.
