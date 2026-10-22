@@ -143,18 +143,18 @@
 
 ### Phase 7: Testing Infrastructure
 
-- [ ] PHPUnit configuration (phpunit.xml.dist).
-- [ ] Unit tests for Models layer.
-- [ ] Unit tests for Data layer (DAOs).
-- [ ] Unit tests for Adapters.
-- [ ] Unit tests for Components.
-- [ ] E2E tests for subscription flow.
+- [x] PHPUnit configuration (phpunit.xml.dist).
+- [x] Unit tests for Models layer.
+- [x] Unit tests for Data layer (DAOs).
+- [x] Unit tests for Adapters.
+- [x] Unit tests for Components.
+- [x] E2E tests for subscription flow.
 
 ### Phase 8: Quality Gates
 
-- [ ] PHPStan or Psalm static analysis.
-- [ ] PHP CodeSniffer (PHPCS) for style.
-- [ ] GitHub Actions CI pipeline.
+- [x] PHPStan static analysis (plus Mago lint/analyze).
+- [x] Style checking via Mago lint (superseded the PHPCS plan).
+- [x] GitHub Actions CI pipeline (`.github/workflows/ci.yml`).
 - [ ] Security scanning.
 
 ### Phase 9: Enhancements
