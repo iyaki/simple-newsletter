@@ -2,7 +2,7 @@
 
 A service that converts Atom and RSS feeds into email newsletters. Readers subscribe to any feed via email, making feed content accessible without an RSS reader.
 
-Built with [FrankenPHP](https://frankenphp.dev/), PHP 8.3+ (production image runs PHP 8.5), SQLite.
+Built with [FrankenPHP](https://frankenphp.dev/), PHP 8.5, SQLite.
 
 ## Features
 

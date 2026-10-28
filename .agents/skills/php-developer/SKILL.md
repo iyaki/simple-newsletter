@@ -7,7 +7,7 @@ description: PHP coding conventions and architecture patterns for this project.
 
 ## Project Conventions
 
-- **PHP version**: 8.3 (see Dockerfile)
+- **PHP version**: 8.5 (see Dockerfile)
 - **Strict types**: `declare(strict_types=1)` in every file.
 - **Framework**: None — vanilla PHP with FrankenPHP.
 - **Autoload**: PSR-4, namespace `SimpleNewsletter\`, root `libs/`.

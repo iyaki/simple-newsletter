@@ -164,7 +164,7 @@ Manual DI via `final class Container` (no framework, no container-interop). Publ
 
 ## Runtime/Tooling Preferences
 
-- **Runtime**: PHP 8.3+ via FrankenPHP (Caddy embedded; prod/dev images are php8.5)
+- **Runtime**: PHP 8.5+ via FrankenPHP
 - **Package manager**: Composer
 - **Dev tooling**: `intelephense` (PHP language server) via npm (in package.json)
 - **Database**: SQLite3 via PDO (in-memory for tests)
