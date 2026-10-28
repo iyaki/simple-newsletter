@@ -1,5 +1,6 @@
 <?php declare(strict_types=1);
-require __DIR__ . '/serve-markdown.php'; ?>
+require __DIR__ . '/serve-markdown.php';
+\header('Link: </.well-known/api-catalog>; rel="api-catalog", </api-spec.yaml>; rel="service-desc", <#docs>; rel="service-doc", </api-spec.yaml>; rel="describedby"'); ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
