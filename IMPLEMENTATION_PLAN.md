@@ -8,7 +8,7 @@
 
 | System/Subsystem | Specs | Modules | Current State |
 |---|---|---|---|
-| Landing page | `specs/vision-goals.md` | `public/index.php` | Implemented |
+| Landing page | `specs/vision-goals.md` | `public/index.php`, `public/serve-markdown.php` (serves `index.md` for `Accept: text/markdown`) | Implemented |
 | Subscription flow | `specs/subscription-flow.md` | `public/v1/subscriptions/index.php`, `libs/Models/Subscriptions.php`, `libs/Data/SubscriptionsDAO.php` | Implemented |
 | Subscription confirmation | `specs/subscription-flow.md` | `public/v1/subscriptions/confirmation/index.php`, `libs/Models/Subscriptions.php` | Implemented |
 | Subscription cancellation | `specs/subscription-flow.md` | `public/v1/subscriptions/cancellation/index.php`, `libs/Models/Subscriptions.php` | Implemented |
