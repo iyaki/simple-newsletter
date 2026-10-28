@@ -2,5 +2,10 @@
 
 SCRIPTPATH=$(dirname "$(realpath "$0")")
 
-docker build --tag ghcr.io/iyaki/simple-newsletter:latest --target production ${SCRIPTPATH}/.. &&
-docker push ghcr.io/iyaki/simple-newsletter:latest
+IMAGE=ghcr.io/iyaki/simple-newsletter
+
+podman build --tag $IMAGE:latest \
+	--cache-from $IMAGE \
+	--cache-to $IMAGE \
+	--target production ${SCRIPTPATH}/.. &&
+podman push $IMAGE:latest
