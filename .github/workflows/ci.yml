@@ -8,6 +8,9 @@ on:
     - cron: '0 6 * * 1'  # Weekly mutation testing on Monday 6AM
   workflow_dispatch:  # Manual trigger
 
+permissions:
+  contents: read
+
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
