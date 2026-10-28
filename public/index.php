@@ -21,8 +21,7 @@ require __DIR__ . '/serve-markdown.php';
     <meta name="twitter:title" content="Simple Newsletter - RSS & Atom to Email">
     <meta name="twitter:description" content="Convert RSS or Atom feeds into email newsletters. Free, privacy-friendly, double opt-in. No account required.">
 
-    <link rel="preload" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css"></noscript>
+    <?php require __DIR__ . '/styles.inc.php'; ?>
 
     <link
         rel="icon"
@@ -222,6 +221,6 @@ require __DIR__ . '/serve-markdown.php';
         <p style="margin: 0.5em 0 0; font-size: 0.9em;">If you find it useful, you can <a href="https://github.com/sponsors/iyaki" title="Support Simple Newsletter on GitHub Sponsors">support the project on GitHub Sponsors</a>.</p>
         <p style="margin: 0">Made with 🧉 by <a href="https://iyaki.ar">iyaki</a></p>
     </footer>
-    <script data-goatcounter="https://simple-newsletter.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+    <script data-goatcounter="https://simple-newsletter.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 </body>
 </html>
