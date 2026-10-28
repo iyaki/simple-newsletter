@@ -1,4 +1,5 @@
-<?php declare(strict_types=1); ?>
+<?php declare(strict_types=1);
+require __DIR__ . '/serve-markdown.php'; ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>

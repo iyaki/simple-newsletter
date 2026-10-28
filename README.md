@@ -9,7 +9,7 @@ Built with [FrankenPHP](https://frankenphp.dev/), PHP 8.5, SQLite.
 - **Double opt-in subscriptions** - Users confirm via email before receiving newsletters
 - **Automatic delivery** - Scheduled cron job fetches and sends new posts automatically
 - **Multiple response formats** - JSON for APIs, HTML for browser forms, redirects for UX
-- **Content negotiation** - Automatic `Accept` header handling
+- **Content negotiation** - Automatic `Accept` header handling (JSON/HTML in the API; `text/markdown` on `/`, `/terms/`, `/privacy/` for AI agents)
 - **Self-hosted** - Single container deployment, no external dependencies
 
 ## Spec-Driven Development

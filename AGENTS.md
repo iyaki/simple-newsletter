@@ -69,7 +69,7 @@ Container.php (manual DI)      ← top-level wiring
 
 No framework router. FrankenPHP serves the filesystem directly:
 
-- `GET /` → `public/index.php` (landing page)
+- `GET /` → `public/index.php` (landing page; serves `index.md` with `Content-Type: text/markdown` when the request accepts `text/markdown` — same for `/terms/` and `/privacy/` via `public/serve-markdown.php`)
 - `GET|POST /v1/subscriptions/` → `public/v1/subscriptions/index.php` (query: uri, email, return, redirect)
 - `GET /v1/subscriptions/confirmation/` → confirmation handler (query: uri, email, token)
 - `GET /v1/subscriptions/cancellation/` → cancellation handler (query: uri, email, token)
