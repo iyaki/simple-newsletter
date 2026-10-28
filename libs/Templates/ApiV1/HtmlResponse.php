@@ -38,6 +38,8 @@ final readonly class HtmlResponse implements ResponseInterface
             )
             : '';
 
+        $styles = '<style>' . (\file_get_contents(\dirname(__DIR__, 3) . '/public/assets/water.min.css') ?: '') . '</style>';
+
         return <<<HTML
             <!DOCTYPE html>
             <html lang="en">
@@ -47,7 +49,7 @@ final readonly class HtmlResponse implements ResponseInterface
                 <meta name="viewport" content="width=device-width, initial-scale=1">
                 <meta name="author" content="Ivan Yaki">
                 <meta name="description" content="Simple Atom and RSS feeds to newsletter subscription service">
-                <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css">
+                {$styles}
                 <link
                     rel="icon"
                     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📨</text></svg>"
