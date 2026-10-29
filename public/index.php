@@ -23,10 +23,8 @@ require __DIR__ . '/serve-markdown.php';
 
     <?php require __DIR__ . '/styles.inc.php'; ?>
 
-    <link
-        rel="icon"
-        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📨</text></svg>"
-    />
+    <link rel="icon" href="/favicon.ico" sizes="48x48">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <style>
         :target {
             scroll-margin-block: 5ex;
