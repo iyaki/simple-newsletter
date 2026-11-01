@@ -1,4 +1,4 @@
-FROM dunglas/frankenphp:1.13.2-php8.5-trixie AS dependencies
+FROM dunglas/frankenphp:1.13.3-php8.5-trixie AS dependencies
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
@@ -41,7 +41,7 @@ RUN COMPOSER_ALLOW_SUPERUSER=1 /usr/bin/composer install \
 	--classmap-authoritative \
 	--no-dev
 
-FROM dunglas/frankenphp:1.13.2-php8.5-alpine AS production
+FROM dunglas/frankenphp:1.13.4-php8.5-alpine AS production
 
 LABEL org.opencontainers.image.source=https://github.com/iyaki/simple-newsletter
 
