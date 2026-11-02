@@ -21,7 +21,7 @@
         "laminas/laminas-http": "^2.19",
         "phpmailer/phpmailer": "^7.0",
         "sentry/sentry": "^4.7",
-        "symfony/html-sanitizer": "^7.0"
+        "symfony/html-sanitizer": "^8.1"
     },
     "require-dev": {
         "pestphp/pest": "^3.0",
