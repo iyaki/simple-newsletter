@@ -30,7 +30,7 @@
         "carthage-software/mago": "^1.30.0",
         "dg/bypass-finals": "^1.10",
         "mockery/mockery": "^1.6",
-        "symfony/http-client": "^7.0",
+        "symfony/http-client": "^8.1",
         "cebe/php-openapi": "^1.8",
         "rector/rector": "^2.4",
         "phpstan/phpstan-mockery": "^2.0",
