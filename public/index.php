@@ -193,8 +193,9 @@ require __DIR__ . '/serve-markdown.php';
             </ul>
             <a href="https://editor.swagger.io/?url=https://simple-newsletter.com/api-spec.yaml">OpenAPI API Docs</a>
             <h3>Example HTML Form for publishers</h3>
+            <?php $uriSelf = \getenv('URI_SELF') ?: ''; ?>
             <pre><code><?= htmlentities(<<<HTML
-                <form action="<?= \getenv('URI_SELF') ?>/v1/subscriptions/">
+                <form action="{$uriSelf}/v1/subscriptions/">
                     <input type="hidden" name="uri" value="https://your-domain.com/path/to/feed.xml">
                     <input type="hidden" name="return" value="https://your-domain.com/">
                     <label>
