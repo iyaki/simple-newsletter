@@ -53,6 +53,14 @@ let
   };
 
   frankenphpDev = pkgs.frankenphp.override { php = phpWorker; };
+
+  /* El wrapper de nixpkgs corre composer con SU php (buildEnv base, sin pcov)
+     y exporta su PHP_BINARY/PHP_INI_SCAN_DIR: los scripts de composer que
+     piden cobertura (pest --coverage) quedarían sin driver. Correr el phar
+     directo con el CLI buildEnv. */
+  composerDev = pkgs.writeShellScriptBin "composer" ''
+    exec ${config.languages.php.package}/bin/php ${pkgs.php85Packages.composer}/share/php/composer/bin/composer "$@"
+  '';
 in
 {
   dotenv.disableHint = true;
@@ -76,7 +84,7 @@ in
       extensions = { all, enabled }: with all; enabled ++ [ intl pcov pdo_sqlite ];
       extraConfig = "error_reporting = E_ALL\n";
     };
-    packages.composer = pkgs.php85Packages.composer;
+    packages.composer = composerDev;
   };
 
   languages.javascript = {
