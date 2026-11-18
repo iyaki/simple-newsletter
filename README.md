@@ -39,7 +39,9 @@ See [`RUNBOOK.md`](RUNBOOK.md) for complete deployment and maintenance procedure
 
 ### Quick Deploy
 
- Copy `compose-prod.yaml` and `.env` to the server and create folder `data/`.
+The image is published to `ghcr.io/iyaki/simple-newsletter` by CI on every green `main` push (built with Nix from the `devenv.lock` pin; `scripts/build-push.sh` is the manual path).
+
+Copy `compose-prod.yaml` and `.env` to the server and create folder `data/`.
 
 Service starts and updates with:
 
