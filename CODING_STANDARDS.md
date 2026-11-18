@@ -1,6 +1,6 @@
 # Coding Standards
 
-Rules for writing PHP, tests, and specs in Simple Newsletter. Architecture, commands, and environment gotchas live in `AGENTS.md`.
+Rules for writing PHP, tests, and specs in Simple Newsletter. Architecture lives in `ARCHITECTURE.md`; commands and environment in `README.md` and `RUNBOOK.md`.
 
 ## PHP Mandatory Rules
 
