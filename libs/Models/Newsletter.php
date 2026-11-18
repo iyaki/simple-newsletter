@@ -77,7 +77,7 @@ final readonly class Newsletter
                 // reported), and the watermark advance after the loop avoids
                 // duplicate mail to the recipients who already received it.
                 $lastFailure = $sendFailure;
-                ErrorReporter::report(
+                ErrorReporter::expected(
                     \sprintf(
                         'Delivery to subscriber of %s failed: %s',
                         $feed->getUri(),
