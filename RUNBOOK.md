@@ -142,7 +142,7 @@ docker compose -f compose-prod.yaml start
 
 ```bash
 # Update composer dependencies (in dev environment)
-docker compose exec dev composer update
+devenv shell -- composer update
 
 # Rebuild production image
 docker compose -f compose-prod.yaml build

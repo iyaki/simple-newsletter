@@ -71,15 +71,18 @@ See [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md) for common issues and solutions:
 ## Development
 
 ```bash
-# Start dev environment
-docker compose up
+# Start dev environment (frankenphp worker + mailpit: dev SMTP sink on :1025, UI :8025)
+devenv up
 
-# Run tests
-docker compose exec dev vendor/bin/pest
+# Run unit/integration tests
+devenv shell -- composer test
+
+# Run e2e tests (self-contained: own server on :8082, SMTP mock on :1026)
+devenv shell -- ./scripts/run-e2e-tests.sh
 
 # Send newsletters manually
-docker compose exec dev php /app/bin/send-newsletters.php
-
+devenv shell -- php bin/send-newsletters.php
+```
 
 ## Cleanup
 

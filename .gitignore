@@ -11,3 +11,9 @@ coverage/
 /clover.xml
 /.phpunit.cache/
 /.cache/
+
+# Devenv
+/.devenv/
+.devenv*
+devenv.local.nix
+devenv.local.yaml

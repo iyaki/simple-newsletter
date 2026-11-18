@@ -37,12 +37,13 @@ for i in {1..20}; do
 done
 
 # Create SMTP mock server with proper AUTH LOGIN support
+# mailpit (devenv service) owns 1025; the e2e mock takes 1026.
 cat > /tmp/smtp-mock-with-auth.php << 'SMTPCODE'
 <?php
 declare(strict_types=1);
 file_put_contents('/tmp/smtp-mock.log', "SMTP starting
 ");
-$server = stream_socket_server("tcp://127.0.0.1:1025", $errno, $errstr);
+$server = stream_socket_server("tcp://127.0.0.1:1026", $errno, $errstr);
 if (!$server) { file_put_contents('/tmp/smtp-mock.log', "Failed: $errstr
 ", FILE_APPEND); exit(1); }
 file_put_contents('/tmp/smtp-mock.log', "Listening
@@ -118,8 +119,8 @@ sleep 2
 
 # Wait for SMTP using PHP
 for i in {1..30}; do
-    if php -r 'exit(fsockopen("127.0.0.1",1025) ? 0 : 1);' 2>/dev/null; then
-        echo "   ✓ SMTP mock ready on port 1025"
+    if php -r 'exit(fsockopen("127.0.0.1",1026) ? 0 : 1);' 2>/dev/null; then
+        echo "   ✓ SMTP mock ready on port 1026"
         break
     fi
     sleep 0.5
@@ -132,7 +133,7 @@ export URI_SELF='http://localhost:8082'
 # The e2e feed server is a loopback fixture: lift the feed egress policy.
 export NEWSLETTER_ALLOW_PRIVATE_FEEDS='1'
 export SMTP_HOST='127.0.0.1'
-export SMTP_PORT='1025'
+export SMTP_PORT='1026'
 export SMTP_ENCRYPTION=''
 export SMTP_ALLOW_SELF_SIGNED='1'
 export EMAIL_FROM='test@test.localhost'
@@ -145,7 +146,7 @@ export SECRET_KEY='test-e2e-secret-key-32chars!'
 export SERVER_NAME='http://localhost:8082'
 export URI_SELF='http://localhost:8082'
 export SMTP_HOST='127.0.0.1'
-export SMTP_PORT='1025'
+export SMTP_PORT='1026'
 export SMTP_ENCRYPTION=''
 export SMTP_USER=''
 export SMTP_PASSWORD=''

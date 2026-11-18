@@ -6,6 +6,11 @@ namespace SimpleNewsletter;
 
 use SimpleNewsletter\Components\ErrorReporter;
 
+// Host CLI (devenv) no tiene auto_prepend_file: el bootstrap es explícito.
+// En prod corre dos veces (prepend + require): el autoload de composer es
+// idempotente y el re-init de Sentry reemplaza el cliente, sin efecto.
+require __DIR__ . '/../libs/bootstrap.php';
+
 (static function (): never {
     // ponytail: one delivery run at a time; a run outliving the crontab hour
     // must not duplicate the whole batch against the same watermark snapshot.

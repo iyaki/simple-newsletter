@@ -1,0 +1,58 @@
+---
+name: devenv
+
+# Valida que el entorno nix evalúe y que el stack (frankenphp worker + mailpit
+# + probe) bootée. Sólo corre cuando cambian archivos del entorno.
+"on":
+  pull_request:
+    paths:
+      - "devenv.nix"
+      - "devenv.yaml"
+      - "devenv.lock"
+      - ".envrc"
+      - ".caddy/Caddyfile-dev"
+      - ".php/*"
+  push:
+    branches:
+      - main
+    paths:
+      - "devenv.nix"
+      - "devenv.yaml"
+      - "devenv.lock"
+      - ".envrc"
+      - ".caddy/Caddyfile-dev"
+      - ".php/*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: devenv-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  devenv:
+    name: Devenv test (frankenphp + mailpit + probe)
+    runs-on: ubuntu-latest
+    # sin CACHIX_AUTH_TOKEN en el repo, el job queda pull-only (más lento,
+    # sigue funcionando); con el secret, publica el closure nuevo en noteb00k
+    env:
+      CACHIX_AUTH_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - uses: cachix/install-nix-action@v31.11.2
+
+      - uses: cachix/cachix-action@v16
+        with:
+          name: noteb00k
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          extraPullNames: devenv
+
+      - name: Install devenv.sh
+        run: nix profile add "github:cachix/devenv/$(jq -r '.nodes.devenv.locked.rev' devenv.lock)"
+
+      - name: Devenv test
+        run: timeout 60m devenv test

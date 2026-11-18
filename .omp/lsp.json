@@ -1,0 +1,21 @@
+{
+  "servers": {
+    "intelephense": {
+      "command": "intelephense",
+      "args": ["--stdio"],
+      "fileTypes": [".php"],
+      "rootMarkers": ["composer.json"]
+    },
+    "phpactor": {
+      "disabled": true
+    },
+    "nixd": {
+      "rootMarkers": [
+        "devenv.nix",
+        "flake.nix",
+        "default.nix",
+        "shell.nix"
+      ]
+    }
+  }
+}

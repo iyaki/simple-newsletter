@@ -1,0 +1,11 @@
+---
+inputs:
+  nixpkgs:
+    url: github:cachix/devenv-nixpkgs/rolling
+
+# php85-embed+zts / frankenphp base closures were pushed to noteb00k by the
+# directorio-marcial CI (same locked nixpkgs rev); devenv's own binaries in devenv.
+cachix:
+  pull:
+    - devenv
+    - noteb00k
