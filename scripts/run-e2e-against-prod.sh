@@ -1,9 +1,13 @@
 #!/usr/bin/env bash
-# Runs the e2e test suite against the app built from the `production` stage
-# of ./Dockerfile (FrankenPHP + Caddy + opcache JIT + production.ini).
+# Runs the e2e test suite against the Nix OCI production image
+# (infrastructure/image.nix, built from the devenv.lock pin — FrankenPHP +
+# Caddy + opcache JIT + production.ini). The image must be loadable: it is
+# built on demand via scripts/build-image.sh (requires devenv shell), or
+# pre-loaded by CI as simple-newsletter:e2e.
 #
-# Pre-requisites: docker (>= 23) with `docker compose`. The runner itself
-# runs on the host; only the app container is Docker.
+# Pre-requisites: docker (>= 23) with `docker compose`; devenv shell for the
+# on-demand image build. The runner itself runs on the host; only the app
+# container is Docker.
 #
 # Networking:
 # - The app container reaches the host (feed + SMTP servers) via
@@ -126,8 +130,15 @@ if [ -z "${HOST_IP:-}" ]; then
     export HOST_IP
     echo "=== 5. Detected HOST_IP=$HOST_IP (for compose extra_hosts) ==="
 fi
-echo "=== 6. Building & starting production container ==="
-docker compose -f compose-e2e.yaml up -d --build
+echo "=== 6. Loading Nix OCI production image ==="
+if ! docker image inspect simple-newsletter:e2e >/dev/null 2>&1; then
+    # build-image.sh imprime SÓLO la ruta del tarball por stdout (el exit
+    # code viaja entero); requiere devenv shell.
+    TARBALL="$(devenv shell -- scripts/build-image.sh)"
+    docker load <"$TARBALL"
+fi
+docker tag simple-newsletter:latest simple-newsletter:e2e
+docker compose -f compose-e2e.yaml up -d
 
 READY=0
 for i in {1..30}; do
