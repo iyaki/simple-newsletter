@@ -1,0 +1,9 @@
+{
+	frankenphp
+	admin off
+}
+
+:{$CADDY_HTTP_PORT:8080} {
+	root * {$APP_ROOT}/public
+	php_server
+}

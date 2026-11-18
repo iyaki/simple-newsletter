@@ -78,22 +78,20 @@ No framework router. FrankenPHP serves the filesystem directly:
 ## Development Commands
 
 ```bash
-# Start dev environment (with auto-reload)
-docker compose up
+# Start dev environment (frankenphp worker + mailpit: dev SMTP sink on :1025, UI :8025)
+devenv up
 
 # Run unit/integration tests
-docker compose exec dev vendor/bin/pest
+devenv shell -- composer test
 
-# Run e2e tests (requires dev server running on localhost:8080)
-./scripts/run-e2e-tests.sh
+# Run e2e tests (self-contained: own server on :8082, SMTP mock on :1026)
+devenv shell -- ./scripts/run-e2e-tests.sh
 
-# Run CLI delivery script (also triggered hourly by cron)
-docker exec simple-newsletter php /app/bin/send-newsletters.php
+# Run CLI delivery script (hourly cron in prod)
+devenv shell -- php bin/send-newsletters.php
 
-# Build production image
+# Build/deploy production image (unchanged)
 docker compose -f compose-prod.yaml build
-
-# Deploy production
 docker compose -f compose-prod.yaml up --pull always -d
 ```
 
@@ -168,7 +166,7 @@ Manual DI via `final class Container` (no framework, no container-interop). Publ
 - **Package manager**: Composer
 - **Dev tooling**: `intelephense` (PHP language server) via npm (in package.json)
 - **Database**: SQLite3 via PDO (in-memory for tests)
-- **Container**: Docker with multi-stage builds (devcontainer for VS Code)
+- **Container**: devenv.sh (nix) is the primary dev environment (devcontainer retained as fallback); Docker multi-stage builds remain for production
 - **CI**: Dependabot for monthly dependency updates
 - **No framework**, no build step for PHP
 - **Static analysis / lint**: Mago (lint + analyze) and PHPStan; Rector for automated refactors
@@ -176,7 +174,7 @@ Manual DI via `final class Container` (no framework, no container-interop). Publ
 ## Testing & QA
 
 - **Framework**: Pest (PHPUnit-based) with 100+ unit/integration tests; e2e tests with Symfony HTTP Client
-- **Run**: `vendor/bin/pest` (unit), `./scripts/run-e2e-tests.sh` (e2e, requires running dev server)
+- **Run**: `devenv shell -- composer test` (unit/integration), `devenv shell -- ./scripts/run-e2e-tests.sh` (e2e, self-contained)
 - **Structure**: `tests/` mirrors `libs/`; e2e tests in `tests/E2e/`
 - **Config**: `phpunit.xml.dist` excludes `tests/E2e/` from default suite; e2e uses separate testsuite
 - **Database**: In-memory SQLite for unit tests; `data/test-e2e.db` for e2e

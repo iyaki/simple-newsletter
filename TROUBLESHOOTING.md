@@ -72,7 +72,6 @@ chown -R www-data:www-data data/
 ### Docker container won't start
 **Symptom:** Container exits immediately or fails to start  
 **Solution:** Check logs: `docker compose logs`. Common causes:
-- Port already in use (change `80:80` mapping in `compose.yaml`)
 - Missing `.env` file or required variables
 - Volume mount permissions
 
@@ -80,16 +79,16 @@ chown -R www-data:www-data data/
 **Symptom:** Unit or integration tests fail unexpectedly  
 **Solution:** Run tests in clean environment:
 ```bash
-docker compose exec dev vendor/bin/pest
+devenv shell -- composer test
 ```
-If e2e tests fail, ensure dev server is running on `localhost:8080`:
+The e2e runner is self-contained (own server on :8082, SMTP mock on :1026):
 ```bash
-./scripts/run-e2e-tests.sh
+devenv shell -- ./scripts/run-e2e-tests.sh
 ```
 
 ### Port conflicts
 **Symptom:** Address already in use error  
-**Solution:** Change the host port mapping in `compose.yaml` from `80:80` to `8080:80` or another available port
+**Solution:** The dev frankenphp worker port is allocated dynamically — check it with `devenv processes status`
 
 ### FrankenPHP bootstrap issues
 **Symptom:** HTTP endpoints fail but CLI works  
