@@ -11,7 +11,7 @@ The project follows **Spec-Driven Development (SDD)**: every feature has a corre
 ### Layer Stack (dependencies flow upward)
 
 ```
-Data/ (DTOs + DAOs)          ← stdlib only (\\PDO)
+Data/ (DTOs + DAOs)          ← stdlib only (\PDO)
   ↑
 Templates/ (rendering)        ← Data DTOs + EndUserException
   ↑
@@ -30,50 +30,18 @@ Container.php (manual DI)      ← top-level wiring
 
 **Delivery** (hourly cron): `bin/send-newsletters.php` → `Container::delivery()` → `NewsletterDelivery::sendScheduled()` → `Feeds::getScheduled()` → `FeedImporterLaminas::fetchWithPosts()` → `Newsletter::sendPostsToSubscribers()` per subscriber → `Feeds::updateLastSentPost()`
 
-### Interface/Implementation Split
+`ResponderHttp` is a standalone HTTP responder with no interface.
 
-| Interface | Implementations |
-|-----------|----------------|
-| `Templates\ApiV1\ResponseInterface` | `JsonResponse`, `HtmlResponse`, `RedirectResponse` |
-| `Templates\Email\EmailInterface` | `Newsletter`, `SubscriptionConfirmation` |
+## Database Schema
 
-`ResponderHttp` is a standalone HTTP responder with no interface. EndUserException is the user-facing error signal — caught in HTTP entrypoints and rendered as error responses.
-
-### Database Schema (actual from migrations)
-
-**feeds**: `uri` (TEXT PK), `title` (TEXT NOT NULL), `link` (TEXT nullable), `last_update` (INTEGER — Unix timestamp), `trigger_hour` (INTEGER 0-23 for load distribution), `last_sent_post_uri` (TEXT nullable). Index on `trigger_hour`.
-
-**subscriptions**: `feed_uri` (TEXT NOT NULL → FK feeds.uri), `email` (TEXT NOT NULL), `active` (INTEGER NOT NULL boolean). UNIQUE(feed_uri, email). Index on `feed_uri`.
-
-> **Note**: The specs describe an evolved schema not yet migrated (subscriptions: token, confirmed, created_at, updated_at; feeds: trigger_hour missing, last_update semantics, link nullability). The 6-month-old migrations are the ground truth.
-
-## Key Directories
-
-| Path | Purpose |
-|------|---------|
-| `public/` | HTTP entrypoints — served directly by FrankenPHP (no router) |
-| `public/v1/subscriptions/` | API handlers: `index.php` (subscribe), `confirmation/`, `cancellation/` |
-| `bin/` | CLI entrypoints — `send-newsletters.php` (cron trigger) |
-| `libs/Models/` | Domain orchestration — `Feeds`, `Subscriptions`, `Newsletter` |
-| `libs/Components/` | Utilities — `Auth`, `RateLimiter`, `ErrorReporter`, `EndUserException` |
-| `libs/Adapters/` | I/O implementations — `FeedImporterLaminas`, `SenderPHPMailer`, `ResponderHttp` |
-| `libs/Data/` | DAOs and DTOs — `FeedsDAO`, `SubscriptionsDAO`, `Feed`, `Post`, `Subscription` |
-| `libs/Templates/` | Renderers — `ApiV1/` (JSON/HTML/Redirect), `Email/` (Newsletter, SubscriptionConfirmation) |
-| `migrations/` | Sequential SQL schema migrations (00-setup, 01-feeds, 02-subscriptions, 99-optimize) |
-| `infrastructure/` | Nix OCI production image derivation (`image.nix`, built from the `devenv.lock` pin) |
-| `specs/` | Technical specs (authoritative design reference) |
-| `config/` | `database.php` — returns PDO DSN array |
-| `scripts/` | Build and deploy helpers |
-| `data/` | SQLite database file (gitignored) |
+The specs describe an evolved schema not yet migrated (subscriptions: token, confirmed, created_at, updated_at; feeds: trigger_hour missing, last_update semantics, link nullability). The migrations in `migrations/` are the ground truth, not the specs.
 
 ## HTTP Routing
 
-No framework router. FrankenPHP serves the filesystem directly:
+No framework router: FrankenPHP serves the filesystem under `public/` directly.
 
-- `GET /` → `public/index.php` (landing page; serves `index.md` with `Content-Type: text/markdown` when the request accepts `text/markdown` — same for `/terms/` and `/privacy/` via `public/serve-markdown.php`)
-- `GET|POST /v1/subscriptions/` → `public/v1/subscriptions/index.php` (query: uri, email, return, redirect)
-- `GET /v1/subscriptions/confirmation/` → confirmation handler (query: uri, email, token)
-- `GET /v1/subscriptions/cancellation/` → cancellation handler (query: uri, email, token)
+- Landing/terms/privacy serve `index.md` with `Content-Type: text/markdown` when the request accepts it (via `public/serve-markdown.php`); `public/index.php` is the landing page with the subscription form
+- API handlers under `public/v1/subscriptions/`: `index.php` (subscribe), `confirmation/`, `cancellation/`
 - Content-negotiation via `Accept` header (`application/json` → JSON, else HTML); redirect mode on `redirect` param
 
 ## Development Commands
@@ -87,9 +55,6 @@ devenv shell -- composer test
 
 # Run e2e tests (self-contained: own server on :8082, SMTP mock on :1026)
 devenv shell -- ./scripts/run-e2e-tests.sh
-
-# Run CLI delivery script (hourly cron in prod)
-devenv shell -- php bin/send-newsletters.php
 
 # Build production image locally (OCI tarball from the devenv.lock pin)
 devenv shell -- scripts/build-image.sh
@@ -117,24 +82,17 @@ docker compose -f compose-prod.yaml up --pull always -d
 
 ### Dependency Injection
 
-Manual DI via `final class Container` (no framework, no container-interop). Public factory methods: `subscriptions()`, `responder()`. Private factories with singleton caching:
-- `$database` as `static ?\PDO`
-- `$auth` and `$sender` as `static ?\WeakReference` (allows GC between requests in long-running FrankenPHP)
+Manual DI via `final class Container` (no framework, no container-interop). Singletons: `$database` as `static ?\PDO`; `$auth` and `$sender` as `static ?\WeakReference` — allows GC between requests in long-running FrankenPHP.
 
 ### Error Handling
 
-- `EndUserException extends \Exception` — thrown in Models and Adapters for user-visible errors (invalid URI, bad email, token failure, feed fetch failure)
-- Caught in HTTP entrypoints → rendered as 400 responses
+- `EndUserException extends \Exception` — thrown in Models and Adapters for user-visible errors (invalid URI, bad email, token failure, feed fetch failure); caught in HTTP entrypoints and rendered as 400 responses
 - `FeedImporterLaminas` wraps `HttpClientException|FeedException` into `EndUserException`
-- Sentry integration via `SENTRY_DSN` env var (initialized in bootstrap.php)
 
 ### Naming
 
-- Classes: PascalCase, descriptive nouns
-- Methods: camelCase
 - Private factory methods: lowercase snake_case (`emailTemplateFactory()`, `auth()`)
 - DAO methods: `find()`, `new()`, `update()`, `activate()`, `deactivate()`
-- Database columns: snake_case
 - SQL: heredoc syntax
 
 ## Environment Variables
@@ -154,42 +112,23 @@ Manual DI via `final class Container` (no framework, no container-interop). Publ
 
 | File | Role |
 |------|------|
-| `public/index.php` | Landing page with subscription form |
-| `public/v1/subscriptions/index.php` | Subscription handler |
-| `bin/send-newsletters.php` | Cron delivery entrypoint |
-| `libs/Container.php` | Manual DI container wiring |
+| `bin/send-newsletters.php` | Cron delivery entrypoint (hourly in prod) |
 | `libs/bootstrap.php` | Autoload + Sentry init (prepended via php.ini `auto_prepend_file`) |
-| `libs/Models/Subscriptions.php` | Core subscription workflow |
-| `libs/Models/Feeds.php` | Feed retrieval + caching (24h TTL) |
-| `libs/Models/Newsletter.php` | Email composition + sending orchestration |
-| `config/database.php` | Returns SQLite DSN array |
-| `migrations/*.sql` | Schema evolution (sequential, SQLite-compatible) |
-| `specs/` | Authoritative design specs |
+| `libs/Models/Feeds.php` | Feed retrieval + caching (24h TTL); broken feeds go to quarantine |
 
 ## Runtime/Tooling Preferences
 
-- **Runtime**: PHP 8.5+ via FrankenPHP
-- **Package manager**: Composer
-- **Dev tooling**: `intelephense` (PHP language server) via npm (in package.json)
-- **Database**: SQLite3 via PDO (in-memory for tests)
 - **Container**: devenv.sh (nix) is the primary dev environment (devcontainer retained as fallback); the production image is a Nix-built OCI image (`infrastructure/image.nix`) derived from the same `devenv.lock` pin
-- **CI**: Dependabot for monthly dependency updates
-- **No framework**, no build step for PHP
-- **Static analysis / lint**: Mago (lint + analyze) and PHPStan; Rector for automated refactors
 
 ## Testing & QA
 
 - **Framework**: Pest (PHPUnit-based) with 100+ unit/integration tests; e2e tests with Symfony HTTP Client
-- **Run**: `devenv shell -- composer test` (unit/integration), `devenv shell -- ./scripts/run-e2e-tests.sh` (e2e, self-contained)
-- **Structure**: `tests/` mirrors `libs/`; e2e tests in `tests/E2e/`
-- **Config**: `phpunit.xml.dist` excludes `tests/E2e/` from default suite; e2e uses separate testsuite
-- **Database**: In-memory SQLite for unit tests; `data/test-e2e.db` for e2e
-- **Patterns**: DAOs test in-memory SQLite; Models mock I/O; e2e tests exercise full HTTP stack
+- **Structure**: `tests/` mirrors `libs/`; e2e tests in `tests/E2e/` (own suite, not in the default run)
+- **Database**: In-memory SQLite for unit/integration tests; `data/test-e2e.db` for e2e
+- **Patterns**: DAOs test in-memory SQLite; Models mock I/O; e2e tests exercise the full HTTP stack
 
 ## Spec-Driven Development Workflow
 
-1. **Read** the relevant spec in `specs/` before any feature work. Use `specs/README.md` as index.
-2. Specs describe intent, not implementation — verify reality in the codebase
-3. Implement to spec patterns and data shapes
-4. Update specs only when asked
-5. When writing specs, do **not** follow TDD — write the spec first and stop
+1. Specs describe intent, not implementation — verify reality in the codebase
+2. Update specs only when asked
+3. When writing specs, do **not** follow TDD — write the spec first and stop
