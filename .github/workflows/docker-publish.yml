@@ -1,0 +1,78 @@
+---
+name: publish docker image
+
+"on":
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+
+# El publish sólo corre en main/tags: tags v* y workflow_dispatch pasan
+# siempre; el workflow_run sólo con CI verde en main (un run rojo no publica).
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    name: Build and push production image
+    runs-on: ubuntu-latest
+    # La variante prod de php85 (embed+zts sin xdebug, ini prod) se compila
+    # desde fuente si el caché noteb00k no la cubre (~1 h en el runner);
+    # con caché, minutos.
+    timeout-minutes: 150
+    if: ${{ github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main') }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - uses: cachix/install-nix-action@v31.11.2
+
+      # token de cachix (noteb00k): sin secret, el job queda pull-only
+      - uses: cachix/cachix-action@v16
+        with:
+          name: noteb00k
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          extraPullNames: devenv
+
+      - name: Install devenv.sh
+        # rev de devenv.lock: mismo CLI pineado que devenv.yml
+        run: nix profile add "github:cachix/devenv/$(jq -r '.nodes.devenv.locked.rev' devenv.lock)"
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3.7.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Imagen OCI derivada del pin de nixpkgs de devenv: el staging
+      # (composer --no-dev) lo arma scripts/build-image.sh
+      - name: Build OCI image
+        run: |
+          TARBALL=$(devenv shell scripts/build-image.sh)
+          echo "TARBALL=$TARBALL" >> "$GITHUB_ENV"
+          docker load < "$TARBALL"
+
+      - name: Push image
+        env:
+          IMAGE: ghcr.io/${{ github.repository_owner }}/simple-newsletter
+        run: |
+          docker tag simple-newsletter:latest "$IMAGE:sha-$(git rev-parse --short HEAD)"
+          docker push "$IMAGE:sha-$(git rev-parse --short HEAD)"
+          if [ "$GITHUB_REF" = "refs/heads/main" ]; then
+            docker tag simple-newsletter:latest "$IMAGE:latest"
+            docker push "$IMAGE:latest"
+          elif [ "${GITHUB_REF#refs/tags/}" != "$GITHUB_REF" ]; then
+            docker tag simple-newsletter:latest "$IMAGE:${GITHUB_REF#refs/tags/}"
+            docker push "$IMAGE:${GITHUB_REF#refs/tags/}"
+          fi
+
+      # Digest publicado: el deploy puede pinnear por él
+      - name: Show published digest
+        env:
+          IMAGE: ghcr.io/${{ github.repository_owner }}/simple-newsletter
+        run: docker buildx imagetools inspect "$IMAGE:sha-$(git rev-parse --short HEAD)" | head -n 5

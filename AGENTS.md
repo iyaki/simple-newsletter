@@ -60,6 +60,7 @@ Container.php (manual DI)      ← top-level wiring
 | `libs/Data/` | DAOs and DTOs — `FeedsDAO`, `SubscriptionsDAO`, `Feed`, `Post`, `Subscription` |
 | `libs/Templates/` | Renderers — `ApiV1/` (JSON/HTML/Redirect), `Email/` (Newsletter, SubscriptionConfirmation) |
 | `migrations/` | Sequential SQL schema migrations (00-setup, 01-feeds, 02-subscriptions, 99-optimize) |
+| `infrastructure/` | Nix OCI production image derivation (`image.nix`, built from the `devenv.lock` pin) |
 | `specs/` | Technical specs (authoritative design reference) |
 | `config/` | `database.php` — returns PDO DSN array |
 | `scripts/` | Build and deploy helpers |
@@ -90,8 +91,13 @@ devenv shell -- ./scripts/run-e2e-tests.sh
 # Run CLI delivery script (hourly cron in prod)
 devenv shell -- php bin/send-newsletters.php
 
-# Build/deploy production image (unchanged)
-docker compose -f compose-prod.yaml build
+# Build production image locally (OCI tarball from the devenv.lock pin)
+devenv shell -- scripts/build-image.sh
+
+# Build+push production image to GHCR (manual path; CI publishes on green main)
+devenv shell -- scripts/build-push.sh
+
+# Deploy production (pulls ghcr.io/iyaki/simple-newsletter:latest)
 docker compose -f compose-prod.yaml up --pull always -d
 ```
 
@@ -166,7 +172,7 @@ Manual DI via `final class Container` (no framework, no container-interop). Publ
 - **Package manager**: Composer
 - **Dev tooling**: `intelephense` (PHP language server) via npm (in package.json)
 - **Database**: SQLite3 via PDO (in-memory for tests)
-- **Container**: devenv.sh (nix) is the primary dev environment (devcontainer retained as fallback); Docker multi-stage builds remain for production
+- **Container**: devenv.sh (nix) is the primary dev environment (devcontainer retained as fallback); the production image is a Nix-built OCI image (`infrastructure/image.nix`) derived from the same `devenv.lock` pin
 - **CI**: Dependabot for monthly dependency updates
 - **No framework**, no build step for PHP
 - **Static analysis / lint**: Mago (lint + analyze) and PHPStan; Rector for automated refactors

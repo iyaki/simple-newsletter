@@ -144,8 +144,8 @@ docker compose -f compose-prod.yaml start
 # Update composer dependencies (in dev environment)
 devenv shell -- composer update
 
-# Rebuild production image
-docker compose -f compose-prod.yaml build
+# Publish updated image (CI does this automatically on green main; manual path)
+devenv shell -- scripts/build-push.sh
 
 # Redeploy
 docker compose -f compose-prod.yaml up --wait --pull always
@@ -219,7 +219,7 @@ docker exec simple-newsletter cp /backup/db-YYYY-MM-DD.sqlite3 /app/data/databas
 
 # Redeploy previous version
 git checkout <previous-commit>
-docker compose -f compose-prod.yaml build
+devenv shell -- scripts/build-push.sh
 docker compose -f compose-prod.yaml up --wait --pull always
 ```
 

@@ -1,0 +1,63 @@
+---
+name: update devenv
+
+# Dependabot no tiene ecosistema nix/devenv: este workflow refresca
+# devenv.lock (nixpkgs rolling, módulos devenv) y abre un PR con los cambios.
+"on":
+  schedule:
+    - cron: "0 3 1 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31.11.2
+        with:
+          extra_nix_config: |
+            extra-substituters = https://devenv.cachix.org https://cache.nixos.org
+            extra-trusted-public-keys = devenv.cachix.org-1:w1cLUi8dv3hnoSPGAuibQv+f9TZLr6cv/Hm9XgU50cw= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
+
+      - name: Update devenv.lock
+        id: update
+        run: |
+          # El updater corre con write-token: se ejecuta el rev YA revisado en
+          # devenv.lock, nunca un ref mutable upstream (`latest` puede
+          # re-apuntarse sin commits en este repo).
+          devenv_rev="$(jq -r '.nodes.devenv.locked.rev' devenv.lock)"
+          nix run "github:cachix/devenv/${devenv_rev}" -- update
+          if git diff --quiet devenv.lock; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Open PR with updated lock
+        if: steps.update.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v8.1.1
+        with:
+          branch: devenv/update-lock
+          delete-branch: true
+          title: "chore(devenv): update devenv.lock"
+          commit-message: "chore(devenv): update devenv.lock"
+          body: |
+            Refresco mensual de `devenv.lock` (inputs de devenv.yaml: nixpkgs
+            rolling + módulos devenv).
+
+            Revisar especialmente: versión de FrankenPHP/PHP en el diff del
+            lock (security patches de la rolling channel). El bump recompila
+            el closure custom; el gate `devenv test` valida dev y el workflow
+            docker-publish reconstruye la imagen tras CI verde en main.
+          add-paths: devenv.lock

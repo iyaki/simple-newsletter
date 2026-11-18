@@ -17,3 +17,7 @@ coverage/
 .devenv*
 devenv.local.nix
 devenv.local.yaml
+
+# Imagen OCI (nix)
+/.image-staging/
+/result*

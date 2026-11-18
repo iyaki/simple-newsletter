@@ -1,3 +1,6 @@
+# Imagen de desarrollo (devcontainer, target dev-environment). La imagen de
+# producción es OCI-Nix: infrastructure/image.nix vía scripts/build-image.sh —
+# devenv.lock es la única fuente de verdad del runtime de prod.
 FROM dunglas/frankenphp:1.13.3-php8.5-trixie AS dependencies
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
@@ -24,32 +27,3 @@ RUN install-php-extensions xdebug \
 		/var/lib/apt/lists/* \
 		/var/lib/dpkg/info/* \
 		/var/lib/dpkg/status-old
-
-FROM dependencies AS app-compilation
-
-RUN rm -rf /app
-
-COPY ./bin /app/bin
-COPY ./config /app/config
-COPY ./libs /app/libs
-COPY ./public /app/public
-COPY composer.* /app
-
-RUN COMPOSER_ALLOW_SUPERUSER=1 /usr/bin/composer install \
-	--working-dir=/app \
-	--prefer-dist \
-	--classmap-authoritative \
-	--no-dev
-
-FROM dunglas/frankenphp:1.13.4-php8.5-alpine AS production
-
-LABEL org.opencontainers.image.source=https://github.com/iyaki/simple-newsletter
-
-COPY .php/php.ini $PHP_INI_DIR/php.ini
-COPY .php/production.ini $PHP_INI_DIR/conf.d/prod.ini
-
-COPY .caddy/Caddyfile-prod /etc/caddy/Caddyfile
-
-RUN rm -rf /app
-
-COPY --from=app-compilation /app /app
